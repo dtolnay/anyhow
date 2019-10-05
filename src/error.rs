@@ -313,7 +313,9 @@ mod repr_correctness {
     use super::*;
     use std::marker::Unpin;
     use std::mem;
-    use std::sync::{Arc, Mutex};
+    use std::sync::atomic::AtomicBool;
+    use std::sync::atomic::Ordering::SeqCst;
+    use std::sync::Arc;
 
     #[test]
     fn size_of_error() {
@@ -329,7 +331,7 @@ mod repr_correctness {
     #[test]
     fn destructors_work() {
         #[derive(Debug)]
-        struct HasDrop(Box<Arc<Mutex<bool>>>);
+        struct HasDrop(Arc<AtomicBool>);
         impl StdError for HasDrop {}
         impl Display for HasDrop {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -338,16 +340,15 @@ mod repr_correctness {
         }
         impl Drop for HasDrop {
             fn drop(&mut self) {
-                let mut has_dropped = self.0.lock().unwrap();
-                assert!(!*has_dropped);
-                *has_dropped = true;
+                let has_dropped = self.0.swap(true, SeqCst);
+                assert!(!has_dropped);
             }
         }
 
-        let has_dropped = Arc::new(Mutex::new(false));
+        let has_dropped = Arc::new(AtomicBool::new(false));
 
-        drop(Error::from(HasDrop(Box::new(has_dropped.clone()))));
+        drop(Error::from(HasDrop(has_dropped.clone())));
 
-        assert!(*has_dropped.lock().unwrap());
+        assert!(has_dropped.load(SeqCst));
     }
 }
