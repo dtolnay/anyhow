@@ -7,7 +7,9 @@ use crate::Error;
 /// Provides the `context` method for `Result`.
 pub trait Context<T, E> {
     /// Wrap the error value with additional context.
-    fn context<C: Display + Send + Sync + 'static>(self, context: C) -> Result<T, Error>;
+    fn context<C>(self, context: C) -> Result<T, Error>
+    where
+        C: Display + Send + Sync + 'static;
 
     /// Wrap the error value with additional context lazily.
     fn with_context<C, F>(self, f: F) -> Result<T, Error>
@@ -16,8 +18,14 @@ pub trait Context<T, E> {
         F: FnOnce(&E) -> C;
 }
 
-impl<T, E: StdError + Send + Sync + 'static> Context<T, E> for Result<T, E> {
-    fn context<C: Display + Send + Sync + 'static>(self, context: C) -> Result<T, Error> {
+impl<T, E> Context<T, E> for Result<T, E>
+where
+    E: StdError + Send + Sync + 'static,
+{
+    fn context<C>(self, context: C) -> Result<T, Error>
+    where
+        C: Display + Send + Sync + 'static,
+    {
         self.map_err(|error| Error::from(ContextError { error, context }))
     }
 
@@ -36,7 +44,10 @@ impl<T, E: StdError + Send + Sync + 'static> Context<T, E> for Result<T, E> {
 }
 
 impl<T> Context<T, Error> for Result<T, Error> {
-    fn context<C: Display + Send + Sync + 'static>(self, context: C) -> Result<T, Error> {
+    fn context<C>(self, context: C) -> Result<T, Error>
+    where
+        C: Display + Send + Sync + 'static,
+    {
         self.map_err(|error| Error::from(ContextError { error, context }))
     }
 
@@ -59,19 +70,30 @@ struct ContextError<E, C> {
     context: C,
 }
 
-impl<E: Debug, C: Display> Debug for ContextError<E, C> {
+impl<E, C> Debug for ContextError<E, C>
+where
+    E: Debug,
+    C: Display,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}\n\n{}", self.error, self.context)
     }
 }
 
-impl<E, C: Display> Display for ContextError<E, C> {
+impl<E, C> Display for ContextError<E, C>
+where
+    C: Display,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         Display::fmt(&self.context, f)
     }
 }
 
-impl<E: StdError + 'static, C: Display> StdError for ContextError<E, C> {
+impl<E, C> StdError for ContextError<E, C>
+where
+    E: StdError + 'static,
+    C: Display,
+{
     fn backtrace(&self) -> Option<&Backtrace> {
         self.error.backtrace()
     }
@@ -85,7 +107,10 @@ impl<E: StdError + 'static, C: Display> StdError for ContextError<E, C> {
     }
 }
 
-impl<C: Display> StdError for ContextError<Error, C> {
+impl<C> StdError for ContextError<Error, C>
+where
+    C: Display,
+{
     fn backtrace(&self) -> Option<&Backtrace> {
         Some(self.error.backtrace())
     }

@@ -8,7 +8,10 @@ pub trait AsError {
     fn as_error(&self) -> &(dyn StdError + Send + Sync + 'static);
 }
 
-impl<T: StdError + Send + Sync + 'static> AsError for T {
+impl<T> AsError for T
+where
+    T: StdError + Send + Sync + 'static,
+{
     fn as_error(&self) -> &(dyn StdError + Send + Sync + 'static) {
         self
     }

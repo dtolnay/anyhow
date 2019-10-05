@@ -100,12 +100,18 @@ impl Error {
     }
 
     /// Returns `true` if `E` is the type wrapped by this error object.
-    pub fn is<E: Display + Debug + Send + Sync + 'static>(&self) -> bool {
+    pub fn is<E>(&self) -> bool
+    where
+        E: Display + Debug + Send + Sync + 'static,
+    {
         TypeId::of::<E>() == self.inner.type_id
     }
 
     /// Attempt to downcast the error object to a concrete type.
-    pub fn downcast<E: Display + Debug + Send + Sync + 'static>(self) -> Result<E, Error> {
+    pub fn downcast<E>(self) -> Result<E, Error>
+    where
+        E: Display + Debug + Send + Sync + 'static,
+    {
         if let Some(error) = self.downcast_ref::<E>() {
             unsafe {
                 let error = ptr::read(error);
@@ -119,7 +125,10 @@ impl Error {
     }
 
     /// Downcast this error object by reference.
-    pub fn downcast_ref<E: Display + Debug + Send + Sync + 'static>(&self) -> Option<&E> {
+    pub fn downcast_ref<E>(&self) -> Option<&E>
+    where
+        E: Display + Debug + Send + Sync + 'static,
+    {
         if self.is::<E>() {
             unsafe { Some(&*(self.inner.error() as *const dyn StdError as *const E)) }
         } else {
@@ -128,7 +137,10 @@ impl Error {
     }
 
     /// Downcast this error object by mutable reference.
-    pub fn downcast_mut<E: Display + Debug + Send + Sync + 'static>(&mut self) -> Option<&mut E> {
+    pub fn downcast_mut<E>(&mut self) -> Option<&mut E>
+    where
+        E: Display + Debug + Send + Sync + 'static,
+    {
         if self.is::<E>() {
             unsafe { Some(&mut *(self.inner.error_mut() as *mut dyn StdError as *mut E)) }
         } else {
@@ -137,7 +149,10 @@ impl Error {
     }
 }
 
-impl<E: StdError + Send + Sync + 'static> From<E> for Error {
+impl<E> From<E> for Error
+where
+    E: StdError + Send + Sync + 'static,
+{
     fn from(error: E) -> Error {
         Error::new(error)
     }
@@ -221,21 +236,29 @@ struct TraitObject {
 }
 
 #[repr(transparent)]
-struct MessageError<M: Display + Debug>(M);
+struct MessageError<M>(M)
+where
+    M: Display + Debug;
 
-impl<M: Display + Debug> Debug for MessageError<M> {
+impl<M> Debug for MessageError<M>
+where
+    M: Display + Debug,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         Debug::fmt(&self.0, f)
     }
 }
 
-impl<M: Display + Debug> Display for MessageError<M> {
+impl<M> Display for MessageError<M>
+where
+    M: Display + Debug,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         Display::fmt(&self.0, f)
     }
 }
 
-impl<M: Display + Debug + 'static> StdError for MessageError<M> {}
+impl<M> StdError for MessageError<M> where M: Display + Debug + 'static {}
 
 impl ErrorImpl<()> {
     fn error(&self) -> &(dyn StdError + Send + Sync + 'static) {
