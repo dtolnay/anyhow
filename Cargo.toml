@@ -1,0 +1,10 @@
+[package]
+name = "however"
+version = "1.0.0-alpha.1"
+authors = ["David Tolnay <dtolnay@gmail.com>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+description = "A better Box<dyn Error>"
+repository = "https://github.com/dtolnay/however"
+documentation = "https://docs.rs/however"
+readme = "README.md"
