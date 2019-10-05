@@ -8,7 +8,8 @@ use std::ptr;
 
 /// The `Error` type, a wrapper around a dynamic error type.
 ///
-/// `Error` functions a lot like `Box<dyn std::error::Error>`, with these differences:
+/// `Error` functions a lot like `Box<dyn std::error::Error>`, with these
+/// differences:
 ///
 /// - `Error` requires that the error is `Send`, `Sync`, and `'static`
 /// - `Error` guarantees that a backtrace will exist, even if the error type
@@ -22,10 +23,11 @@ pub struct Error {
 impl Error {
     /// Create a new error object from any error type.
     ///
-    /// The error type must be threadsafe and `'static`, so that the `Error` will be as well.
+    /// The error type must be threadsafe and `'static`, so that the `Error`
+    /// will be as well.
     ///
-    /// If the error type does not provide a backtrace, a backtrace will be created here to ensure
-    /// that a backtrace exists.
+    /// If the error type does not provide a backtrace, a backtrace will be
+    /// created here to ensure that a backtrace exists.
     pub fn new<E>(error: E) -> Error
     where
         E: StdError + Send + Sync + 'static,
@@ -76,8 +78,9 @@ impl Error {
 
     /// Get the backtrace for this Error.
     pub fn backtrace(&self) -> &Backtrace {
-        // NB: this unwrap can only fail if the underlying error's backtrace method is
-        // nondeterministic, which would only happen in maliciously constructed code
+        // NB: this unwrap can only fail if the underlying error's backtrace
+        // method is nondeterministic, which would only happen in maliciously
+        // constructed code
         self.inner
             .backtrace
             .as_ref()
@@ -87,8 +90,9 @@ impl Error {
 
     /// An iterator of errors contained by this Error.
     ///
-    /// This iterator will visit every error in the "cause chain" of this error object, beginning with
-    /// the error that this error object was created from.
+    /// This iterator will visit every error in the "cause chain" of this error
+    /// object, beginning with the error that this error object was created
+    /// from.
     pub fn errors(&self) -> Errors<'_> {
         Errors {
             next: Some(self.inner.error()),
