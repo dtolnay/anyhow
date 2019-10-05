@@ -320,11 +320,10 @@ mod repr_correctness {
         assert_eq!(mem::size_of::<Error>(), mem::size_of::<usize>());
     }
 
-    #[allow(dead_code)]
-    fn assert_error_autotraits()
-    where
-        Error: Unpin + Send + Sync + 'static,
-    {
+    #[test]
+    fn error_autotraits() {
+        fn assert<E: Unpin + Send + Sync + 'static>() {}
+        assert::<Error>();
     }
 
     #[test]
