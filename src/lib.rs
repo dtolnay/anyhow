@@ -8,6 +8,9 @@ pub use crate::as_error::AsError;
 pub use crate::context::Context;
 pub use crate::error::{Error, Errors};
 
+/// `Result<T, Error>`
+pub type Result<T> = std::result::Result<T, Error>;
+
 /// Return early with an error.
 ///
 /// This macro is equivalent to `return Err(From::from($err))`.
