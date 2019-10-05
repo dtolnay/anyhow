@@ -36,8 +36,8 @@ where
     {
         self.map_err(|error| {
             Error::from(ContextError {
-                context: f(),
                 error,
+                context: f(),
             })
         })
     }
@@ -58,8 +58,8 @@ impl<T> Context<T, Error> for Result<T, Error> {
     {
         self.map_err(|error| {
             Error::from(ContextError {
-                context: f(),
                 error,
+                context: f(),
             })
         })
     }
