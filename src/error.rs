@@ -16,7 +16,7 @@ use std::ptr;
 /// - `Error` is represented as a narrow pointer - exactly one word in size,
 ///   instead of two.
 pub struct Error {
-    inner: Box<InnerException<()>>,
+    inner: Box<ErrorImpl<()>>,
 }
 
 impl Error {
@@ -52,7 +52,7 @@ impl Error {
             };
             let obj: TraitObject = mem::transmute(&error as &dyn StdError);
             let vtable = obj.vtable;
-            let inner = InnerException {
+            let inner = ErrorImpl {
                 vtable,
                 type_id,
                 backtrace,
@@ -203,7 +203,7 @@ impl Drop for Error {
 
 // repr C to ensure that `E` remains in the final position
 #[repr(C)]
-struct InnerException<E> {
+struct ErrorImpl<E> {
     vtable: *const (),
     type_id: TypeId,
     backtrace: Option<Backtrace>,
@@ -234,7 +234,7 @@ impl<M: Display + Debug> Display for MessageError<M> {
 
 impl<M: Display + Debug + 'static> StdError for MessageError<M> {}
 
-impl InnerException<()> {
+impl ErrorImpl<()> {
     fn error(&self) -> &(dyn StdError + Send + Sync + 'static) {
         unsafe {
             mem::transmute(TraitObject {
