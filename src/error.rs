@@ -236,9 +236,7 @@ struct TraitObject {
 }
 
 #[repr(transparent)]
-struct MessageError<M>(M)
-where
-    M: Display + Debug;
+struct MessageError<M>(M);
 
 impl<M> Debug for MessageError<M>
 where
