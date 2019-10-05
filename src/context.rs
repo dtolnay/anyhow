@@ -29,7 +29,7 @@ where
         self.map_err(|error| Error::from(ContextError { error, context }))
     }
 
-    fn with_context<C, F>(self, f: F) -> Result<T, Error>
+    fn with_context<C, F>(self, context: F) -> Result<T, Error>
     where
         C: Display + Send + Sync + 'static,
         F: FnOnce() -> C,
@@ -37,7 +37,7 @@ where
         self.map_err(|error| {
             Error::from(ContextError {
                 error,
-                context: f(),
+                context: context(),
             })
         })
     }
@@ -48,26 +48,21 @@ impl<T> Context<T, Error> for Result<T, Error> {
     where
         C: Display + Send + Sync + 'static,
     {
-        self.map_err(|error| Error::from(ContextError { error, context }))
+        self.map_err(|error| error.context(context))
     }
 
-    fn with_context<C, F>(self, f: F) -> Result<T, Error>
+    fn with_context<C, F>(self, context: F) -> Result<T, Error>
     where
         C: Display + Send + Sync + 'static,
         F: FnOnce() -> C,
     {
-        self.map_err(|error| {
-            Error::from(ContextError {
-                error,
-                context: f(),
-            })
-        })
+        self.map_err(|error| error.context(context()))
     }
 }
 
-struct ContextError<E, C> {
-    error: E,
-    context: C,
+pub(crate) struct ContextError<E, C> {
+    pub error: E,
+    pub context: C,
 }
 
 impl<E, C> Debug for ContextError<E, C>

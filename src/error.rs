@@ -1,3 +1,4 @@
+use crate::context::ContextError;
 use std::any::TypeId;
 use std::backtrace::{Backtrace, BacktraceStatus};
 use std::error::Error as StdError;
@@ -64,6 +65,17 @@ impl Error {
                 inner: mem::transmute(Box::new(inner)),
             }
         }
+    }
+
+    /// Wrap the error value with additional context.
+    pub fn context<C>(self, context: C) -> Self
+    where
+        C: Display + Send + Sync + 'static,
+    {
+        Error::from(ContextError {
+            error: self,
+            context,
+        })
     }
 
     /// View this error object as the underlying error.
