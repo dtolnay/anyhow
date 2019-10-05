@@ -20,7 +20,7 @@ pub struct Error {
 }
 
 impl Error {
-    /// Create a new exception from any error type.
+    /// Create a new error object from any error type.
     ///
     /// The error type must be threadsafe and `'static`, so that the `Error` will be as well.
     ///
@@ -64,12 +64,12 @@ impl Error {
         }
     }
 
-    /// View this exception as the underlying error.
+    /// View this error object as the underlying error.
     pub fn as_error(&self) -> &(dyn StdError + Send + Sync + 'static) {
         &**self
     }
 
-    /// View this exception as the underlying error, mutably.
+    /// View this error object as the underlying error, mutably.
     pub fn as_error_mut(&mut self) -> &mut (dyn StdError + Send + Sync + 'static) {
         &mut **self
     }
@@ -82,25 +82,25 @@ impl Error {
             .backtrace
             .as_ref()
             .or_else(|| self.inner.error().backtrace())
-            .expect("exception backtrace capture failed")
+            .expect("backtrace capture failed")
     }
 
     /// An iterator of errors contained by this Error.
     ///
-    /// This iterator will visit every error in the "cause chain" of this exception, beginning with
-    /// the error that this exception was created from.
+    /// This iterator will visit every error in the "cause chain" of this error object, beginning with
+    /// the error that this error object was created from.
     pub fn errors(&self) -> Errors<'_> {
         Errors {
             next: Some(self.inner.error()),
         }
     }
 
-    /// Returns `true` if `E` is the type wrapped by this exception.
+    /// Returns `true` if `E` is the type wrapped by this error object.
     pub fn is<E: Display + Debug + Send + Sync + 'static>(&self) -> bool {
         TypeId::of::<E>() == self.inner.type_id
     }
 
-    /// Attempt to downcast the exception to a concrete type.
+    /// Attempt to downcast the error object to a concrete type.
     pub fn downcast<E: Display + Debug + Send + Sync + 'static>(self) -> Result<E, Error> {
         if let Some(error) = self.downcast_ref::<E>() {
             unsafe {
@@ -114,7 +114,7 @@ impl Error {
         }
     }
 
-    /// Downcast this exception by reference.
+    /// Downcast this error object by reference.
     pub fn downcast_ref<E: Display + Debug + Send + Sync + 'static>(&self) -> Option<&E> {
         if self.is::<E>() {
             unsafe { Some(&*(self.inner.error() as *const dyn StdError as *const E)) }
@@ -123,7 +123,7 @@ impl Error {
         }
     }
 
-    /// Downcast this exception by mutable reference.
+    /// Downcast this error object by mutable reference.
     pub fn downcast_mut<E: Display + Debug + Send + Sync + 'static>(&mut self) -> Option<&mut E> {
         if self.is::<E>() {
             unsafe { Some(&mut *(self.inner.error_mut() as *mut dyn StdError as *mut E)) }
@@ -277,12 +277,12 @@ mod repr_correctness {
     use std::mem;
 
     #[test]
-    fn size_of_exception() {
+    fn size_of_error() {
         assert_eq!(mem::size_of::<Error>(), mem::size_of::<usize>());
     }
 
     #[allow(dead_code)]
-    fn assert_exception_autotraits()
+    fn assert_error_autotraits()
     where
         Error: Unpin + Send + Sync + 'static,
     {
