@@ -81,12 +81,12 @@ impl Error {
 
     /// View this error object as the underlying error.
     pub fn as_dyn_error(&self) -> &(dyn StdError + Send + Sync + 'static) {
-        &**self
+        self.inner.error()
     }
 
     /// View this error object as the underlying error, mutably.
     pub fn as_dyn_error_mut(&mut self) -> &mut (dyn StdError + Send + Sync + 'static) {
-        &mut **self
+        self.inner.error_mut()
     }
 
     /// Get the backtrace for this Error.
