@@ -179,8 +179,7 @@ impl Debug for Error {
             BacktraceStatus::Disabled => {
                 writeln!(
                     f,
-                    "\nbacktrace disabled; run with RUST_BACKTRACE=1 environment variable \
-                     to display a backtrace"
+                    "\nbacktrace disabled; run with RUST_BACKTRACE=1 environment variable to display a backtrace"
                 )?;
             }
             _ => {}
