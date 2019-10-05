@@ -1,10 +1,10 @@
 #![feature(backtrace)]
 
-mod as_error;
+mod as_dyn_error;
 mod context;
 mod error;
 
-pub use crate::as_error::AsError;
+pub use crate::as_dyn_error::AsDynError;
 pub use crate::context::Context;
 pub use crate::error::{Error, Errors};
 

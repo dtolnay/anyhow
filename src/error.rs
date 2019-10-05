@@ -67,12 +67,12 @@ impl Error {
     }
 
     /// View this error object as the underlying error.
-    pub fn as_error(&self) -> &(dyn StdError + Send + Sync + 'static) {
+    pub fn as_dyn_error(&self) -> &(dyn StdError + Send + Sync + 'static) {
         &**self
     }
 
     /// View this error object as the underlying error, mutably.
-    pub fn as_error_mut(&mut self) -> &mut (dyn StdError + Send + Sync + 'static) {
+    pub fn as_dyn_error_mut(&mut self) -> &mut (dyn StdError + Send + Sync + 'static) {
         &mut **self
     }
 
