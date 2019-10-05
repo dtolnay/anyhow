@@ -22,6 +22,9 @@ macro_rules! bail {
     ($err:expr) => {
         return std::result::Result::Err(std::convert::From::from($err));
     };
+    ($err:expr,) => {
+        $crate::bail!($err);
+    };
 }
 
 /// Construct an ad-hoc error from a string.
@@ -31,6 +34,13 @@ macro_rules! bail {
 /// `Debug` and `Display`.
 #[macro_export]
 macro_rules! anyhow {
-    ($e:expr)   => { $crate::Error::new_adhoc($e) };
-    ($($arg:tt)*) => { $crate::Error::new_adhoc(format!($($arg)*)) };
+    ($msg:expr) => {
+        $crate::Error::new_adhoc($msg)
+    };
+    ($msg:expr,) => {
+        $crate::anyhow!($msg)
+    };
+    ($fmt:expr, $($arg:tt)*) => {
+        $crate::Error::new_adhoc(format!($fmt, $($arg)*))
+    };
 }
