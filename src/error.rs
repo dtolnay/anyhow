@@ -48,11 +48,12 @@ impl Error {
     where
         E: StdError + Send + Sync + 'static,
     {
+        let backtrace = match error.backtrace() {
+            Some(_) => None,
+            None => Some(Backtrace::capture()),
+        };
+
         unsafe {
-            let backtrace = match error.backtrace() {
-                Some(_) => None,
-                None => Some(Backtrace::capture()),
-            };
             let obj: TraitObject = mem::transmute(&error as &dyn StdError);
             let vtable = obj.vtable;
             let inner = ErrorImpl {
