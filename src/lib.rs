@@ -8,11 +8,11 @@ pub use crate::as_error::AsError;
 pub use crate::context::Context;
 pub use crate::exception::{Errors, Exception};
 
-/// Throw an error.
+/// Return early with an error.
 ///
-/// This macro is equivalent to `Err($err)?`.
+/// This macro is equivalent to `return Err(From::from($err))`.
 #[macro_export]
-macro_rules! throw {
+macro_rules! bail {
     ($err:expr) => {
         return std::result::Result::Err(std::convert::From::from($err));
     };
