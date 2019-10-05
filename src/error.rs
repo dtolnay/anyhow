@@ -88,13 +88,13 @@ impl Error {
             .expect("backtrace capture failed")
     }
 
-    /// An iterator of errors contained by this Error.
+    /// An iterator of the chain of source errors contained by this Error.
     ///
-    /// This iterator will visit every error in the "cause chain" of this error
+    /// This iterator will visit every error in the cause chain of this error
     /// object, beginning with the error that this error object was created
     /// from.
-    pub fn errors(&self) -> Errors<'_> {
-        Errors {
+    pub fn chain(&self) -> Chain {
+        Chain {
             next: Some(self.inner.error()),
         }
     }
@@ -175,7 +175,7 @@ impl Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "{}", self.inner.error())?;
 
-        let mut errors = self.errors().skip(1).enumerate();
+        let mut errors = self.chain().skip(1).enumerate();
 
         if let Some((n, error)) = errors.next() {
             writeln!(f, "\ncaused by:")?;
@@ -278,12 +278,12 @@ impl ErrorImpl<()> {
     }
 }
 
-/// Iterator of errors in an `Error`.
-pub struct Errors<'a> {
+/// Iterator of a chain of source errors.
+pub struct Chain<'a> {
     next: Option<&'a (dyn StdError + 'static)>,
 }
 
-impl<'a> Iterator for Errors<'a> {
+impl<'a> Iterator for Chain<'a> {
     type Item = &'a (dyn StdError + 'static);
 
     fn next(&mut self) -> Option<Self::Item> {

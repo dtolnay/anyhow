@@ -6,7 +6,7 @@ mod error;
 
 pub use crate::as_dyn_error::AsDynError;
 pub use crate::context::Context;
-pub use crate::error::{Error, Errors};
+pub use crate::error::{Chain, Error};
 
 /// `Result<T, Error>`
 pub type Result<T> = std::result::Result<T, Error>;
