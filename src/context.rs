@@ -15,7 +15,7 @@ pub trait Context<T, E> {
     fn with_context<C, F>(self, f: F) -> Result<T, Error>
     where
         C: Display + Send + Sync + 'static,
-        F: FnOnce(&E) -> C;
+        F: FnOnce() -> C;
 }
 
 impl<T, E> Context<T, E> for Result<T, E>
@@ -32,11 +32,11 @@ where
     fn with_context<C, F>(self, f: F) -> Result<T, Error>
     where
         C: Display + Send + Sync + 'static,
-        F: FnOnce(&E) -> C,
+        F: FnOnce() -> C,
     {
         self.map_err(|error| {
             Error::from(ContextError {
-                context: f(&error),
+                context: f(),
                 error,
             })
         })
@@ -54,11 +54,11 @@ impl<T> Context<T, Error> for Result<T, Error> {
     fn with_context<C, F>(self, f: F) -> Result<T, Error>
     where
         C: Display + Send + Sync + 'static,
-        F: FnOnce(&Error) -> C,
+        F: FnOnce() -> C,
     {
         self.map_err(|error| {
             Error::from(ContextError {
-                context: f(&error),
+                context: f(),
                 error,
             })
         })
