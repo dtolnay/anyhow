@@ -8,3 +8,7 @@ description = "A better Box<dyn Error>"
 repository = "https://github.com/dtolnay/anyhow"
 documentation = "https://docs.rs/anyhow"
 readme = "README.md"
+
+[features]
+default = ["std"]
+std = []
