@@ -30,7 +30,7 @@ macro_rules! bail {
 /// string with arguments. It also can take any custom type which implements
 /// `Debug` and `Display`.
 #[macro_export]
-macro_rules! error {
+macro_rules! anyhow {
     ($e:expr)   => { $crate::Error::new_adhoc($e) };
     ($($arg:tt)*) => { $crate::Error::new_adhoc(format!($($arg)*)) };
 }
