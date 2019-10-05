@@ -1,5 +1,5 @@
 use std::backtrace::Backtrace;
-use std::error::Error;
+use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 
 use crate::Exception;
@@ -16,7 +16,7 @@ pub trait Context<T, E> {
         F: FnOnce(&E) -> C;
 }
 
-impl<T, E: Error + Send + Sync + 'static> Context<T, E> for Result<T, E> {
+impl<T, E: StdError + Send + Sync + 'static> Context<T, E> for Result<T, E> {
     fn context<C: Display + Send + Sync + 'static>(self, context: C) -> Result<T, Exception> {
         self.map_err(|error| Exception::from(ContextError { error, context }))
     }
@@ -71,30 +71,30 @@ impl<E, C: Display> Display for ContextError<E, C> {
     }
 }
 
-impl<E: Error + 'static, C: Display> Error for ContextError<E, C> {
+impl<E: StdError + 'static, C: Display> StdError for ContextError<E, C> {
     fn backtrace(&self) -> Option<&Backtrace> {
         self.error.backtrace()
     }
 
-    fn cause(&self) -> Option<&dyn Error> {
+    fn cause(&self) -> Option<&dyn StdError> {
         Some(&self.error)
     }
 
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
         Some(&self.error)
     }
 }
 
-impl<C: Display> Error for ContextError<Exception, C> {
+impl<C: Display> StdError for ContextError<Exception, C> {
     fn backtrace(&self) -> Option<&Backtrace> {
         Some(self.error.backtrace())
     }
 
-    fn cause(&self) -> Option<&dyn Error> {
+    fn cause(&self) -> Option<&dyn StdError> {
         Some(&*self.error)
     }
 
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
         Some(&*self.error)
     }
 }

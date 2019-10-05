@@ -1,6 +1,6 @@
 use std::any::TypeId;
 use std::backtrace::{Backtrace, BacktraceStatus};
-use std::error::Error;
+use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 use std::mem;
 use std::ops::{Deref, DerefMut};
@@ -28,7 +28,7 @@ impl Exception {
     /// that a backtrace exists.
     pub fn new<E>(error: E) -> Exception
     where
-        E: Error + Send + Sync + 'static,
+        E: StdError + Send + Sync + 'static,
     {
         Exception::construct(error, TypeId::of::<E>())
     }
@@ -43,14 +43,14 @@ impl Exception {
 
     fn construct<E>(error: E, type_id: TypeId) -> Exception
     where
-        E: Error + Send + Sync + 'static,
+        E: StdError + Send + Sync + 'static,
     {
         unsafe {
             let backtrace = match error.backtrace() {
                 Some(_) => None,
                 None => Some(Backtrace::capture()),
             };
-            let obj: TraitObject = mem::transmute(&error as &dyn Error);
+            let obj: TraitObject = mem::transmute(&error as &dyn StdError);
             let vtable = obj.vtable;
             let inner = InnerException {
                 vtable,
@@ -65,12 +65,12 @@ impl Exception {
     }
 
     /// View this exception as the underlying error.
-    pub fn as_error(&self) -> &(dyn Error + Send + Sync + 'static) {
+    pub fn as_error(&self) -> &(dyn StdError + Send + Sync + 'static) {
         &**self
     }
 
     /// View this exception as the underlying error, mutably.
-    pub fn as_error_mut(&mut self) -> &mut (dyn Error + Send + Sync + 'static) {
+    pub fn as_error_mut(&mut self) -> &mut (dyn StdError + Send + Sync + 'static) {
         &mut **self
     }
 
@@ -117,7 +117,7 @@ impl Exception {
     /// Downcast this exception by reference.
     pub fn downcast_ref<E: Display + Debug + Send + Sync + 'static>(&self) -> Option<&E> {
         if self.is::<E>() {
-            unsafe { Some(&*(self.inner.error() as *const dyn Error as *const E)) }
+            unsafe { Some(&*(self.inner.error() as *const dyn StdError as *const E)) }
         } else {
             None
         }
@@ -126,21 +126,21 @@ impl Exception {
     /// Downcast this exception by mutable reference.
     pub fn downcast_mut<E: Display + Debug + Send + Sync + 'static>(&mut self) -> Option<&mut E> {
         if self.is::<E>() {
-            unsafe { Some(&mut *(self.inner.error_mut() as *mut dyn Error as *mut E)) }
+            unsafe { Some(&mut *(self.inner.error_mut() as *mut dyn StdError as *mut E)) }
         } else {
             None
         }
     }
 }
 
-impl<E: Error + Send + Sync + 'static> From<E> for Exception {
+impl<E: StdError + Send + Sync + 'static> From<E> for Exception {
     fn from(error: E) -> Exception {
         Exception::new(error)
     }
 }
 
 impl Deref for Exception {
-    type Target = dyn Error + Send + Sync + 'static;
+    type Target = dyn StdError + Send + Sync + 'static;
     fn deref(&self) -> &Self::Target {
         self.inner.error()
     }
@@ -232,10 +232,10 @@ impl<M: Display + Debug> Display for MessageError<M> {
     }
 }
 
-impl<M: Display + Debug + 'static> Error for MessageError<M> {}
+impl<M: Display + Debug + 'static> StdError for MessageError<M> {}
 
 impl InnerException<()> {
-    fn error(&self) -> &(dyn Error + Send + Sync + 'static) {
+    fn error(&self) -> &(dyn StdError + Send + Sync + 'static) {
         unsafe {
             mem::transmute(TraitObject {
                 data: &self.error,
@@ -244,7 +244,7 @@ impl InnerException<()> {
         }
     }
 
-    fn error_mut(&mut self) -> &mut (dyn Error + Send + Sync + 'static) {
+    fn error_mut(&mut self) -> &mut (dyn StdError + Send + Sync + 'static) {
         unsafe {
             mem::transmute(TraitObject {
                 data: &mut self.error,
@@ -256,11 +256,11 @@ impl InnerException<()> {
 
 /// Iterator of errors in an `Exception`.
 pub struct Errors<'a> {
-    next: Option<&'a (dyn Error + 'static)>,
+    next: Option<&'a (dyn StdError + 'static)>,
 }
 
 impl<'a> Iterator for Errors<'a> {
-    type Item = &'a (dyn Error + 'static);
+    type Item = &'a (dyn StdError + 'static);
 
     fn next(&mut self) -> Option<Self::Item> {
         let next = self.next.take()?;
@@ -294,7 +294,7 @@ mod repr_correctness {
 
         #[derive(Debug)]
         struct HasDrop(Box<Arc<Mutex<bool>>>);
-        impl Error for HasDrop {}
+        impl StdError for HasDrop {}
         impl Display for HasDrop {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 write!(f, "does something")
