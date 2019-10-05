@@ -311,9 +311,9 @@ impl<'a> Iterator for Chain<'a> {
 #[cfg(test)]
 mod repr_correctness {
     use super::*;
-
     use std::marker::Unpin;
     use std::mem;
+    use std::sync::{Arc, Mutex};
 
     #[test]
     fn size_of_error() {
@@ -328,8 +328,6 @@ mod repr_correctness {
 
     #[test]
     fn destructors_work() {
-        use std::sync::*;
-
         #[derive(Debug)]
         struct HasDrop(Box<Arc<Mutex<bool>>>);
         impl StdError for HasDrop {}
