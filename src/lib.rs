@@ -1,13 +1,11 @@
 #![feature(backtrace)]
 
-mod as_dyn_error;
 mod context;
 mod error;
 
 #[cfg(not(feature = "std"))]
 compile_error!("no_std support is not implemented yet");
 
-pub use crate::as_dyn_error::AsDynError;
 pub use crate::context::Context;
 pub use crate::error::{Chain, Error};
 
