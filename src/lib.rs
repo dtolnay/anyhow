@@ -2,11 +2,11 @@
 
 mod as_error;
 mod context;
-mod exception;
+mod error;
 
 pub use crate::as_error::AsError;
 pub use crate::context::Context;
-pub use crate::exception::{Errors, Exception};
+pub use crate::error::{Errors, Exception};
 
 /// Return early with an error.
 ///
