@@ -329,25 +329,32 @@ mod repr_correctness {
     }
 
     #[test]
-    fn destructors_work() {
+    fn drop_works() {
         #[derive(Debug)]
-        struct HasDrop(Arc<AtomicBool>);
-        impl StdError for HasDrop {}
-        impl Display for HasDrop {
+        struct DetectDrop {
+            has_dropped: Arc<AtomicBool>,
+        }
+
+        impl StdError for DetectDrop {}
+
+        impl Display for DetectDrop {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 write!(f, "does something")
             }
         }
-        impl Drop for HasDrop {
+
+        impl Drop for DetectDrop {
             fn drop(&mut self) {
-                let has_dropped = self.0.swap(true, SeqCst);
-                assert!(!has_dropped);
+                let already_dropped = self.has_dropped.swap(true, SeqCst);
+                assert!(!already_dropped);
             }
         }
 
         let has_dropped = Arc::new(AtomicBool::new(false));
 
-        drop(Error::from(HasDrop(has_dropped.clone())));
+        drop(Error::from(DetectDrop {
+            has_dropped: has_dropped.clone(),
+        }));
 
         assert!(has_dropped.load(SeqCst));
     }
