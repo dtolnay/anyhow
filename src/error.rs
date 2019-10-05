@@ -28,7 +28,7 @@ impl Error {
     ///
     /// If the error type does not provide a backtrace, a backtrace will be
     /// created here to ensure that a backtrace exists.
-    pub fn new<E>(error: E) -> Error
+    pub fn new<E>(error: E) -> Self
     where
         E: StdError + Send + Sync + 'static,
     {
@@ -36,14 +36,14 @@ impl Error {
     }
 
     #[doc(hidden)]
-    pub fn new_adhoc<M>(message: M) -> Error
+    pub fn new_adhoc<M>(message: M) -> Self
     where
         M: Display + Debug + Send + Sync + 'static,
     {
         Error::construct(MessageError(message), TypeId::of::<M>())
     }
 
-    fn construct<E>(error: E, type_id: TypeId) -> Error
+    fn construct<E>(error: E, type_id: TypeId) -> Self
     where
         E: StdError + Send + Sync + 'static,
     {
@@ -108,7 +108,7 @@ impl Error {
     }
 
     /// Attempt to downcast the error object to a concrete type.
-    pub fn downcast<E>(self) -> Result<E, Error>
+    pub fn downcast<E>(self) -> Result<E, Self>
     where
         E: Display + Debug + Send + Sync + 'static,
     {
@@ -153,7 +153,7 @@ impl<E> From<E> for Error
 where
     E: StdError + Send + Sync + 'static,
 {
-    fn from(error: E) -> Error {
+    fn from(error: E) -> Self {
         Error::new(error)
     }
 }
