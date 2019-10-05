@@ -6,42 +6,42 @@ use std::mem;
 use std::ops::{Deref, DerefMut};
 use std::ptr;
 
-/// The `Exception type, a wrapper around a dynamic error type.
+/// The `Error` type, a wrapper around a dynamic error type.
 ///
-/// `Exception` functions a lot like `Box<dyn Error>`, with these differences:
+/// `Error` functions a lot like `Box<dyn std::error::Error>`, with these differences:
 ///
-/// - `Exception` requires that the error is `Send`, `Sync`, and `'static`
-/// - `Exception` guarantees that a backtrace will exist, even if the error type
+/// - `Error` requires that the error is `Send`, `Sync`, and `'static`
+/// - `Error` guarantees that a backtrace will exist, even if the error type
 ///   did not provide one
-/// - `Exception` is represented as a narrow pointer - exactly one word in size,
+/// - `Error` is represented as a narrow pointer - exactly one word in size,
 ///   instead of two.
-pub struct Exception {
+pub struct Error {
     inner: Box<InnerException<()>>,
 }
 
-impl Exception {
+impl Error {
     /// Create a new exception from any error type.
     ///
-    /// The error type must be threadsafe and `'static`, so that the `Exception` will be as well.
+    /// The error type must be threadsafe and `'static`, so that the `Error` will be as well.
     ///
     /// If the error type does not provide a backtrace, a backtrace will be created here to ensure
     /// that a backtrace exists.
-    pub fn new<E>(error: E) -> Exception
+    pub fn new<E>(error: E) -> Error
     where
         E: StdError + Send + Sync + 'static,
     {
-        Exception::construct(error, TypeId::of::<E>())
+        Error::construct(error, TypeId::of::<E>())
     }
 
     #[doc(hidden)]
-    pub fn new_adhoc<M>(message: M) -> Exception
+    pub fn new_adhoc<M>(message: M) -> Error
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        Exception::construct(MessageError(message), TypeId::of::<M>())
+        Error::construct(MessageError(message), TypeId::of::<M>())
     }
 
-    fn construct<E>(error: E, type_id: TypeId) -> Exception
+    fn construct<E>(error: E, type_id: TypeId) -> Error
     where
         E: StdError + Send + Sync + 'static,
     {
@@ -58,7 +58,7 @@ impl Exception {
                 backtrace,
                 error,
             };
-            Exception {
+            Error {
                 inner: mem::transmute(Box::new(inner)),
             }
         }
@@ -74,7 +74,7 @@ impl Exception {
         &mut **self
     }
 
-    /// Get the backtrace for this Exception.
+    /// Get the backtrace for this Error.
     pub fn backtrace(&self) -> &Backtrace {
         // NB: this unwrap can only fail if the underlying error's backtrace method is
         // nondeterministic, which would only happen in maliciously constructed code
@@ -85,7 +85,7 @@ impl Exception {
             .expect("exception backtrace capture failed")
     }
 
-    /// An iterator of errors contained by this Exception.
+    /// An iterator of errors contained by this Error.
     ///
     /// This iterator will visit every error in the "cause chain" of this exception, beginning with
     /// the error that this exception was created from.
@@ -101,7 +101,7 @@ impl Exception {
     }
 
     /// Attempt to downcast the exception to a concrete type.
-    pub fn downcast<E: Display + Debug + Send + Sync + 'static>(self) -> Result<E, Exception> {
+    pub fn downcast<E: Display + Debug + Send + Sync + 'static>(self) -> Result<E, Error> {
         if let Some(error) = self.downcast_ref::<E>() {
             unsafe {
                 let error = ptr::read(error);
@@ -133,26 +133,26 @@ impl Exception {
     }
 }
 
-impl<E: StdError + Send + Sync + 'static> From<E> for Exception {
-    fn from(error: E) -> Exception {
-        Exception::new(error)
+impl<E: StdError + Send + Sync + 'static> From<E> for Error {
+    fn from(error: E) -> Error {
+        Error::new(error)
     }
 }
 
-impl Deref for Exception {
+impl Deref for Error {
     type Target = dyn StdError + Send + Sync + 'static;
     fn deref(&self) -> &Self::Target {
         self.inner.error()
     }
 }
 
-impl DerefMut for Exception {
+impl DerefMut for Error {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.inner.error_mut()
     }
 }
 
-impl Debug for Exception {
+impl Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "{}", self.inner.error())?;
 
@@ -186,16 +186,16 @@ impl Debug for Exception {
     }
 }
 
-impl Display for Exception {
+impl Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.inner.error())
     }
 }
 
-unsafe impl Send for Exception {}
-unsafe impl Sync for Exception {}
+unsafe impl Send for Error {}
+unsafe impl Sync for Error {}
 
-impl Drop for Exception {
+impl Drop for Error {
     fn drop(&mut self) {
         unsafe { ptr::drop_in_place(self.inner.error_mut()) }
     }
@@ -254,7 +254,7 @@ impl InnerException<()> {
     }
 }
 
-/// Iterator of errors in an `Exception`.
+/// Iterator of errors in an `Error`.
 pub struct Errors<'a> {
     next: Option<&'a (dyn StdError + 'static)>,
 }
@@ -278,13 +278,13 @@ mod repr_correctness {
 
     #[test]
     fn size_of_exception() {
-        assert_eq!(mem::size_of::<Exception>(), mem::size_of::<usize>());
+        assert_eq!(mem::size_of::<Error>(), mem::size_of::<usize>());
     }
 
     #[allow(dead_code)]
     fn assert_exception_autotraits()
     where
-        Exception: Unpin + Send + Sync + 'static,
+        Error: Unpin + Send + Sync + 'static,
     {
     }
 
@@ -310,7 +310,7 @@ mod repr_correctness {
 
         let has_dropped = Arc::new(Mutex::new(false));
 
-        drop(Exception::from(HasDrop(Box::new(has_dropped.clone()))));
+        drop(Error::from(HasDrop(Box::new(has_dropped.clone()))));
 
         assert!(*has_dropped.lock().unwrap());
     }

@@ -6,7 +6,7 @@ mod error;
 
 pub use crate::as_error::AsError;
 pub use crate::context::Context;
-pub use crate::error::{Errors, Exception};
+pub use crate::error::{Error, Errors};
 
 /// Return early with an error.
 ///
@@ -20,10 +20,10 @@ macro_rules! bail {
 
 /// Construct an ad-hoc exception from a string.
 ///
-/// This evaluates to an `Exception`. It can take either just a string, or a format string with
+/// This evaluates to an `Error`. It can take either just a string, or a format string with
 /// arguments. It also can take any custom type which implements `Debug` and `Display`.
 #[macro_export]
 macro_rules! error {
-    ($e:expr)   => { $crate::Exception::new_adhoc($e) };
-    ($($arg:tt)*) => { $crate::Exception::new_adhoc(format!($($arg)*)) };
+    ($e:expr)   => { $crate::Error::new_adhoc($e) };
+    ($($arg:tt)*) => { $crate::Error::new_adhoc(format!($($arg)*)) };
 }

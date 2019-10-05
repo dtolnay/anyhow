@@ -1,6 +1,6 @@
 use std::error::Error as StdError;
 
-use crate::Exception;
+use crate::Error;
 
 /// View type as an error object.
 pub trait AsError {
@@ -20,7 +20,7 @@ impl AsError for dyn StdError + Send + Sync + 'static {
     }
 }
 
-impl AsError for Exception {
+impl AsError for Error {
     fn as_error(&self) -> &(dyn StdError + Send + Sync + 'static) {
         &**self
     }

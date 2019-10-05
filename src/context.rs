@@ -2,32 +2,32 @@ use std::backtrace::Backtrace;
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 
-use crate::Exception;
+use crate::Error;
 
 /// Provides the `context` method for `Result`.
 pub trait Context<T, E> {
     /// Wrap the error value with additional context.
-    fn context<C: Display + Send + Sync + 'static>(self, context: C) -> Result<T, Exception>;
+    fn context<C: Display + Send + Sync + 'static>(self, context: C) -> Result<T, Error>;
 
     /// Wrap the error value with additional context lazily.
-    fn with_context<C, F>(self, f: F) -> Result<T, Exception>
+    fn with_context<C, F>(self, f: F) -> Result<T, Error>
     where
         C: Display + Send + Sync + 'static,
         F: FnOnce(&E) -> C;
 }
 
 impl<T, E: StdError + Send + Sync + 'static> Context<T, E> for Result<T, E> {
-    fn context<C: Display + Send + Sync + 'static>(self, context: C) -> Result<T, Exception> {
-        self.map_err(|error| Exception::from(ContextError { error, context }))
+    fn context<C: Display + Send + Sync + 'static>(self, context: C) -> Result<T, Error> {
+        self.map_err(|error| Error::from(ContextError { error, context }))
     }
 
-    fn with_context<C, F>(self, f: F) -> Result<T, Exception>
+    fn with_context<C, F>(self, f: F) -> Result<T, Error>
     where
         C: Display + Send + Sync + 'static,
         F: FnOnce(&E) -> C,
     {
         self.map_err(|error| {
-            Exception::from(ContextError {
+            Error::from(ContextError {
                 context: f(&error),
                 error,
             })
@@ -35,18 +35,18 @@ impl<T, E: StdError + Send + Sync + 'static> Context<T, E> for Result<T, E> {
     }
 }
 
-impl<T> Context<T, Exception> for Result<T, Exception> {
-    fn context<C: Display + Send + Sync + 'static>(self, context: C) -> Result<T, Exception> {
-        self.map_err(|error| Exception::from(ContextError { error, context }))
+impl<T> Context<T, Error> for Result<T, Error> {
+    fn context<C: Display + Send + Sync + 'static>(self, context: C) -> Result<T, Error> {
+        self.map_err(|error| Error::from(ContextError { error, context }))
     }
 
-    fn with_context<C, F>(self, f: F) -> Result<T, Exception>
+    fn with_context<C, F>(self, f: F) -> Result<T, Error>
     where
         C: Display + Send + Sync + 'static,
-        F: FnOnce(&Exception) -> C,
+        F: FnOnce(&Error) -> C,
     {
         self.map_err(|error| {
-            Exception::from(ContextError {
+            Error::from(ContextError {
                 context: f(&error),
                 error,
             })
@@ -85,7 +85,7 @@ impl<E: StdError + 'static, C: Display> StdError for ContextError<E, C> {
     }
 }
 
-impl<C: Display> StdError for ContextError<Exception, C> {
+impl<C: Display> StdError for ContextError<Error, C> {
     fn backtrace(&self) -> Option<&Backtrace> {
         Some(self.error.backtrace())
     }
