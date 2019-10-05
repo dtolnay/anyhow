@@ -98,10 +98,6 @@ where
         self.error.backtrace()
     }
 
-    fn cause(&self) -> Option<&dyn StdError> {
-        Some(&self.error)
-    }
-
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         Some(&self.error)
     }
@@ -113,10 +109,6 @@ where
 {
     fn backtrace(&self) -> Option<&Backtrace> {
         Some(self.error.backtrace())
-    }
-
-    fn cause(&self) -> Option<&dyn StdError> {
-        Some(&*self.error)
     }
 
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
