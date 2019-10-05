@@ -54,16 +54,16 @@ impl Error {
         };
 
         unsafe {
-            let obj: TraitObject = mem::transmute(&error as &dyn StdError);
+            let obj = mem::transmute::<&dyn StdError, TraitObject>(&error);
             let vtable = obj.vtable;
-            let inner = ErrorImpl {
+            let inner = Box::new(ErrorImpl {
                 vtable,
                 type_id,
                 backtrace,
                 error,
-            };
+            });
             Error {
-                inner: mem::transmute(Box::new(inner)),
+                inner: mem::transmute::<Box<ErrorImpl<E>>, Box<ErrorImpl<()>>>(inner),
             }
         }
     }
@@ -273,20 +273,22 @@ impl<M> StdError for MessageError<M> where M: Display + Debug + 'static {}
 
 impl ErrorImpl<()> {
     fn error(&self) -> &(dyn StdError + Send + Sync + 'static) {
-        unsafe {
-            mem::transmute(TraitObject {
-                data: &self.error,
-                vtable: self.vtable,
-            })
-        }
+        let object = TraitObject {
+            data: &self.error,
+            vtable: self.vtable,
+        };
+
+        unsafe { mem::transmute::<TraitObject, &(dyn StdError + Send + Sync + 'static)>(object) }
     }
 
     fn error_mut(&mut self) -> &mut (dyn StdError + Send + Sync + 'static) {
+        let object = TraitObject {
+            data: &mut self.error,
+            vtable: self.vtable,
+        };
+
         unsafe {
-            mem::transmute(TraitObject {
-                data: &mut self.error,
-                vtable: self.vtable,
-            })
+            mem::transmute::<TraitObject, &mut (dyn StdError + Send + Sync + 'static)>(object)
         }
     }
 }
