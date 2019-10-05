@@ -26,32 +26,40 @@ impl Exception {
     ///
     /// If the error type does not provide a backtrace, a backtrace will be created here to ensure
     /// that a backtrace exists.
-    pub fn new<E>(error: E) -> Exception where
-        E: Error + Send + Sync + 'static
+    pub fn new<E>(error: E) -> Exception
+    where
+        E: Error + Send + Sync + 'static,
     {
         Exception::construct(error, TypeId::of::<E>())
     }
 
     #[doc(hidden)]
-    pub fn new_adhoc<M>(message: M) -> Exception where
-        M: Display + Debug + Send + Sync + 'static
+    pub fn new_adhoc<M>(message: M) -> Exception
+    where
+        M: Display + Debug + Send + Sync + 'static,
     {
         Exception::construct(MessageError(message), TypeId::of::<M>())
     }
 
-    fn construct<E>(error: E, type_id: TypeId) -> Exception where
+    fn construct<E>(error: E, type_id: TypeId) -> Exception
+    where
         E: Error + Send + Sync + 'static,
     {
         unsafe {
             let backtrace = match error.backtrace() {
                 Some(_) => None,
-                None    => Some(Backtrace::capture()),
+                None => Some(Backtrace::capture()),
             };
             let obj: TraitObject = mem::transmute(&error as &dyn Error);
             let vtable = obj.vtable;
-            let inner = InnerException { vtable, type_id, backtrace, error };
+            let inner = InnerException {
+                vtable,
+                type_id,
+                backtrace,
+                error,
+            };
             Exception {
-                inner: mem::transmute(Box::new(inner))
+                inner: mem::transmute(Box::new(inner)),
             }
         }
     }
@@ -70,7 +78,10 @@ impl Exception {
     pub fn backtrace(&self) -> &Backtrace {
         // NB: this unwrap can only fail if the underlying error's backtrace method is
         // nondeterministic, which would only happen in maliciously constructed code
-        self.inner.backtrace.as_ref().or_else(|| self.inner.error().backtrace())
+        self.inner
+            .backtrace
+            .as_ref()
+            .or_else(|| self.inner.error().backtrace())
             .expect("exception backtrace capture failed")
     }
 
@@ -79,7 +90,9 @@ impl Exception {
     /// This iterator will visit every error in the "cause chain" of this exception, beginning with
     /// the error that this exception was created from.
     pub fn errors(&self) -> Errors<'_> {
-        Errors { next: Some(self.inner.error()) }
+        Errors {
+            next: Some(self.inner.error()),
+        }
     }
 
     /// Returns `true` if `E` is the type wrapped by this exception.
@@ -105,14 +118,18 @@ impl Exception {
     pub fn downcast_ref<E: Display + Debug + Send + Sync + 'static>(&self) -> Option<&E> {
         if self.is::<E>() {
             unsafe { Some(&*(self.inner.error() as *const dyn Error as *const E)) }
-        } else { None }
+        } else {
+            None
+        }
     }
 
     /// Downcast this exception by mutable reference.
     pub fn downcast_mut<E: Display + Debug + Send + Sync + 'static>(&mut self) -> Option<&mut E> {
         if self.is::<E>() {
             unsafe { Some(&mut *(self.inner.error_mut() as *mut dyn Error as *mut E)) }
-        } else { None }
+        } else {
+            None
+        }
     }
 }
 
@@ -152,14 +169,17 @@ impl Debug for Exception {
         let backtrace = self.backtrace();
 
         match backtrace.status() {
-            BacktraceStatus::Captured       => {
+            BacktraceStatus::Captured => {
                 writeln!(f, "\n{}", backtrace)?;
             }
-            BacktraceStatus::Disabled       => {
-                writeln!(f, "\nbacktrace disabled; run with RUST_BACKTRACE=1 environment variable \
-                             to display a backtrace")?;
+            BacktraceStatus::Disabled => {
+                writeln!(
+                    f,
+                    "\nbacktrace disabled; run with RUST_BACKTRACE=1 environment variable \
+                     to display a backtrace"
+                )?;
             }
-            _                               => { }
+            _ => {}
         }
 
         Ok(())
@@ -172,8 +192,8 @@ impl Display for Exception {
     }
 }
 
-unsafe impl Send for Exception { }
-unsafe impl Sync for Exception { }
+unsafe impl Send for Exception {}
+unsafe impl Sync for Exception {}
 
 impl Drop for Exception {
     fn drop(&mut self) {
@@ -212,7 +232,7 @@ impl<M: Display + Debug> Display for MessageError<M> {
     }
 }
 
-impl<M: Display + Debug + 'static> Error for MessageError<M> { }
+impl<M: Display + Debug + 'static> Error for MessageError<M> {}
 
 impl InnerException<()> {
     fn error(&self) -> &(dyn Error + Send + Sync + 'static) {
@@ -241,6 +261,7 @@ pub struct Errors<'a> {
 
 impl<'a> Iterator for Errors<'a> {
     type Item = &'a (dyn Error + 'static);
+
     fn next(&mut self) -> Option<Self::Item> {
         let next = self.next.take()?;
         self.next = next.source();
@@ -252,24 +273,28 @@ impl<'a> Iterator for Errors<'a> {
 mod repr_correctness {
     use super::*;
 
-    use std::mem;
     use std::marker::Unpin;
+    use std::mem;
 
     #[test]
     fn size_of_exception() {
         assert_eq!(mem::size_of::<Exception>(), mem::size_of::<usize>());
     }
 
-    #[allow(dead_code)] fn assert_exception_autotraits() where
-        Exception: Unpin + Send + Sync + 'static
-    { }
+    #[allow(dead_code)]
+    fn assert_exception_autotraits()
+    where
+        Exception: Unpin + Send + Sync + 'static,
+    {
+    }
 
     #[test]
     fn destructors_work() {
         use std::sync::*;
 
-        #[derive(Debug)] struct HasDrop(Box<Arc<Mutex<bool>>>);
-        impl Error for HasDrop { }
+        #[derive(Debug)]
+        struct HasDrop(Box<Arc<Mutex<bool>>>);
+        impl Error for HasDrop {}
         impl Display for HasDrop {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 write!(f, "does something")
@@ -288,6 +313,5 @@ mod repr_correctness {
         drop(Exception::from(HasDrop(Box::new(has_dropped.clone()))));
 
         assert!(*has_dropped.lock().unwrap());
-
     }
 }
