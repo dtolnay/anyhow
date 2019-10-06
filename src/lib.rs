@@ -190,11 +190,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// This macro is equivalent to `return Err(From::from($err))`.
 #[macro_export]
 macro_rules! bail {
-    ($err:expr) => {
+    ($err:expr $(,)?) => {
         return std::result::Result::Err(std::convert::From::from($err));
-    };
-    ($err:expr,) => {
-        $crate::bail!($err);
     };
 }
 
@@ -205,11 +202,8 @@ macro_rules! bail {
 /// `Debug` and `Display`.
 #[macro_export]
 macro_rules! anyhow {
-    ($msg:expr) => {
+    ($msg:expr $(,)?) => {
         $crate::private::new_adhoc($msg)
-    };
-    ($msg:expr,) => {
-        $crate::anyhow!($msg)
     };
     ($fmt:expr, $($arg:tt)*) => {
         $crate::private::new_adhoc(format!($fmt, $($arg)*))
