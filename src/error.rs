@@ -318,7 +318,7 @@ impl Debug for Error {
 
         let mut chain = self.chain().skip(1).enumerate();
         if let Some((n, error)) = chain.next() {
-            writeln!(f, "\ncaused by:")?;
+            writeln!(f, "\nCaused by:")?;
             writeln!(f, "\t{}: {}", n, error)?;
             for (n, error) in chain {
                 writeln!(f, "\t{}: {}", n, error)?;
@@ -335,7 +335,7 @@ impl Debug for Error {
                 BacktraceStatus::Disabled => {
                     writeln!(
                         f,
-                        "\nbacktrace disabled; run with RUST_LIB_BACKTRACE=1 environment variable to display a backtrace"
+                        "\nBacktrace disabled; run with RUST_LIB_BACKTRACE=1 environment variable to display a backtrace"
                     )?;
                 }
                 _ => {}

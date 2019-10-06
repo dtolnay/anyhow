@@ -56,7 +56,7 @@ anyhow = "=1.0.0-alpha.1"
   ```console
   Error: failed to read instrs from ./path/to/instrs.jsox
 
-  caused by:
+  Caused by:
       0: No such file or directory (os error 2)
   ```
 
