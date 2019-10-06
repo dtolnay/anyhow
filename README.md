@@ -76,6 +76,26 @@ anyhow = "=1.0.0-alpha.1"
   type does not already provide its own. In order to see backtraces, the
   `RUST_LIB_BACKTRACE=1` environment variable must be defined.
 
+- Anyhow works with any error type that has an impl of `std::error::Error`,
+  including ones defined in your crate. We do not bundle a `derive(Error)` macro
+  but you can write the impls yourself or use a standalone macro like
+  [err-derive].
+
+  [err-derive]: https://crates.io/crates/err-derive
+
+  ```rust
+  #[derive(Error, Debug)]
+  pub enum FormatError {
+      #[error(display = "invalid header (expected {:?}, got {:?})", expected, found)]
+      InvalidHeader {
+          expected: String,
+          found: String,
+      },
+      #[error(display = "missing attribute: {}", _0)]
+      MissingAttribute(String),
+  }
+  ```
+
 <br>
 
 ## Acknowledgements
