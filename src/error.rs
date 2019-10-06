@@ -11,14 +11,14 @@ use std::backtrace::{Backtrace, BacktraceStatus};
 
 /// The `Error` type, a wrapper around a dynamic error type.
 ///
-/// `Error` functions a lot like `Box<dyn std::error::Error>`, with these
+/// `Error` works a lot like `Box<dyn std::error::Error>`, but with these
 /// differences:
 ///
-/// - `Error` requires that the error is `Send`, `Sync`, and `'static`
-/// - `Error` guarantees that a backtrace will exist, even if the error type
-///   did not provide one
-/// - `Error` is represented as a narrow pointer - exactly one word in size,
-///   instead of two.
+/// - `Error` requires that the error is `Send`, `Sync`, and `'static`.
+/// - `Error` guarantees that a backtrace is available, even if the underlying
+///   error type does not provide one.
+/// - `Error` is represented as a narrow pointer &mdash; exactly one word in
+///   size instead of two.
 pub struct Error {
     inner: Box<ErrorImpl<()>>,
 }
