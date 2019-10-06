@@ -149,6 +149,41 @@ impl Error {
     }
 
     /// Downcast this error object by reference.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use anyhow::anyhow;
+    /// # use std::fmt::{self, Display};
+    /// # use std::task::Poll;
+    /// #
+    /// # #[derive(Debug)]
+    /// # enum DataStoreError {
+    /// #     Censored(()),
+    /// # }
+    /// #
+    /// # impl Display for DataStoreError {
+    /// #     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    /// #         unimplemented!()
+    /// #     }
+    /// # }
+    /// #
+    /// # impl std::error::Error for DataStoreError {}
+    /// #
+    /// # const REDACTED_CONTENT: () = ();
+    /// #
+    /// # let error = anyhow!("...");
+    /// # let root_cause = &error;
+    /// #
+    /// # let ret =
+    /// // If the error was caused by redaction, then return a tombstone instead
+    /// // of the content.
+    /// match root_cause.downcast_ref::<DataStoreError>() {
+    ///     Some(DataStoreError::Censored(_)) => Ok(Poll::Ready(REDACTED_CONTENT)),
+    ///     None => Err(error),
+    /// }
+    /// # ;
+    /// ```
     pub fn downcast_ref<E>(&self) -> Option<&E>
     where
         E: Display + Debug + Send + Sync + 'static,
