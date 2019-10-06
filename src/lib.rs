@@ -292,6 +292,23 @@ macro_rules! bail {
 /// This evaluates to an `Error`. It can take either just a string, or a format
 /// string with arguments. It also can take any custom type which implements
 /// `Debug` and `Display`.
+///
+/// # Example
+///
+/// ```
+/// # type V = ();
+/// #
+/// use anyhow::{anyhow, Result};
+///
+/// fn lookup(key: &str) -> Result<V> {
+///     if key.len() != 16 {
+///         return Err(anyhow!("key length must be 16 characters, got {:?}", key));
+///     }
+///     
+///     // ...
+///     # Ok(())
+/// }
+/// ```
 #[macro_export]
 macro_rules! anyhow {
     ($msg:expr $(,)?) => {
