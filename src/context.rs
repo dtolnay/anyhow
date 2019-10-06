@@ -45,7 +45,7 @@ use std::backtrace::Backtrace;
 /// Error: failed to read instrs from ./path/to/instrs.jsox
 ///
 /// caused by:
-///     0: No such file or directory (os error 2)
+///     No such file or directory (os error 2)
 /// ```
 pub trait Context<T, E> {
     /// Wrap the error value with additional context.

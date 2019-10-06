@@ -316,10 +316,13 @@ impl Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "{}", self.inner.error())?;
 
-        let mut chain = self.chain().skip(1).enumerate();
+        let mut chain = self.chain().skip(1).enumerate().peekable();
         if let Some((n, error)) = chain.next() {
-            writeln!(f, "\nCaused by:")?;
-            writeln!(f, "    {}: {}", n, error)?;
+            write!(f, "\nCaused by:\n    ")?;
+            if chain.peek().is_some() {
+                write!(f, "{}: ", n)?;
+            }
+            writeln!(f, "{}", error)?;
             for (n, error) in chain {
                 writeln!(f, "    {}: {}", n, error)?;
             }

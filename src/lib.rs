@@ -81,7 +81,7 @@
 //!   Error: failed to read instrs from ./path/to/instrs.jsox
 //!
 //!   Caused by:
-//!       0: No such file or directory (os error 2)
+//!       No such file or directory (os error 2)
 //!   ```
 //!
 //! - Downcasting is supported and can be by value, by shared reference, or by
