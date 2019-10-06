@@ -1,3 +1,13 @@
 language: rust
-rust: nightly
+
+rust:
+  - nightly
+  - beta
+  - stable
+
 script: cargo test
+
+matrix:
+  include:
+    - rust: 1.31.0
+      script: cargo check
