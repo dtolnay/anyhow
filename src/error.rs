@@ -319,9 +319,9 @@ impl Debug for Error {
         let mut chain = self.chain().skip(1).enumerate();
         if let Some((n, error)) = chain.next() {
             writeln!(f, "\nCaused by:")?;
-            writeln!(f, "\t{}: {}", n, error)?;
+            writeln!(f, "    {}: {}", n, error)?;
             for (n, error) in chain {
-                writeln!(f, "\t{}: {}", n, error)?;
+                writeln!(f, "    {}: {}", n, error)?;
             }
         }
 
