@@ -43,34 +43,26 @@ impl Error {
             None => Some(Backtrace::capture()),
         };
 
-        Error::construct(
-            error,
-            TypeId::of::<E>(),
-            #[cfg(backtrace)]
-            backtrace,
-        )
+        #[cfg(not(backtrace))]
+        let backtrace = None;
+
+        Error::construct(error, TypeId::of::<E>(), backtrace)
     }
 
-    pub(crate) fn new_adhoc<M>(message: M, #[cfg(backtrace)] backtrace: Option<Backtrace>) -> Self
+    pub(crate) fn new_adhoc<M>(message: M, backtrace: Option<Backtrace>) -> Self
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        Error::construct(
-            MessageError(message),
-            TypeId::of::<M>(),
-            #[cfg(backtrace)]
-            backtrace,
-        )
+        Error::construct(MessageError(message), TypeId::of::<M>(), backtrace)
     }
 
-    fn construct<E>(
-        error: E,
-        type_id: TypeId,
-        #[cfg(backtrace)] backtrace: Option<Backtrace>,
-    ) -> Self
+    fn construct<E>(error: E, type_id: TypeId, backtrace: Option<Backtrace>) -> Self
     where
         E: StdError + Send + Sync + 'static,
     {
+        #[cfg(not(backtrace))]
+        let _ = backtrace;
+
         unsafe {
             let obj = mem::transmute::<&dyn StdError, TraitObject>(&error);
             let inner = Box::new(ErrorImpl {
@@ -184,6 +176,9 @@ impl Error {
         }
     }
 }
+
+#[cfg(not(backtrace))]
+pub(crate) enum Backtrace {}
 
 impl<E> From<E> for Error
 where

@@ -194,6 +194,12 @@ pub mod private {
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        Error::new_adhoc(message, #[cfg(backtrace)] Some(Backtrace::capture()))
+        #[cfg(backtrace)]
+        let backtrace = Some(Backtrace::capture());
+
+        #[cfg(not(backtrace))]
+        let backtrace = None;
+
+        Error::new_adhoc(message, backtrace)
     }
 }
