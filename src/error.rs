@@ -87,6 +87,11 @@ impl Error {
     /// Backtraces are only available on the nightly channel. Tracking issue:
     /// [rust-lang/rust#53487][tracking].
     ///
+    /// In order for the backtrace to be meaningful, the environment variable
+    /// `RUST_LIB_BACKTRACE=1` must be defined. Backtraces are somewhat
+    /// expensive to capture in Rust, so we don't necessarily want to be
+    /// capturing them all over the place all the time.
+    ///
     /// [tracking]: https://github.com/rust-lang/rust/issues/53487
     #[cfg(backtrace)]
     pub fn backtrace(&self) -> &Backtrace {
