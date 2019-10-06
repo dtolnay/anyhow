@@ -224,6 +224,9 @@ macro_rules! bail {
     ($err:expr $(,)?) => {
         return std::result::Result::Err(std::convert::From::from($err));
     };
+    ($fmt:expr, $($arg:tt)*) => {
+        return std::result::Result::Err($crate::anyhow!($fmt, $($arg)*));
+    };
 }
 
 /// Construct an ad-hoc error from a string.
