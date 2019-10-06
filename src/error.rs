@@ -123,6 +123,20 @@ impl Error {
         }
     }
 
+    /// The lowest level cause of this error &mdash; this error's cause's
+    /// cause's cause etc.
+    ///
+    /// The root cause is the last error in the iterator produced by
+    /// [`chain()`][Error::chain].
+    pub fn root_cause(&self) -> &(dyn StdError + 'static) {
+        let mut chain = self.chain();
+        let mut root_cause = chain.next().unwrap();
+        for cause in chain {
+            root_cause = cause;
+        }
+        root_cause
+    }
+
     /// Returns `true` if `E` is the type wrapped by this error object.
     pub fn is<E>(&self) -> bool
     where
