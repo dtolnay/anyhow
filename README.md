@@ -5,10 +5,17 @@ Anyhow&ensp;¯\\\_(ツ)\_/¯
 [![Latest Version](https://img.shields.io/crates/v/anyhow.svg)](https://crates.io/crates/anyhow)
 [![Rust Documentation](https://img.shields.io/badge/api-rustdoc-blue.svg)](https://docs.rs/anyhow)
 
+This library provides [`anyhow::Error`][Error], a trait object based error type
+for easy idiomatic error handling in Rust applications.
+
+[Error]: https://docs.rs/anyhow/1.0.0-alpha.1/anyhow/struct.Error.html
+
 ```toml
 [dependencies]
 anyhow = "=1.0.0-alpha.1"
 ```
+
+<br>
 
 ## Acknowledgements
 
