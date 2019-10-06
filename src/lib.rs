@@ -184,6 +184,36 @@ pub use crate::context::Context;
 pub use crate::error::{Chain, Error};
 
 /// `Result<T, Error>`
+///
+/// # Example
+///
+/// ```
+/// # pub trait Deserialize {}
+/// #
+/// # mod serde_json {
+/// #     use super::Deserialize;
+/// #     use std::io;
+/// #
+/// #     pub fn from_str<T: Deserialize>(json: &str) -> io::Result<T> {
+/// #         unimplemented!()
+/// #     }
+/// # }
+/// #
+/// # #[derive(Debug)]
+/// # struct ClusterMap;
+/// #
+/// # impl Deserialize for ClusterMap {}
+/// #
+/// use anyhow::Result;
+///
+/// fn main() -> Result<()> {
+///     # return Ok(());
+///     let config = std::fs::read_to_string("cluster.json")?;
+///     let map: ClusterMap = serde_json::from_str(&config)?;
+///     println!("cluster info: {:#?}", map);
+///     Ok(())
+/// }
+/// ```
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// Return early with an error.
