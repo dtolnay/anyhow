@@ -100,7 +100,7 @@ anyhow = "=1.0.0-alpha.1"
 
 ## Acknowledgements
 
-The implementation of the `anyhow::Error` type is identical to
+The implementation of the `anyhow::Error` type is forked from
 `fehler::Exception` (https://github.com/withoutboats/fehler). This library just
 exposes it under the more standard `Error` / `Result` terminology rather than
 the `throw!` / `#[throws]` / `Exception` language of exceptions.
