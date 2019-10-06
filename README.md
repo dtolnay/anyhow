@@ -96,6 +96,13 @@ anyhow = "=1.0.0-alpha.1"
   }
   ```
 
+- One-off error messages can be constructed using the `anyhow!` macro, which
+  supports string interpolation and produces an `anyhow::Error`.
+
+  ```rust
+  return Err(anyhow!("missing attribute: {}", missing));
+  ```
+
 <br>
 
 ## Acknowledgements
