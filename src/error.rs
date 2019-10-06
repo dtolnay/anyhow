@@ -83,16 +83,6 @@ impl Error {
         })
     }
 
-    /// View this error object as the underlying error.
-    pub fn as_dyn_error(&self) -> &(dyn StdError + Send + Sync + 'static) {
-        self.inner.error()
-    }
-
-    /// View this error object as the underlying error, mutably.
-    pub fn as_dyn_error_mut(&mut self) -> &mut (dyn StdError + Send + Sync + 'static) {
-        self.inner.error_mut()
-    }
-
     /// Get the backtrace for this Error.
     ///
     /// Backtraces are only available on the nightly channel. Tracking issue:
@@ -183,6 +173,7 @@ where
 
 impl Deref for Error {
     type Target = dyn StdError + Send + Sync + 'static;
+
     fn deref(&self) -> &Self::Target {
         self.inner.error()
     }
