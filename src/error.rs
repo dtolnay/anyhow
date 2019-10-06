@@ -38,8 +38,7 @@ impl Error {
         Error::construct(error, TypeId::of::<E>())
     }
 
-    #[doc(hidden)]
-    pub fn new_adhoc<M>(message: M) -> Self
+    pub(crate) fn new_adhoc<M>(message: M) -> Self
     where
         M: Display + Debug + Send + Sync + 'static,
     {

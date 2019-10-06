@@ -33,12 +33,26 @@ macro_rules! bail {
 #[macro_export]
 macro_rules! anyhow {
     ($msg:expr) => {
-        $crate::Error::new_adhoc($msg)
+        $crate::private::new_adhoc($msg)
     };
     ($msg:expr,) => {
         $crate::anyhow!($msg)
     };
     ($fmt:expr, $($arg:tt)*) => {
-        $crate::Error::new_adhoc(format!($fmt, $($arg)*))
+        $crate::private::new_adhoc(format!($fmt, $($arg)*))
     };
+}
+
+// Not public API.
+#[doc(hidden)]
+pub mod private {
+    use crate::Error;
+    use std::fmt::{Debug, Display};
+
+    pub fn new_adhoc<M>(message: M) -> Error
+    where
+        M: Display + Debug + Send + Sync + 'static,
+    {
+        Error::new_adhoc(message)
+    }
 }
