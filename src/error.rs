@@ -72,6 +72,10 @@ impl Error {
     }
 
     /// Wrap the error value with additional context.
+    ///
+    /// For attaching context to a `Result` as it is propagated, the
+    /// [`Context`][crate::Context] extension trait may be more convenient than
+    /// this function.
     pub fn context<C>(self, context: C) -> Self
     where
         C: Display + Send + Sync + 'static,
