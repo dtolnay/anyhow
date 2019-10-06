@@ -165,6 +165,22 @@ impl Error {
     /// This iterator will visit every error in the cause chain of this error
     /// object, beginning with the error that this error object was created
     /// from.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use anyhow::Error;
+    /// use std::io;
+    ///
+    /// pub fn underlying_io_error_kind(error: &Error) -> Option<io::ErrorKind> {
+    ///     for cause in error.chain() {
+    ///         if let Some(io_error) = cause.downcast_ref::<io::Error>() {
+    ///             return Some(io_error.kind());
+    ///         }
+    ///     }
+    ///     None
+    /// }
+    /// ```
     pub fn chain(&self) -> Chain {
         Chain {
             next: Some(self.inner.error()),
