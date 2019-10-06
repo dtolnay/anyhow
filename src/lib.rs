@@ -1,4 +1,4 @@
-#![feature(backtrace)]
+#![cfg_attr(backtrace, feature(backtrace))]
 
 mod context;
 mod error;

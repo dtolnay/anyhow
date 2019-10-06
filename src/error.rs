@@ -1,11 +1,13 @@
 use crate::context::ContextError;
 use std::any::TypeId;
-use std::backtrace::{Backtrace, BacktraceStatus};
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 use std::mem;
 use std::ops::{Deref, DerefMut};
 use std::ptr;
+
+#[cfg(backtrace)]
+use std::backtrace::{Backtrace, BacktraceStatus};
 
 /// The `Error` type, a wrapper around a dynamic error type.
 ///
@@ -48,6 +50,7 @@ impl Error {
     where
         E: StdError + Send + Sync + 'static,
     {
+        #[cfg(backtrace)]
         let backtrace = match error.backtrace() {
             Some(_) => None,
             None => Some(Backtrace::capture()),
@@ -59,6 +62,7 @@ impl Error {
             let inner = Box::new(ErrorImpl {
                 vtable,
                 type_id,
+                #[cfg(backtrace)]
                 backtrace,
                 error,
             });
@@ -90,6 +94,12 @@ impl Error {
     }
 
     /// Get the backtrace for this Error.
+    ///
+    /// Backtraces are only available on the nightly channel. Tracking issue:
+    /// [rust-lang/rust#53487][tracking].
+    ///
+    /// [tracking]: https://github.com/rust-lang/rust/issues/53487
+    #[cfg(backtrace)]
     pub fn backtrace(&self) -> &Backtrace {
         // NB: this unwrap can only fail if the underlying error's backtrace
         // method is nondeterministic, which would only happen in maliciously
@@ -197,18 +207,21 @@ impl Debug for Error {
             }
         }
 
-        let backtrace = self.backtrace();
-        match backtrace.status() {
-            BacktraceStatus::Captured => {
-                writeln!(f, "\n{}", backtrace)?;
+        #[cfg(backtrace)]
+        {
+            let backtrace = self.backtrace();
+            match backtrace.status() {
+                BacktraceStatus::Captured => {
+                    writeln!(f, "\n{}", backtrace)?;
+                }
+                BacktraceStatus::Disabled => {
+                    writeln!(
+                        f,
+                        "\nbacktrace disabled; run with RUST_LIB_BACKTRACE=1 environment variable to display a backtrace"
+                    )?;
+                }
+                _ => {}
             }
-            BacktraceStatus::Disabled => {
-                writeln!(
-                    f,
-                    "\nbacktrace disabled; run with RUST_LIB_BACKTRACE=1 environment variable to display a backtrace"
-                )?;
-            }
-            _ => {}
         }
 
         Ok(())
@@ -235,6 +248,7 @@ impl Drop for Error {
 struct ErrorImpl<E> {
     vtable: *const (),
     type_id: TypeId,
+    #[cfg(backtrace)]
     backtrace: Option<Backtrace>,
     error: E,
 }

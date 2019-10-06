@@ -1,8 +1,9 @@
-use std::backtrace::Backtrace;
+use crate::Error;
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 
-use crate::Error;
+#[cfg(backtrace)]
+use std::backtrace::Backtrace;
 
 /// Provides the `context` method for `Result`.
 pub trait Context<T, E> {
@@ -89,6 +90,7 @@ where
     E: StdError + 'static,
     C: Display,
 {
+    #[cfg(backtrace)]
     fn backtrace(&self) -> Option<&Backtrace> {
         self.error.backtrace()
     }
@@ -102,6 +104,7 @@ impl<C> StdError for ContextError<Error, C>
 where
     C: Display,
 {
+    #[cfg(backtrace)]
     fn backtrace(&self) -> Option<&Backtrace> {
         Some(self.error.backtrace())
     }
