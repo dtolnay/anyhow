@@ -79,6 +79,54 @@ impl Error {
     /// For attaching context to a `Result` as it is propagated, the
     /// [`Context`][crate::Context] extension trait may be more convenient than
     /// this function.
+    ///
+    /// The primary reason to use `error.context(...)` instead of
+    /// `result.context(...)` via the `Context` trait would be if the context
+    /// needs to depend on some data held by the underlying error:
+    ///
+    /// ```
+    /// # use std::fmt::{self, Debug, Display};
+    /// #
+    /// # type T = ();
+    /// #
+    /// # impl std::error::Error for ParseError {}
+    /// # impl Debug for ParseError {
+    /// #     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    /// #         unimplemented!()
+    /// #     }
+    /// # }
+    /// # impl Display for ParseError {
+    /// #     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    /// #         unimplemented!()
+    /// #     }
+    /// # }
+    /// #
+    /// use std::fs::File;
+    /// use std::path::Path;
+    ///
+    /// struct ParseError {
+    ///     line: usize,
+    ///     column: usize,
+    /// }
+    ///
+    /// fn parse_impl(file: File) -> Result<T, ParseError> {
+    ///     # const IGNORE: &str = stringify! {
+    ///     ...
+    ///     # };
+    ///     # unimplemented!()
+    /// }
+    ///
+    /// pub fn parse(path: impl AsRef<Path>) -> anyhow::Result<T> {
+    ///     let file = File::open(&path)?;
+    ///     parse_impl(file).map_err(|error| {
+    ///         let context = format!(
+    ///             "only the first {} lines of {} are valid",
+    ///             error.line, path.as_ref().display(),
+    ///         );
+    ///         anyhow::Error::new(error).context(context)
+    ///     })
+    /// }
+    /// ```
     pub fn context<C>(self, context: C) -> Self
     where
         C: Display + Send + Sync + 'static,
