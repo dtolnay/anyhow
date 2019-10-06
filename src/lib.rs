@@ -49,10 +49,13 @@ pub mod private {
     use crate::Error;
     use std::fmt::{Debug, Display};
 
+    #[cfg(backtrace)]
+    use std::backtrace::Backtrace;
+
     pub fn new_adhoc<M>(message: M) -> Error
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        Error::new_adhoc(message)
+        Error::new_adhoc(message, #[cfg(backtrace)] Some(Backtrace::capture()))
     }
 }

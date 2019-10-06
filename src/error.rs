@@ -35,31 +35,46 @@ impl Error {
     where
         E: StdError + Send + Sync + 'static,
     {
-        Error::construct(error, TypeId::of::<E>())
-    }
-
-    pub(crate) fn new_adhoc<M>(message: M) -> Self
-    where
-        M: Display + Debug + Send + Sync + 'static,
-    {
-        Error::construct(MessageError(message), TypeId::of::<M>())
-    }
-
-    fn construct<E>(error: E, type_id: TypeId) -> Self
-    where
-        E: StdError + Send + Sync + 'static,
-    {
+        // Captured here instead of in Error::construct to have one fewer layer
+        // of wrapping visible in the backtrace.
         #[cfg(backtrace)]
         let backtrace = match error.backtrace() {
             Some(_) => None,
             None => Some(Backtrace::capture()),
         };
 
+        Error::construct(
+            error,
+            TypeId::of::<E>(),
+            #[cfg(backtrace)]
+            backtrace,
+        )
+    }
+
+    pub(crate) fn new_adhoc<M>(message: M, #[cfg(backtrace)] backtrace: Option<Backtrace>) -> Self
+    where
+        M: Display + Debug + Send + Sync + 'static,
+    {
+        Error::construct(
+            MessageError(message),
+            TypeId::of::<M>(),
+            #[cfg(backtrace)]
+            backtrace,
+        )
+    }
+
+    fn construct<E>(
+        error: E,
+        type_id: TypeId,
+        #[cfg(backtrace)] backtrace: Option<Backtrace>,
+    ) -> Self
+    where
+        E: StdError + Send + Sync + 'static,
+    {
         unsafe {
             let obj = mem::transmute::<&dyn StdError, TraitObject>(&error);
-            let vtable = obj.vtable;
             let inner = Box::new(ErrorImpl {
-                vtable,
+                vtable: obj.vtable,
                 type_id,
                 #[cfg(backtrace)]
                 backtrace,
