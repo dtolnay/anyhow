@@ -60,15 +60,11 @@ impl Error {
     where
         E: StdError + Send + Sync + 'static,
     {
-        #[cfg(not(backtrace))]
-        let _ = backtrace;
-
         unsafe {
             let obj = mem::transmute::<&dyn StdError, TraitObject>(&error);
             let inner = Box::new(ErrorImpl {
                 vtable: obj.vtable,
                 type_id,
-                #[cfg(backtrace)]
                 backtrace,
                 error,
             });
@@ -257,7 +253,6 @@ impl Drop for Error {
 struct ErrorImpl<E> {
     vtable: *const (),
     type_id: TypeId,
-    #[cfg(backtrace)]
     backtrace: Option<Backtrace>,
     error: E,
 }
