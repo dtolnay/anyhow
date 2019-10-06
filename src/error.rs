@@ -188,18 +188,16 @@ impl Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "{}", self.inner.error())?;
 
-        let mut errors = self.chain().skip(1).enumerate();
-
-        if let Some((n, error)) = errors.next() {
+        let mut chain = self.chain().skip(1).enumerate();
+        if let Some((n, error)) = chain.next() {
             writeln!(f, "\ncaused by:")?;
             writeln!(f, "\t{}: {}", n, error)?;
-            for (n, error) in errors {
+            for (n, error) in chain {
                 writeln!(f, "\t{}: {}", n, error)?;
             }
         }
 
         let backtrace = self.backtrace();
-
         match backtrace.status() {
             BacktraceStatus::Captured => {
                 writeln!(f, "\n{}", backtrace)?;
