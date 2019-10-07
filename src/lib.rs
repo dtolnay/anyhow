@@ -352,12 +352,12 @@ macro_rules! bail {
 #[macro_export]
 macro_rules! ensure {
     ($cond:expr, $err:expr $(,)?) => {
-        if !($cond) {
+        if !$cond {
             return std::result::Result::Err($crate::anyhow!($err));
         }
     };
     ($cond:expr, $fmt:expr, $($arg:tt)*) => {
-        if !($cond) {
+        if !$cond {
             return std::result::Result::Err($crate::anyhow!($fmt, $($arg)*));
         }
     };
