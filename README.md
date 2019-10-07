@@ -8,11 +8,11 @@ Anyhow&ensp;¯\\\_(ツ)\_/¯
 This library provides [`anyhow::Error`][Error], a trait object based error type
 for easy idiomatic error handling in Rust applications.
 
-[Error]: https://docs.rs/anyhow/1.0.0-alpha.1/anyhow/struct.Error.html
+[Error]: https://docs.rs/anyhow/1.0/anyhow/struct.Error.html
 
 ```toml
 [dependencies]
-anyhow = "=1.0.0-alpha.1"
+anyhow = "1.0"
 ```
 
 <br>

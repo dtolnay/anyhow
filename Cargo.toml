@@ -1,6 +1,6 @@
 [package]
 name = "anyhow"
-version = "1.0.0-alpha.1"
+version = "1.0.0"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
