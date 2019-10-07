@@ -294,6 +294,78 @@ macro_rules! bail {
     };
 }
 
+/// Return early with an error if a condition is not satisfied.
+///
+/// This macro is equivalent to `if !condition { return Err(From::from($err)) }`.
+///
+/// Similar to `assert!`, `ensure!` takes a condition and exits the function
+/// if the condition fails. Unlike `assert!`, `ensure!` returns an `Error`,
+/// it does not panic.
+///
+/// # Example
+///
+/// ```
+/// # use anyhow::{ensure, Result};
+/// #
+/// #
+/// # fn main() -> Result<()> {
+/// #     let user = 0;
+/// #     let resource = 0;
+/// #
+/// ensure!(user == 0, "only user 0 is allowed");
+/// #     Ok(())
+/// # }
+/// ```
+///
+/// ```
+/// # use anyhow::{ensure, Result};
+/// # use std::fmt::{self, Display};
+/// #
+/// # #[derive(Debug)]
+/// # enum ScienceError {
+/// #     RecursionLimitExceeded,
+/// # }
+/// #
+/// # impl std::error::Error for ScienceError {}
+/// #
+/// # impl Display for ScienceError {
+/// #     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+/// #         unimplemented!()
+/// #     }
+/// # }
+/// #
+/// # const MAX_DEPTH: usize = 1;
+/// #
+/// # const IGNORE: &str = stringify! {
+/// #[derive(Error, Debug)]
+/// enum ScienceError {
+///     #[error(display = "recursion limit exceeded")]
+///     RecursionLimitExceeded,
+///     ...
+/// }
+/// # };
+///
+/// # fn main() -> Result<()> {
+/// #     let depth = 0;
+/// #
+/// ensure!(depth <= MAX_DEPTH, ScienceError::RecursionLimitExceeded);
+/// #     Ok(())
+/// # }
+/// ```
+#[macro_export]
+macro_rules! ensure {
+    ($cond:expr, $err:expr $(,)?) => {
+        if !($cond) {
+            return std::result::Result::Err($crate::anyhow!($err));
+        }
+    };
+    ($cond:expr, $fmt:expr, $($arg:tt)*) => {
+        if !($cond) {
+            return std::result::Result::Err($crate::anyhow!($fmt, $($arg)*));
+        }
+    };
+}
+
 /// Construct an ad-hoc error from a string.
 ///
 /// This evaluates to an `Error`. It can take either just a string, or a format
@@ -346,5 +418,30 @@ pub mod private {
         let backtrace = None;
 
         Error::new_adhoc(message, backtrace)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn ensure() {
+        let f = || {
+            ensure!(1 + 1 == 2, "This is correct");
+            Ok(())
+        };
+        assert!(f().is_ok());
+
+        let v = 1;
+        let f = || {
+            ensure!(v + v == 2, "This is correct, v: {}", v);
+            Ok(())
+        };
+        assert!(f().is_ok());
+
+        let f = || {
+            ensure!(v + v == 1, "This is not correct, v: {}", v);
+            Ok(())
+        };
+        assert!(f().is_err());
     }
 }
