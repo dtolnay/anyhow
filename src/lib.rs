@@ -284,7 +284,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[macro_export]
 macro_rules! bail {
     ($err:expr $(,)?) => {
-        return std::result::Result::Err(std::convert::From::from($err));
+        return std::result::Result::Err($crate::anyhow!($err));
     };
     ($fmt:expr, $($arg:tt)*) => {
         return std::result::Result::Err($crate::anyhow!($fmt, $($arg)*));
@@ -343,5 +343,28 @@ pub mod private {
         let backtrace = None;
 
         Error::new_adhoc(message, backtrace)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn anyhow() {
+        let error1 = anyhow!("This {}", "works");
+        let error2 = anyhow!("This works");
+        assert_eq!(error1.to_string(), error2.to_string());
+    }
+
+    #[test]
+    fn bail() {
+        let f = || -> Result<()> { bail!("This {}", "works") };
+        let error1 = f().err().unwrap();
+
+        let f = || -> Result<()> { bail!("This works") };
+        let error2 = f().err().unwrap();
+
+        assert_eq!(error1.to_string(), error2.to_string());
     }
 }
