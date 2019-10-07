@@ -293,21 +293,19 @@ macro_rules! bail {
 
 /// Return early with an error if a condition is not satisfied.
 ///
-/// This macro is equivalent to `if !condition { return Err(From::from($err)) }`.
+/// This macro is equivalent to `if !$cond { return Err(From::from($err)); }`.
 ///
-/// Similar to `assert!`, `ensure!` takes a condition and exits the function
-/// if the condition fails. Unlike `assert!`, `ensure!` returns an `Error`,
-/// it does not panic.
+/// Analogously to `assert!`, `ensure!` takes a condition and exits the function
+/// if the condition fails. Unlike `assert!`, `ensure!` returns an `Error`
+/// rather than panicking.
 ///
 /// # Example
 ///
 /// ```
 /// # use anyhow::{ensure, Result};
 /// #
-/// #
 /// # fn main() -> Result<()> {
 /// #     let user = 0;
-/// #     let resource = 0;
 /// #
 /// ensure!(user == 0, "only user 0 is allowed");
 /// #     Ok(())
