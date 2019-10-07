@@ -283,6 +283,9 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// ```
 #[macro_export]
 macro_rules! bail {
+    ($msg:literal $(,)?) => {
+        return std::result::Result::Err($crate::anyhow!($msg));
+    };
     ($err:expr $(,)?) => {
         return std::result::Result::Err(std::convert::From::from($err));
     };
