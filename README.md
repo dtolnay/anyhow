@@ -105,6 +105,17 @@ anyhow = "1.0"
 
 <br>
 
+## Comparison to failure
+
+The `anyhow::Error` type works something like `failure::Error`, but unlike
+failure ours is built around the standard library's `std::error::Error` trait
+rather than a separate trait `failure::Fail`. The standard library has adopted
+the necessary improvements for this to be possible as part of [RFC 2504].
+
+[RFC 2504]: https://github.com/rust-lang/rfcs/blob/master/text/2504-fix-error.md
+
+<br>
+
 ## Acknowledgements
 
 The implementation of the `anyhow::Error` type is forked from
