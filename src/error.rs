@@ -384,7 +384,7 @@ unsafe impl Sync for Error {}
 impl Drop for Error {
     fn drop(&mut self) {
         unsafe {
-            let inner = ptr::read(&mut self.inner);
+            let inner = ptr::read(&self.inner);
             let erased = ManuallyDrop::into_inner(inner);
             (erased.vtable.object_drop)(erased);
         }
