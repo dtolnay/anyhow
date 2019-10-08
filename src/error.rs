@@ -33,17 +33,7 @@ impl Error {
     where
         E: StdError + Send + Sync + 'static,
     {
-        // Captured here instead of in Error::construct to have one fewer layer
-        // of wrapping visible in the backtrace.
-        #[cfg(backtrace)]
-        let backtrace = match error.backtrace() {
-            Some(_) => None,
-            None => Some(Backtrace::capture()),
-        };
-
-        #[cfg(not(backtrace))]
-        let backtrace = None;
-
+        let backtrace = backtrace_if_absent!(error);
         Error::construct(error, TypeId::of::<E>(), backtrace)
     }
 
@@ -54,6 +44,8 @@ impl Error {
         Error::construct(MessageError(message), TypeId::of::<M>(), backtrace)
     }
 
+    // Takes backtrace as argument rather than capturing it here so that the
+    // user sees one fewer layer of wrapping noise in the backtrace.
     fn construct<E>(error: E, type_id: TypeId, backtrace: Option<Backtrace>) -> Self
     where
         E: StdError + Send + Sync + 'static,
