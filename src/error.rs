@@ -134,7 +134,7 @@ impl Error {
     where
         C: Display + Send + Sync + 'static,
     {
-        Error::from(ContextError {
+        Error::new(ContextError {
             error: self,
             context,
         })
@@ -505,7 +505,7 @@ mod repr_correctness {
 
         let has_dropped = Arc::new(AtomicBool::new(false));
 
-        drop(Error::from(DetectDrop {
+        drop(Error::new(DetectDrop {
             has_dropped: has_dropped.clone(),
         }));
 

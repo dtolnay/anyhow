@@ -69,7 +69,7 @@ where
     where
         C: Display + Send + Sync + 'static,
     {
-        self.map_err(|error| Error::from(ContextError { error, context }))
+        self.map_err(|error| Error::new(ContextError { error, context }))
     }
 
     fn with_context<C, F>(self, context: F) -> Result<T, Error>
@@ -78,7 +78,7 @@ where
         F: FnOnce() -> C,
     {
         self.map_err(|error| {
-            Error::from(ContextError {
+            Error::new(ContextError {
                 error,
                 context: context(),
             })
