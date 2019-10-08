@@ -163,11 +163,10 @@
 //!
 //! # Acknowledgements
 //!
-//! The implementation of the `anyhow::Error` type is forked from
+//! The implementation of the `anyhow::Error` type is originally forked from
 //! `fehler::Exception` ([https://github.com/withoutboats/fehler][fehler]). This
-//! library just exposes it under the more standard `Error` / `Result`
-//! terminology rather than the `throw!` / `#[throws]` / `Exception` language of
-//! exceptions.
+//! library exposes it under the more standard `Error` / `Result` terminology
+//! rather than the `throw!` / `#[throws]` / `Exception` language of exceptions.
 //!
 //! [fehler]: https://github.com/withoutboats/fehler
 
