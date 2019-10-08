@@ -85,6 +85,7 @@ impl Error {
             object_drop_front: object_drop_front::<E>,
             object_raw: object_raw::<E>,
             object_mut_raw: object_mut_raw::<E>,
+            object_boxed: object_boxed::<E>,
         };
         let inner = Box::new(ErrorImpl {
             vtable,
@@ -174,14 +175,7 @@ impl Error {
     /// [tracking]: https://github.com/rust-lang/rust/issues/53487
     #[cfg(backtrace)]
     pub fn backtrace(&self) -> &Backtrace {
-        // NB: this unwrap can only fail if the underlying error's backtrace
-        // method is nondeterministic, which would only happen in maliciously
-        // constructed code
-        self.inner
-            .backtrace
-            .as_ref()
-            .or_else(|| self.inner.error().backtrace())
-            .expect("backtrace capture failed")
+        self.inner.backtrace()
     }
 
     /// An iterator of the chain of source errors contained by this Error.
@@ -206,9 +200,7 @@ impl Error {
     /// }
     /// ```
     pub fn chain(&self) -> Chain {
-        Chain {
-            next: Some(self.inner.error()),
-        }
+        self.inner.chain()
     }
 
     /// The lowest level cause of this error &mdash; this error's cause's
@@ -337,41 +329,8 @@ impl DerefMut for Error {
 }
 
 impl Debug for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "{}", self.inner.error())?;
-
-        let mut chain = self.chain().skip(1).enumerate().peekable();
-        if let Some((n, error)) = chain.next() {
-            write!(f, "\nCaused by:\n    ")?;
-            if chain.peek().is_some() {
-                write!(f, "{}: ", n)?;
-            }
-            writeln!(f, "{}", error)?;
-            for (n, error) in chain {
-                writeln!(f, "    {}: {}", n, error)?;
-            }
-        }
-
-        #[cfg(backtrace)]
-        {
-            use std::backtrace::BacktraceStatus;
-
-            let backtrace = self.backtrace();
-            match backtrace.status() {
-                BacktraceStatus::Captured => {
-                    writeln!(f, "\n{}", backtrace)?;
-                }
-                BacktraceStatus::Disabled => {
-                    writeln!(
-                        f,
-                        "\nBacktrace disabled; run with RUST_LIB_BACKTRACE=1 environment variable to display a backtrace"
-                    )?;
-                }
-                _ => {}
-            }
-        }
-
-        Ok(())
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        self.inner.debug(formatter)
     }
 }
 
@@ -399,6 +358,7 @@ struct ErrorVTable {
     object_drop_front: unsafe fn(Box<ErrorImpl<()>>),
     object_raw: fn(*const ()) -> *const (dyn StdError + Send + Sync + 'static),
     object_mut_raw: fn(*mut ()) -> *mut (dyn StdError + Send + Sync + 'static),
+    object_boxed: unsafe fn(Box<ErrorImpl<()>>) -> Box<dyn StdError + Send + Sync + 'static>,
 }
 
 unsafe fn object_drop<E>(e: Box<ErrorImpl<()>>) {
@@ -428,6 +388,13 @@ where
     E: StdError + Send + Sync + 'static,
 {
     e as *mut E
+}
+
+unsafe fn object_boxed<E>(e: Box<ErrorImpl<()>>) -> Box<dyn StdError + Send + Sync + 'static>
+where
+    E: StdError + Send + Sync + 'static,
+{
+    mem::transmute::<Box<ErrorImpl<()>>, Box<ErrorImpl<E>>>(e)
 }
 
 // repr C to ensure that `E` remains in the final position
@@ -492,6 +459,92 @@ impl ErrorImpl<()> {
 
     fn error_mut(&mut self) -> &mut (dyn StdError + Send + Sync + 'static) {
         unsafe { &mut *(self.vtable.object_mut_raw)(&mut self.error) }
+    }
+
+    #[cfg(backtrace)]
+    fn backtrace(&self) -> &Backtrace {
+        // This unwrap can only panic if the underlying error's backtrace method
+        // is nondeterministic, which would only happen in maliciously
+        // constructed code.
+        self.backtrace
+            .as_ref()
+            .or_else(|| self.error().backtrace())
+            .expect("backtrace capture failed")
+    }
+
+    fn chain(&self) -> Chain {
+        Chain {
+            next: Some(self.error()),
+        }
+    }
+
+    fn debug(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "{}", self.error())?;
+
+        let mut chain = self.chain().skip(1).enumerate().peekable();
+        if let Some((n, error)) = chain.next() {
+            write!(f, "\nCaused by:\n    ")?;
+            if chain.peek().is_some() {
+                write!(f, "{}: ", n)?;
+            }
+            writeln!(f, "{}", error)?;
+            for (n, error) in chain {
+                writeln!(f, "    {}: {}", n, error)?;
+            }
+        }
+
+        #[cfg(backtrace)]
+        {
+            use std::backtrace::BacktraceStatus;
+
+            let backtrace = self.backtrace();
+            match backtrace.status() {
+                BacktraceStatus::Captured => {
+                    writeln!(f, "\n{}", backtrace)?;
+                }
+                BacktraceStatus::Disabled => {
+                    writeln!(
+                        f,
+                        "\nBacktrace disabled; run with RUST_LIB_BACKTRACE=1 environment variable to display a backtrace"
+                    )?;
+                }
+                _ => {}
+            }
+        }
+
+        Ok(())
+    }
+}
+
+impl<E> StdError for ErrorImpl<E> where E: StdError {}
+
+impl<E> Debug for ErrorImpl<E>
+where
+    E: Debug,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        let erased = unsafe { &*(self as *const ErrorImpl<E> as *const ErrorImpl<()>) };
+        erased.debug(formatter)
+    }
+}
+
+impl<E> Display for ErrorImpl<E>
+where
+    E: Display,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        Display::fmt(&self.error, formatter)
+    }
+}
+
+impl From<Error> for Box<dyn StdError + Send + Sync + 'static> {
+    fn from(error: Error) -> Self {
+        let outer = ManuallyDrop::new(error);
+        unsafe {
+            let inner = ptr::read(&outer.inner);
+            let erased = ManuallyDrop::into_inner(inner);
+            (erased.vtable.object_boxed)(erased)
+        }
     }
 }
 
