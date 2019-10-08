@@ -290,7 +290,7 @@ impl Error {
         E: Display + Debug + Send + Sync + 'static,
     {
         if self.is::<E>() {
-            unsafe { Some(&*(self.inner.error() as *const dyn StdError as *const E)) }
+            Some(unsafe { &*(&self.inner.error as *const () as *const E) })
         } else {
             None
         }
@@ -302,7 +302,7 @@ impl Error {
         E: Display + Debug + Send + Sync + 'static,
     {
         if self.is::<E>() {
-            unsafe { Some(&mut *(self.inner.error_mut() as *mut dyn StdError as *mut E)) }
+            Some(unsafe { &mut *(&mut self.inner.error as *mut () as *mut E) })
         } else {
             None
         }
