@@ -452,6 +452,12 @@ where
 
 impl<M> StdError for DisplayError<M> where M: Display + 'static {}
 
+impl<E> ErrorImpl<E> {
+    fn erase(&self) -> &ErrorImpl<()> {
+        unsafe { &*(self as *const ErrorImpl<E> as *const ErrorImpl<()>) }
+    }
+}
+
 impl ErrorImpl<()> {
     fn error(&self) -> &(dyn StdError + Send + Sync + 'static) {
         unsafe { &*(self.vtable.object_raw)(&self.error) }
@@ -516,15 +522,26 @@ impl ErrorImpl<()> {
     }
 }
 
-impl<E> StdError for ErrorImpl<E> where E: StdError {}
+impl<E> StdError for ErrorImpl<E>
+where
+    E: StdError,
+{
+    #[cfg(backtrace)]
+    fn backtrace(&self) -> Option<&Backtrace> {
+        Some(self.erase().backtrace())
+    }
+
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        self.error.source()
+    }
+}
 
 impl<E> Debug for ErrorImpl<E>
 where
     E: Debug,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        let erased = unsafe { &*(self as *const ErrorImpl<E> as *const ErrorImpl<()>) };
-        erased.debug(formatter)
+        self.erase().debug(formatter)
     }
 }
 
