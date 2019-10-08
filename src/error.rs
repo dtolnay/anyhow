@@ -1,3 +1,4 @@
+use crate::backtrace::Backtrace;
 use crate::context::ContextError;
 use std::any::TypeId;
 use std::error::Error as StdError;
@@ -5,9 +6,6 @@ use std::fmt::{self, Debug, Display};
 use std::mem;
 use std::ops::{Deref, DerefMut};
 use std::ptr;
-
-#[cfg(backtrace)]
-use std::backtrace::{Backtrace, BacktraceStatus};
 
 /// The `Error` type, a wrapper around a dynamic error type.
 ///
@@ -289,9 +287,6 @@ impl Error {
     }
 }
 
-#[cfg(not(backtrace))]
-pub(crate) enum Backtrace {}
-
 impl<E> From<E> for Error
 where
     E: StdError + Send + Sync + 'static,
@@ -333,6 +328,8 @@ impl Debug for Error {
 
         #[cfg(backtrace)]
         {
+            use std::backtrace::BacktraceStatus;
+
             let backtrace = self.backtrace();
             match backtrace.status() {
                 BacktraceStatus::Captured => {

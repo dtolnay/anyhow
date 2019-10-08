@@ -174,6 +174,8 @@
 #![doc(html_root_url = "https://docs.rs/anyhow/1.0.2")]
 #![cfg_attr(backtrace, feature(backtrace))]
 
+#[macro_use]
+mod backtrace;
 mod context;
 mod error;
 
@@ -406,12 +408,6 @@ pub mod private {
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        #[cfg(backtrace)]
-        let backtrace = Some(Backtrace::capture());
-
-        #[cfg(not(backtrace))]
-        let backtrace = None;
-
-        Error::new_adhoc(message, backtrace)
+        Error::new_adhoc(message, backtrace!())
     }
 }
