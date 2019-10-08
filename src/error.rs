@@ -82,6 +82,7 @@ impl Error {
     {
         let vtable = &ErrorVTable {
             object_drop: object_drop::<E>,
+            object_drop_front: object_drop_front::<E>,
             object_raw: object_raw::<E>,
             object_mut_raw: object_mut_raw::<E>,
         };
@@ -237,11 +238,13 @@ impl Error {
     where
         E: Display + Debug + Send + Sync + 'static,
     {
-        if let Some(error) = self.downcast_ref::<E>() {
+        if self.is::<E>() {
+            let outer = ManuallyDrop::new(self);
             unsafe {
-                let error = ptr::read(error);
-                drop(ptr::read(&self.inner));
-                mem::forget(self);
+                let error = ptr::read(&outer.inner.error as *const () as *const E);
+                let inner = ptr::read(&outer.inner);
+                let erased = ManuallyDrop::into_inner(inner);
+                (erased.vtable.object_drop_front)(erased);
                 Ok(error)
             }
         } else {
@@ -393,6 +396,7 @@ impl Drop for Error {
 
 struct ErrorVTable {
     object_drop: unsafe fn(Box<ErrorImpl<()>>),
+    object_drop_front: unsafe fn(Box<ErrorImpl<()>>),
     object_raw: fn(*const ()) -> *const (dyn StdError + Send + Sync + 'static),
     object_mut_raw: fn(*mut ()) -> *mut (dyn StdError + Send + Sync + 'static),
 }
@@ -401,6 +405,14 @@ unsafe fn object_drop<E>(e: Box<ErrorImpl<()>>) {
     // Cast back to ErrorImpl<E> so that the allocator receives the correct
     // Layout to deallocate the Box's memory.
     let unerased = mem::transmute::<Box<ErrorImpl<()>>, Box<ErrorImpl<E>>>(e);
+    drop(unerased);
+}
+
+unsafe fn object_drop_front<E>(e: Box<ErrorImpl<()>>) {
+    // Drop the fields of ErrorImpl other than E as well as the Box allocation,
+    // without dropping E itself. This is used by downcast after doing a
+    // ptr::read to take ownership of the E.
+    let unerased = mem::transmute::<Box<ErrorImpl<()>>, Box<ErrorImpl<ManuallyDrop<E>>>>(e);
     drop(unerased);
 }
 
