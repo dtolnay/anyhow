@@ -33,14 +33,21 @@ impl Error {
     where
         E: StdError + Send + Sync + 'static,
     {
-        let type_id = TypeId::of::<E>();
         let backtrace = backtrace_if_absent!(error);
+        Error::from_std(error, backtrace)
+    }
+
+    pub(crate) fn from_std<E>(error: E, backtrace: Option<Backtrace>) -> Self
+    where
+        E: StdError + Send + Sync + 'static,
+    {
+        let type_id = TypeId::of::<E>();
 
         // Safety: passing typeid of the right type E.
         unsafe { Error::construct(error, type_id, backtrace) }
     }
 
-    pub(crate) fn new_adhoc<M>(message: M, backtrace: Option<Backtrace>) -> Self
+    pub(crate) fn from_adhoc<M>(message: M, backtrace: Option<Backtrace>) -> Self
     where
         M: Display + Debug + Send + Sync + 'static,
     {

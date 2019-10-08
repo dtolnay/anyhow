@@ -408,6 +408,6 @@ pub mod private {
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        Error::new_adhoc(message, backtrace!())
+        Error::from_adhoc(message, backtrace!())
     }
 }
