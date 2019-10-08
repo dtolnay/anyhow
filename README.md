@@ -15,7 +15,7 @@ for easy idiomatic error handling in Rust applications.
 anyhow = "1.0"
 ```
 
-*Compiler support: requires rustc 1.32+*
+*Compiler support: requires rustc 1.34+*
 
 <br>
 
