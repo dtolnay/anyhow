@@ -8,18 +8,18 @@ use std::sync::atomic::Ordering::SeqCst;
 use std::sync::Arc;
 
 #[test]
-fn size_of_error() {
+fn test_error_size() {
     assert_eq!(mem::size_of::<Error>(), mem::size_of::<usize>());
 }
 
 #[test]
-fn error_autotraits() {
+fn test_autotraits() {
     fn assert<E: Unpin + Send + Sync + 'static>() {}
     assert::<Error>();
 }
 
 #[test]
-fn drop_works() {
+fn test_drop() {
     #[derive(Debug)]
     struct DetectDrop {
         has_dropped: Arc<AtomicBool>,
