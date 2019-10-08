@@ -374,18 +374,18 @@ impl Drop for Error {
 }
 
 struct ErrorVTable {
-    object: unsafe fn(*const ()) -> *const (dyn StdError + Send + Sync + 'static),
-    object_mut: unsafe fn(*mut ()) -> *mut (dyn StdError + Send + Sync + 'static),
+    object: fn(*const ()) -> *const (dyn StdError + Send + Sync + 'static),
+    object_mut: fn(*mut ()) -> *mut (dyn StdError + Send + Sync + 'static),
 }
 
-unsafe fn object_raw<E>(e: *const ()) -> *const (dyn StdError + Send + Sync + 'static)
+fn object_raw<E>(e: *const ()) -> *const (dyn StdError + Send + Sync + 'static)
 where
     E: StdError + Send + Sync + 'static,
 {
     e as *const E
 }
 
-unsafe fn object_mut_raw<E>(e: *mut ()) -> *mut (dyn StdError + Send + Sync + 'static)
+fn object_mut_raw<E>(e: *mut ()) -> *mut (dyn StdError + Send + Sync + 'static)
 where
     E: StdError + Send + Sync + 'static,
 {
