@@ -177,6 +177,7 @@
 mod backtrace;
 mod context;
 mod error;
+mod kind;
 
 #[cfg(not(feature = "std"))]
 compile_error!("no_std support is not implemented yet");
@@ -386,9 +387,12 @@ macro_rules! ensure {
 /// ```
 #[macro_export]
 macro_rules! anyhow {
-    ($msg:expr $(,)?) => {
-        $crate::private::new_adhoc($msg)
-    };
+    ($msg:expr $(,)?) => ({
+        #[allow(unused_imports)]
+        use $crate::private::{AdhocKind, TraitKind};
+        let error = $msg;
+        error.anyhow_kind().new(error)
+    });
     ($fmt:expr, $($arg:tt)*) => {
         $crate::private::new_adhoc(format!($fmt, $($arg)*))
     };
@@ -402,6 +406,8 @@ pub mod private {
 
     #[cfg(backtrace)]
     use std::backtrace::Backtrace;
+
+    pub use crate::kind::{AdhocKind, TraitKind};
 
     pub fn new_adhoc<M>(message: M) -> Error
     where
