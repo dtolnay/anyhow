@@ -300,7 +300,8 @@ where
     E: StdError + Send + Sync + 'static,
 {
     fn from(error: E) -> Self {
-        Error::new(error)
+        let backtrace = backtrace_if_absent!(error);
+        Error::from_std(error, backtrace)
     }
 }
 
