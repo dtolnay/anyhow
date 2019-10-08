@@ -33,37 +33,50 @@ impl Error {
     where
         E: StdError + Send + Sync + 'static,
     {
+        let type_id = TypeId::of::<E>();
         let backtrace = backtrace_if_absent!(error);
-        Error::construct(error, TypeId::of::<E>(), backtrace)
+
+        // Safety: passing typeid of the right type E.
+        unsafe {
+            Error::construct(error, type_id, backtrace)
+        }
     }
 
     pub(crate) fn new_adhoc<M>(message: M, backtrace: Option<Backtrace>) -> Self
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        Error::construct(MessageError(message), TypeId::of::<M>(), backtrace)
+        let error = MessageError(message);
+        let type_id = TypeId::of::<M>();
+
+        // Safety: MessageError is repr(transparent) so MessageError<M> has the
+        // same layout as the typeid specifies.
+        unsafe {
+            Error::construct(error, type_id, backtrace)
+        }
     }
 
     // Takes backtrace as argument rather than capturing it here so that the
     // user sees one fewer layer of wrapping noise in the backtrace.
-    fn construct<E>(error: E, type_id: TypeId, backtrace: Option<Backtrace>) -> Self
+    //
+    // Unsafe because the type represented by type_id must have the same layout
+    // as E or else we allow invalid downcasts.
+    unsafe fn construct<E>(error: E, type_id: TypeId, backtrace: Option<Backtrace>) -> Self
     where
         E: StdError + Send + Sync + 'static,
     {
-        unsafe {
-            let vtable = &ErrorVTable {
-                object: object_raw::<E>,
-                object_mut: object_mut_raw::<E>,
-            };
-            let inner = Box::new(ErrorImpl {
-                vtable,
-                type_id,
-                backtrace,
-                error,
-            });
-            Error {
-                inner: mem::transmute::<Box<ErrorImpl<E>>, Box<ErrorImpl<()>>>(inner),
-            }
+        let vtable = &ErrorVTable {
+            object: object_raw::<E>,
+            object_mut: object_mut_raw::<E>,
+        };
+        let inner = Box::new(ErrorImpl {
+            vtable,
+            type_id,
+            backtrace,
+            error,
+        });
+        Error {
+            inner: mem::transmute::<Box<ErrorImpl<E>>, Box<ErrorImpl<()>>>(inner),
         }
     }
 
