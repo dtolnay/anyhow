@@ -61,9 +61,12 @@ impl Error {
         E: StdError + Send + Sync + 'static,
     {
         unsafe {
-            let obj = mem::transmute::<&dyn StdError, TraitObject>(&error);
+            let vtable = &ErrorVTable {
+                source: source_raw::<E>,
+                source_mut: source_mut_raw::<E>,
+            };
             let inner = Box::new(ErrorImpl {
-                vtable: obj.vtable,
+                vtable,
                 type_id,
                 backtrace,
                 error,
@@ -364,20 +367,32 @@ impl Drop for Error {
     }
 }
 
+struct ErrorVTable {
+    source: unsafe fn(*const ()) -> *const (dyn StdError + Send + Sync + 'static),
+    source_mut: unsafe fn(*mut ()) -> *mut (dyn StdError + Send + Sync + 'static),
+}
+
+unsafe fn source_raw<E>(e: *const ()) -> *const (dyn StdError + Send + Sync + 'static)
+where
+    E: StdError + Send + Sync + 'static,
+{
+    e as *const E
+}
+
+unsafe fn source_mut_raw<E>(e: *mut ()) -> *mut (dyn StdError + Send + Sync + 'static)
+where
+    E: StdError + Send + Sync + 'static,
+{
+    e as *mut E
+}
+
 // repr C to ensure that `E` remains in the final position
 #[repr(C)]
 struct ErrorImpl<E> {
-    vtable: *const (),
+    vtable: &'static ErrorVTable,
     type_id: TypeId,
     backtrace: Option<Backtrace>,
     error: E,
-}
-
-// repr C to ensure that transmuting from trait objects is safe
-#[repr(C)]
-struct TraitObject {
-    data: *const (),
-    vtable: *const (),
 }
 
 #[repr(transparent)]
@@ -405,23 +420,11 @@ impl<M> StdError for MessageError<M> where M: Display + Debug + 'static {}
 
 impl ErrorImpl<()> {
     fn error(&self) -> &(dyn StdError + Send + Sync + 'static) {
-        let object = TraitObject {
-            data: &self.error,
-            vtable: self.vtable,
-        };
-
-        unsafe { mem::transmute::<TraitObject, &(dyn StdError + Send + Sync + 'static)>(object) }
+        unsafe { &*(self.vtable.source)(&self.error) }
     }
 
     fn error_mut(&mut self) -> &mut (dyn StdError + Send + Sync + 'static) {
-        let object = TraitObject {
-            data: &mut self.error,
-            vtable: self.vtable,
-        };
-
-        unsafe {
-            mem::transmute::<TraitObject, &mut (dyn StdError + Send + Sync + 'static)>(object)
-        }
+        unsafe { &mut *(self.vtable.source_mut)(&mut self.error) }
     }
 }
 
