@@ -122,6 +122,7 @@ impl Error {
     /// #     }
     /// # }
     /// #
+    /// use anyhow::Result;
     /// use std::fs::File;
     /// use std::path::Path;
     ///
@@ -137,7 +138,7 @@ impl Error {
     ///     # unimplemented!()
     /// }
     ///
-    /// pub fn parse(path: impl AsRef<Path>) -> anyhow::Result<T> {
+    /// pub fn parse(path: impl AsRef<Path>) -> Result<T> {
     ///     let file = File::open(&path)?;
     ///     parse_impl(file).map_err(|error| {
     ///         let context = format!(
