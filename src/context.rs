@@ -1,4 +1,5 @@
 use crate::Error;
+use std::convert::Infallible;
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 
@@ -100,6 +101,43 @@ impl<T> Context<T, Error> for Result<T, Error> {
         F: FnOnce() -> C,
     {
         self.map_err(|error| error.context(context()))
+    }
+}
+
+/// ```
+/// # type T = ();
+/// #
+/// use anyhow::{Context, Result};
+///
+/// fn maybe_get() -> Option<T> {
+///     # const IGNORE: &str = stringify! {
+///     ...
+///     # };
+///     # unimplemented!()
+/// }
+///
+/// fn demo() -> Result<()> {
+///     let t = maybe_get().context("there is no T")?;
+///     # const IGNORE: &str = stringify! {
+///     ...
+///     # };
+///     # unimplemented!()
+/// }
+/// ```
+impl<T> Context<T, Infallible> for Option<T> {
+    fn context<C>(self, context: C) -> Result<T, Error>
+    where
+        C: Display + Send + Sync + 'static,
+    {
+        self.ok_or_else(|| Error::from_display(context, backtrace!()))
+    }
+
+    fn with_context<C, F>(self, context: F) -> Result<T, Error>
+    where
+        C: Display + Send + Sync + 'static,
+        F: FnOnce() -> C,
+    {
+        self.ok_or_else(|| Error::from_display(context(), backtrace!()))
     }
 }
 

@@ -59,6 +59,18 @@ impl Error {
         unsafe { Error::construct(error, type_id, backtrace) }
     }
 
+    pub(crate) fn from_display<M>(message: M, backtrace: Option<Backtrace>) -> Self
+    where
+        M: Display + Send + Sync + 'static,
+    {
+        let error = DisplayError(message);
+        let type_id = TypeId::of::<M>();
+
+        // Safety: DisplayError is repr(transparent) so DisplayError<M> has the
+        // same layout as the typeid specifies.
+        unsafe { Error::construct(error, type_id, backtrace) }
+    }
+
     // Takes backtrace as argument rather than capturing it here so that the
     // user sees one fewer layer of wrapping noise in the backtrace.
     //
@@ -423,6 +435,29 @@ where
 }
 
 impl<M> StdError for MessageError<M> where M: Display + Debug + 'static {}
+
+#[repr(transparent)]
+struct DisplayError<M>(M);
+
+impl<M> Debug for DisplayError<M>
+where
+    M: Display,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        Display::fmt(&self.0, f)
+    }
+}
+
+impl<M> Display for DisplayError<M>
+where
+    M: Display,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        Display::fmt(&self.0, f)
+    }
+}
+
+impl<M> StdError for DisplayError<M> where M: Display + 'static {}
 
 impl ErrorImpl<()> {
     fn error(&self) -> &(dyn StdError + Send + Sync + 'static) {
