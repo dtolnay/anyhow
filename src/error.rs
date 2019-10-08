@@ -37,9 +37,7 @@ impl Error {
         let backtrace = backtrace_if_absent!(error);
 
         // Safety: passing typeid of the right type E.
-        unsafe {
-            Error::construct(error, type_id, backtrace)
-        }
+        unsafe { Error::construct(error, type_id, backtrace) }
     }
 
     pub(crate) fn new_adhoc<M>(message: M, backtrace: Option<Backtrace>) -> Self
@@ -51,9 +49,7 @@ impl Error {
 
         // Safety: MessageError is repr(transparent) so MessageError<M> has the
         // same layout as the typeid specifies.
-        unsafe {
-            Error::construct(error, type_id, backtrace)
-        }
+        unsafe { Error::construct(error, type_id, backtrace) }
     }
 
     // Takes backtrace as argument rather than capturing it here so that the
