@@ -62,8 +62,8 @@ impl Error {
     {
         unsafe {
             let vtable = &ErrorVTable {
-                source: source_raw::<E>,
-                source_mut: source_mut_raw::<E>,
+                object: object_raw::<E>,
+                object_mut: object_mut_raw::<E>,
             };
             let inner = Box::new(ErrorImpl {
                 vtable,
@@ -368,18 +368,18 @@ impl Drop for Error {
 }
 
 struct ErrorVTable {
-    source: unsafe fn(*const ()) -> *const (dyn StdError + Send + Sync + 'static),
-    source_mut: unsafe fn(*mut ()) -> *mut (dyn StdError + Send + Sync + 'static),
+    object: unsafe fn(*const ()) -> *const (dyn StdError + Send + Sync + 'static),
+    object_mut: unsafe fn(*mut ()) -> *mut (dyn StdError + Send + Sync + 'static),
 }
 
-unsafe fn source_raw<E>(e: *const ()) -> *const (dyn StdError + Send + Sync + 'static)
+unsafe fn object_raw<E>(e: *const ()) -> *const (dyn StdError + Send + Sync + 'static)
 where
     E: StdError + Send + Sync + 'static,
 {
     e as *const E
 }
 
-unsafe fn source_mut_raw<E>(e: *mut ()) -> *mut (dyn StdError + Send + Sync + 'static)
+unsafe fn object_mut_raw<E>(e: *mut ()) -> *mut (dyn StdError + Send + Sync + 'static)
 where
     E: StdError + Send + Sync + 'static,
 {
@@ -420,11 +420,11 @@ impl<M> StdError for MessageError<M> where M: Display + Debug + 'static {}
 
 impl ErrorImpl<()> {
     fn error(&self) -> &(dyn StdError + Send + Sync + 'static) {
-        unsafe { &*(self.vtable.source)(&self.error) }
+        unsafe { &*(self.vtable.object)(&self.error) }
     }
 
     fn error_mut(&mut self) -> &mut (dyn StdError + Send + Sync + 'static) {
-        unsafe { &mut *(self.vtable.source_mut)(&mut self.error) }
+        unsafe { &mut *(self.vtable.object_mut)(&mut self.error) }
     }
 }
 
