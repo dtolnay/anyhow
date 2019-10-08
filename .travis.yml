@@ -11,3 +11,8 @@ matrix:
   include:
     - rust: 1.34.0
       script: cargo check
+    - rust: nightly
+      name: Clippy
+      script:
+        - rustup component add clippy || travis_terminate 0
+        - cargo clippy -- -Dclippy::all
