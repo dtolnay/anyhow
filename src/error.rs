@@ -81,8 +81,8 @@ impl Error {
         E: StdError + Send + Sync + 'static,
     {
         let vtable = &ErrorVTable {
-            object: object_raw::<E>,
-            object_mut: object_mut_raw::<E>,
+            object_raw: object_raw::<E>,
+            object_mut_raw: object_mut_raw::<E>,
         };
         let inner = Box::new(ErrorImpl {
             vtable,
@@ -387,8 +387,8 @@ impl Drop for Error {
 }
 
 struct ErrorVTable {
-    object: fn(*const ()) -> *const (dyn StdError + Send + Sync + 'static),
-    object_mut: fn(*mut ()) -> *mut (dyn StdError + Send + Sync + 'static),
+    object_raw: fn(*const ()) -> *const (dyn StdError + Send + Sync + 'static),
+    object_mut_raw: fn(*mut ()) -> *mut (dyn StdError + Send + Sync + 'static),
 }
 
 fn object_raw<E>(e: *const ()) -> *const (dyn StdError + Send + Sync + 'static)
@@ -462,11 +462,11 @@ impl<M> StdError for DisplayError<M> where M: Display + 'static {}
 
 impl ErrorImpl<()> {
     fn error(&self) -> &(dyn StdError + Send + Sync + 'static) {
-        unsafe { &*(self.vtable.object)(&self.error) }
+        unsafe { &*(self.vtable.object_raw)(&self.error) }
     }
 
     fn error_mut(&mut self) -> &mut (dyn StdError + Send + Sync + 'static) {
-        unsafe { &mut *(self.vtable.object_mut)(&mut self.error) }
+        unsafe { &mut *(self.vtable.object_mut_raw)(&mut self.error) }
     }
 }
 
