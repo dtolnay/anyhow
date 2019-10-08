@@ -3,7 +3,7 @@ use crate::context::ContextError;
 use std::any::TypeId;
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
-use std::mem;
+use std::mem::{self, ManuallyDrop};
 use std::ops::{Deref, DerefMut};
 use std::ptr;
 
@@ -18,7 +18,7 @@ use std::ptr;
 /// - `Error` is represented as a narrow pointer &mdash; exactly one word in
 ///   size instead of two.
 pub struct Error {
-    inner: Box<ErrorImpl<()>>,
+    inner: ManuallyDrop<Box<ErrorImpl<()>>>,
 }
 
 impl Error {
@@ -81,6 +81,7 @@ impl Error {
         E: StdError + Send + Sync + 'static,
     {
         let vtable = &ErrorVTable {
+            object_drop: object_drop::<E>,
             object_raw: object_raw::<E>,
             object_mut_raw: object_mut_raw::<E>,
         };
@@ -90,9 +91,9 @@ impl Error {
             backtrace,
             error,
         });
-        Error {
-            inner: mem::transmute::<Box<ErrorImpl<E>>, Box<ErrorImpl<()>>>(inner),
-        }
+        let erased = mem::transmute::<Box<ErrorImpl<E>>, Box<ErrorImpl<()>>>(inner);
+        let inner = ManuallyDrop::new(erased);
+        Error { inner }
     }
 
     /// Wrap the error value with additional context.
@@ -382,13 +383,25 @@ unsafe impl Sync for Error {}
 
 impl Drop for Error {
     fn drop(&mut self) {
-        unsafe { ptr::drop_in_place(self.inner.error_mut()) }
+        unsafe {
+            let inner = ptr::read(&mut self.inner);
+            let erased = ManuallyDrop::into_inner(inner);
+            (erased.vtable.object_drop)(erased);
+        }
     }
 }
 
 struct ErrorVTable {
+    object_drop: unsafe fn(Box<ErrorImpl<()>>),
     object_raw: fn(*const ()) -> *const (dyn StdError + Send + Sync + 'static),
     object_mut_raw: fn(*mut ()) -> *mut (dyn StdError + Send + Sync + 'static),
+}
+
+unsafe fn object_drop<E>(e: Box<ErrorImpl<()>>) {
+    // Cast back to ErrorImpl<E> so that the allocator receives the correct
+    // Layout to deallocate the Box's memory.
+    let unerased = mem::transmute::<Box<ErrorImpl<()>>, Box<ErrorImpl<E>>>(e);
+    drop(unerased);
 }
 
 fn object_raw<E>(e: *const ()) -> *const (dyn StdError + Send + Sync + 'static)
