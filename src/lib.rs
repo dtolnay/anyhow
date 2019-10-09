@@ -285,6 +285,9 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 /// ```
 #[macro_export]
 macro_rules! bail {
+    ($msg:literal $(,)?) => {
+        return std::result::Result::Err($crate::anyhow!($msg));
+    };
     ($err:expr $(,)?) => {
         return std::result::Result::Err($crate::anyhow!($err));
     };
@@ -351,6 +354,11 @@ macro_rules! bail {
 /// ```
 #[macro_export]
 macro_rules! ensure {
+    ($cond:expr, $msg:literal $(,)?) => {
+        if !$cond {
+            return std::result::Result::Err($crate::anyhow!($msg));
+        }
+    };
     ($cond:expr, $err:expr $(,)?) => {
         if !$cond {
             return std::result::Result::Err($crate::anyhow!($err));
@@ -387,10 +395,15 @@ macro_rules! ensure {
 /// ```
 #[macro_export]
 macro_rules! anyhow {
-    ($msg:expr $(,)?) => ({
+    ($msg:literal $(,)?) => {
+        // Handle $:literal as a special case to make cargo-expanded code more
+        // concise in the common case.
+        $crate::private::new_adhoc($msg)
+    };
+    ($err:expr $(,)?) => ({
         #[allow(unused_imports)]
         use $crate::private::{AdhocKind, TraitKind};
-        let error = $msg;
+        let error = $err;
         error.anyhow_kind().new(error)
     });
     ($fmt:expr, $($arg:tt)*) => {
