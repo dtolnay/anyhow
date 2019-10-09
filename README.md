@@ -81,9 +81,9 @@ anyhow = "1.0"
 - Anyhow works with any error type that has an impl of `std::error::Error`,
   including ones defined in your crate. We do not bundle a `derive(Error)` macro
   but you can write the impls yourself or use a standalone macro like
-  [err-derive].
+  [thiserror].
 
-  [err-derive]: https://crates.io/crates/err-derive
+  [thiserror]: https://github.com/dtolnay/thiserror
 
   ```rust
   #[derive(Error, Debug)]
