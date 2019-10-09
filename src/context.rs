@@ -8,6 +8,9 @@ use std::backtrace::Backtrace;
 
 /// Provides the `context` method for `Result`.
 ///
+/// This trait is sealed and cannot be implemented for types outside of
+/// `anyhow`.
+///
 /// # Example
 ///
 /// ```
@@ -48,7 +51,7 @@ use std::backtrace::Backtrace;
 /// caused by:
 ///     No such file or directory (os error 2)
 /// ```
-pub trait Context<T, E> {
+pub trait Context<T, E>: private::Sealed {
     /// Wrap the error value with additional context.
     fn context<C>(self, context: C) -> Result<T, Error>
     where
@@ -192,4 +195,15 @@ where
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         Some(&*self.error)
     }
+}
+
+mod private {
+    use crate::Error;
+    use std::error::Error as StdError;
+
+    pub trait Sealed {}
+
+    impl<T, E> Sealed for Result<T, E> where E: StdError + Send + Sync + 'static {}
+    impl<T> Sealed for Result<T, Error> {}
+    impl<T> Sealed for Option<T> {}
 }
