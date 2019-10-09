@@ -86,14 +86,16 @@ anyhow = "1.0"
   [thiserror]: https://github.com/dtolnay/thiserror
 
   ```rust
+  use thiserror::Error;
+
   #[derive(Error, Debug)]
   pub enum FormatError {
-      #[error(display = "invalid header (expected {:?}, got {:?})", expected, found)]
+      #[error("invalid header (expected {expected:?}, got {found:?})")]
       InvalidHeader {
           expected: String,
           found: String,
       },
-      #[error(display = "missing attribute: {}", _0)]
+      #[error("missing attribute: {0}")]
       MissingAttribute(String),
   }
   ```

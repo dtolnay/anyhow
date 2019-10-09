@@ -12,3 +12,6 @@ readme = "README.md"
 [features]
 default = ["std"]
 std = []
+
+[dev-dependencies]
+thiserror = "1.0"
