@@ -404,7 +404,7 @@ macro_rules! anyhow {
         #[allow(unused_imports)]
         use $crate::private::{AdhocKind, TraitKind};
         let error = $err;
-        error.anyhow_kind().new(error)
+        (&error).anyhow_kind().new(error)
     });
     ($fmt:expr, $($arg:tt)*) => {
         $crate::private::new_adhoc(format!($fmt, $($arg)*))

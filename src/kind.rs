@@ -42,7 +42,7 @@
 //     #[allow(unused_imports)]
 //     use $crate::private::{AdhocKind, TraitKind};
 //     let error = $msg;
-//     error.anyhow_kind().new(error)
+//     (&error).anyhow_kind().new(error)
 
 use crate::Error;
 use std::error::Error as StdError;
