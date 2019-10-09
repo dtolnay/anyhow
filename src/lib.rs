@@ -170,7 +170,7 @@
 //!
 //! [fehler]: https://github.com/withoutboats/fehler
 
-#![doc(html_root_url = "https://docs.rs/anyhow/1.0.6")]
+#![doc(html_root_url = "https://docs.rs/anyhow/1.0.7")]
 #![cfg_attr(backtrace, feature(backtrace))]
 
 #[macro_use]
