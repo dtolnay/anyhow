@@ -170,7 +170,7 @@
 //!
 //! [fehler]: https://github.com/withoutboats/fehler
 
-#![doc(html_root_url = "https://docs.rs/anyhow/1.0.9")]
+#![doc(html_root_url = "https://docs.rs/anyhow/1.0.10")]
 #![cfg_attr(backtrace, feature(backtrace))]
 #![allow(clippy::new_ret_no_self, clippy::wrong_self_convention)]
 
