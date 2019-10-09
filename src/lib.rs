@@ -172,6 +172,7 @@
 
 #![doc(html_root_url = "https://docs.rs/anyhow/1.0.8")]
 #![cfg_attr(backtrace, feature(backtrace))]
+#![allow(clippy::new_ret_no_self, clippy::wrong_self_convention)]
 
 #[macro_use]
 mod backtrace;
