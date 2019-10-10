@@ -91,7 +91,7 @@ impl Error {
             vtable,
             type_id,
             backtrace,
-            error,
+            _error: error,
         });
         let erased = mem::transmute::<Box<ErrorImpl<E>>, Box<ErrorImpl<()>>>(inner);
         let inner = ManuallyDrop::new(erased);
@@ -233,7 +233,7 @@ impl Error {
         if self.is::<E>() {
             let outer = ManuallyDrop::new(self);
             unsafe {
-                let error = ptr::read(&outer.inner.error as *const () as *const E);
+                let error = ptr::read(outer.inner.error() as *const _ as *const E);
                 let inner = ptr::read(&outer.inner);
                 let erased = ManuallyDrop::into_inner(inner);
                 (erased.vtable.object_drop_front)(erased);
@@ -285,7 +285,7 @@ impl Error {
         E: Display + Debug + Send + Sync + 'static,
     {
         if self.is::<E>() {
-            Some(unsafe { &*(&self.inner.error as *const () as *const E) })
+            Some(unsafe { &*(self.inner.error() as *const _ as *const E) })
         } else {
             None
         }
@@ -297,7 +297,7 @@ impl Error {
         E: Display + Debug + Send + Sync + 'static,
     {
         if self.is::<E>() {
-            Some(unsafe { &mut *(&mut self.inner.error as *mut () as *mut E) })
+            Some(unsafe { &mut *(self.inner.error_mut() as *mut _ as *mut E) })
         } else {
             None
         }
@@ -356,8 +356,8 @@ impl Drop for Error {
 struct ErrorVTable {
     object_drop: unsafe fn(Box<ErrorImpl<()>>),
     object_drop_front: unsafe fn(Box<ErrorImpl<()>>),
-    object_raw: fn(*const ()) -> *const (dyn StdError + Send + Sync + 'static),
-    object_mut_raw: fn(*mut ()) -> *mut (dyn StdError + Send + Sync + 'static),
+    object_raw: unsafe fn(&ErrorImpl<()>) -> &(dyn StdError + Send + Sync + 'static),
+    object_mut_raw: unsafe fn(&mut ErrorImpl<()>) -> &mut (dyn StdError + Send + Sync + 'static),
     object_boxed: unsafe fn(Box<ErrorImpl<()>>) -> Box<dyn StdError + Send + Sync + 'static>,
 }
 
@@ -376,18 +376,18 @@ unsafe fn object_drop_front<E>(e: Box<ErrorImpl<()>>) {
     drop(unerased);
 }
 
-fn object_raw<E>(e: *const ()) -> *const (dyn StdError + Send + Sync + 'static)
+unsafe fn object_raw<E>(e: &ErrorImpl<()>) -> &(dyn StdError + Send + Sync + 'static)
 where
     E: StdError + Send + Sync + 'static,
 {
-    e as *const E
+    &(*(e as *const ErrorImpl<()> as *const ErrorImpl<E>))._error
 }
 
-fn object_mut_raw<E>(e: *mut ()) -> *mut (dyn StdError + Send + Sync + 'static)
+unsafe fn object_mut_raw<E>(e: &mut ErrorImpl<()>) -> &mut (dyn StdError + Send + Sync + 'static)
 where
     E: StdError + Send + Sync + 'static,
 {
-    e as *mut E
+    &mut (*(e as *mut ErrorImpl<()> as *mut ErrorImpl<E>))._error
 }
 
 unsafe fn object_boxed<E>(e: Box<ErrorImpl<()>>) -> Box<dyn StdError + Send + Sync + 'static>
@@ -403,7 +403,8 @@ struct ErrorImpl<E> {
     vtable: &'static ErrorVTable,
     type_id: TypeId,
     backtrace: Option<Backtrace>,
-    error: E,
+    // NOTE: Don't use directly. Use only through vtable. Erased type may have different alignment.
+    _error: E,
 }
 
 #[repr(transparent)]
@@ -460,11 +461,11 @@ impl<E> ErrorImpl<E> {
 
 impl ErrorImpl<()> {
     fn error(&self) -> &(dyn StdError + Send + Sync + 'static) {
-        unsafe { &*(self.vtable.object_raw)(&self.error) }
+        unsafe { &*(self.vtable.object_raw)(self) }
     }
 
     fn error_mut(&mut self) -> &mut (dyn StdError + Send + Sync + 'static) {
-        unsafe { &mut *(self.vtable.object_mut_raw)(&mut self.error) }
+        unsafe { &mut *(self.vtable.object_mut_raw)(self) }
     }
 
     #[cfg(backtrace)]
@@ -532,7 +533,7 @@ where
     }
 
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
-        self.error.source()
+        self.erase().error().source()
     }
 }
 
@@ -550,7 +551,7 @@ where
     E: Display,
 {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        Display::fmt(&self.error, formatter)
+        Display::fmt(&self.erase().error(), formatter)
     }
 }
 
