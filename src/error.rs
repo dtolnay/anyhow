@@ -83,8 +83,8 @@ impl Error {
         let vtable = &ErrorVTable {
             object_drop: object_drop::<E>,
             object_drop_front: object_drop_front::<E>,
-            object_raw: object_raw::<E>,
-            object_mut_raw: object_mut_raw::<E>,
+            object_ref: object_ref::<E>,
+            object_mut: object_mut::<E>,
             object_boxed: object_boxed::<E>,
         };
         let inner = Box::new(ErrorImpl {
@@ -356,8 +356,8 @@ impl Drop for Error {
 struct ErrorVTable {
     object_drop: unsafe fn(Box<ErrorImpl<()>>),
     object_drop_front: unsafe fn(Box<ErrorImpl<()>>),
-    object_raw: unsafe fn(&ErrorImpl<()>) -> &(dyn StdError + Send + Sync + 'static),
-    object_mut_raw: unsafe fn(&mut ErrorImpl<()>) -> &mut (dyn StdError + Send + Sync + 'static),
+    object_ref: unsafe fn(&ErrorImpl<()>) -> &(dyn StdError + Send + Sync + 'static),
+    object_mut: unsafe fn(&mut ErrorImpl<()>) -> &mut (dyn StdError + Send + Sync + 'static),
     object_boxed: unsafe fn(Box<ErrorImpl<()>>) -> Box<dyn StdError + Send + Sync + 'static>,
 }
 
@@ -376,14 +376,14 @@ unsafe fn object_drop_front<E>(e: Box<ErrorImpl<()>>) {
     drop(unerased);
 }
 
-unsafe fn object_raw<E>(e: &ErrorImpl<()>) -> &(dyn StdError + Send + Sync + 'static)
+unsafe fn object_ref<E>(e: &ErrorImpl<()>) -> &(dyn StdError + Send + Sync + 'static)
 where
     E: StdError + Send + Sync + 'static,
 {
     &(*(e as *const ErrorImpl<()> as *const ErrorImpl<E>))._error
 }
 
-unsafe fn object_mut_raw<E>(e: &mut ErrorImpl<()>) -> &mut (dyn StdError + Send + Sync + 'static)
+unsafe fn object_mut<E>(e: &mut ErrorImpl<()>) -> &mut (dyn StdError + Send + Sync + 'static)
 where
     E: StdError + Send + Sync + 'static,
 {
@@ -461,11 +461,11 @@ impl<E> ErrorImpl<E> {
 
 impl ErrorImpl<()> {
     fn error(&self) -> &(dyn StdError + Send + Sync + 'static) {
-        unsafe { &*(self.vtable.object_raw)(self) }
+        unsafe { &*(self.vtable.object_ref)(self) }
     }
 
     fn error_mut(&mut self) -> &mut (dyn StdError + Send + Sync + 'static) {
-        unsafe { &mut *(self.vtable.object_mut_raw)(self) }
+        unsafe { &mut *(self.vtable.object_mut)(self) }
     }
 
     #[cfg(backtrace)]
