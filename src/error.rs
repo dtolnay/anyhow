@@ -233,7 +233,9 @@ impl Error {
         if self.is::<E>() {
             let outer = ManuallyDrop::new(self);
             unsafe {
-                let error = ptr::read(outer.inner.error() as *const (dyn StdError + Send + Sync) as *const E);
+                let error = ptr::read(
+                    outer.inner.error() as *const (dyn StdError + Send + Sync) as *const E
+                );
                 let inner = ptr::read(&outer.inner);
                 let erased = ManuallyDrop::into_inner(inner);
                 (erased.vtable.object_drop_front)(erased);
@@ -285,7 +287,9 @@ impl Error {
         E: Display + Debug + Send + Sync + 'static,
     {
         if self.is::<E>() {
-            Some(unsafe { &*(self.inner.error() as *const (dyn StdError + Send + Sync) as *const E) })
+            Some(unsafe {
+                &*(self.inner.error() as *const (dyn StdError + Send + Sync) as *const E)
+            })
         } else {
             None
         }
@@ -297,7 +301,9 @@ impl Error {
         E: Display + Debug + Send + Sync + 'static,
     {
         if self.is::<E>() {
-            Some(unsafe { &mut *(self.inner.error_mut() as *mut (dyn StdError + Send + Sync) as *mut E) })
+            Some(unsafe {
+                &mut *(self.inner.error_mut() as *mut (dyn StdError + Send + Sync) as *mut E)
+            })
         } else {
             None
         }

@@ -94,5 +94,8 @@ fn test_large_alignment() {
     impl StdError for LargeAlignedError {}
 
     let error = Error::new(LargeAlignedError("oh no!"));
-    assert_eq!("oh no!", error.downcast_ref::<LargeAlignedError>().unwrap().0);
+    assert_eq!(
+        "oh no!",
+        error.downcast_ref::<LargeAlignedError>().unwrap().0
+    );
 }
