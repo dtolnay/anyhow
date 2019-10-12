@@ -65,15 +65,49 @@ pub trait Context<T, E>: private::Sealed {
         F: FnOnce() -> C;
 }
 
+mod ext {
+    use super::*;
+
+    pub trait StdError {
+        fn ext_context<C>(self, context: C) -> Error
+        where
+            C: Display + Send + Sync + 'static;
+    }
+
+    impl<E> StdError for E
+    where
+        E: std::error::Error + Send + Sync + 'static,
+    {
+        fn ext_context<C>(self, context: C) -> Error
+        where
+            C: Display + Send + Sync + 'static,
+        {
+            Error::new(ContextError {
+                error: self,
+                context,
+            })
+        }
+    }
+
+    impl StdError for Error {
+        fn ext_context<C>(self, context: C) -> Error
+        where
+            C: Display + Send + Sync + 'static,
+        {
+            self.context(context)
+        }
+    }
+}
+
 impl<T, E> Context<T, E> for Result<T, E>
 where
-    E: StdError + Send + Sync + 'static,
+    E: ext::StdError + Send + Sync + 'static,
 {
     fn context<C>(self, context: C) -> Result<T, Error>
     where
         C: Display + Send + Sync + 'static,
     {
-        self.map_err(|error| Error::new(ContextError { error, context }))
+        self.map_err(|error| error.ext_context(context))
     }
 
     fn with_context<C, F>(self, context: F) -> Result<T, Error>
@@ -81,29 +115,7 @@ where
         C: Display + Send + Sync + 'static,
         F: FnOnce() -> C,
     {
-        self.map_err(|error| {
-            Error::new(ContextError {
-                error,
-                context: context(),
-            })
-        })
-    }
-}
-
-impl<T> Context<T, Error> for Result<T, Error> {
-    fn context<C>(self, context: C) -> Result<T, Error>
-    where
-        C: Display + Send + Sync + 'static,
-    {
-        self.map_err(|error| error.context(context))
-    }
-
-    fn with_context<C, F>(self, context: F) -> Result<T, Error>
-    where
-        C: Display + Send + Sync + 'static,
-        F: FnOnce() -> C,
-    {
-        self.map_err(|error| error.context(context()))
+        self.map_err(|error| error.ext_context(context()))
     }
 }
 
@@ -198,12 +210,10 @@ where
 }
 
 mod private {
-    use crate::Error;
-    use std::error::Error as StdError;
+    use super::*;
 
     pub trait Sealed {}
 
-    impl<T, E> Sealed for Result<T, E> where E: StdError + Send + Sync + 'static {}
-    impl<T> Sealed for Result<T, Error> {}
+    impl<T, E> Sealed for Result<T, E> where E: ext::StdError {}
     impl<T> Sealed for Option<T> {}
 }
