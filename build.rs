@@ -1,6 +1,6 @@
 use std::env;
 use std::process::Command;
-use std::str;
+use std::str::{self, FromStr};
 
 fn main() {
     let compiler = match rustc_version() {
@@ -8,32 +8,28 @@ fn main() {
         None => return,
     };
 
-    if compiler.nightly {
+    if compiler.minor >= 40 && compiler.nightly {
         println!("cargo:rustc-cfg=backtrace");
     }
 }
 
 struct Compiler {
+    minor: u32,
     nightly: bool,
 }
 
 fn rustc_version() -> Option<Compiler> {
-    let rustc = match env::var_os("RUSTC") {
-        Some(rustc) => rustc,
-        None => return None,
-    };
+    let rustc = env::var_os("RUSTC")?;
+    let output = Command::new(rustc).arg("--version").output().ok()?;
+    let version = str::from_utf8(&output.stdout).ok()?;
 
-    let output = match Command::new(rustc).arg("--version").output() {
-        Ok(output) => output,
-        Err(_) => return None,
-    };
+    let mut pieces = version.split('.');
+    if pieces.next() != Some("rustc 1") {
+        return None;
+    }
 
-    let version = match str::from_utf8(&output.stdout) {
-        Ok(version) => version,
-        Err(_) => return None,
-    };
-
-    Some(Compiler {
-        nightly: version.contains("nightly") || version.contains("dev"),
-    })
+    let next = pieces.next()?;
+    let minor = u32::from_str(next).ok()?;
+    let nightly = version.contains("nightly") || version.contains("dev");
+    Some(Compiler { minor, nightly })
 }
