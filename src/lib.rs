@@ -192,6 +192,12 @@ pub use crate::error::{Chain, Error};
 /// for `fn main`; if you do, failures will be printed along with any
 /// [context][Context] and a backtrace if one was captured.
 ///
+/// Note that `anyhow::Result` just provides an alias for `std::result::Result`
+/// with the error type defaulted to `anyhow::Error`. Thus, you can safely
+/// shadow `std::result::Result` with `anyhow::Result`, as invocations of
+/// `anyhow::Result` with two arguments will work identically to invocations of
+/// `std::result::Result`.
+///
 /// # Example
 ///
 /// ```
