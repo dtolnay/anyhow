@@ -572,6 +572,12 @@ impl From<Error> for Box<dyn StdError + Send + Sync + 'static> {
     }
 }
 
+impl From<Error> for Box<dyn StdError + 'static> {
+    fn from(error: Error) -> Self {
+        Box::<dyn StdError + Send + Sync>::from(error)
+    }
+}
+
 /// Iterator of a chain of source errors.
 ///
 /// This type is the iterator returned by [`Error::chain`].
