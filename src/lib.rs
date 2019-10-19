@@ -192,6 +192,20 @@ pub use crate::error::{Chain, Error};
 /// for `fn main`; if you do, failures will be printed along with any
 /// [context][Context] and a backtrace if one was captured.
 ///
+/// `anyhow::Result` may be used with one *or* two type parameters.
+///
+/// ```rust
+/// use anyhow::Result;
+///
+/// # const IGNORE: &str = stringify! {
+/// fn demo1() -> Result<T> {...}
+///            // ^ equivalent to std::result::Result<T, anyhow::Error>
+///
+/// fn demo2() -> Result<T, OtherError> {...}
+///            // ^ equivalent to std::result::Result<T, OtherError>
+/// # };
+/// ```
+///
 /// # Example
 ///
 /// ```
