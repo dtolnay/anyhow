@@ -1,7 +1,7 @@
 mod drop;
 
 use self::drop::DetectDrop;
-use anyhow::Error;
+use anyhow::{Error, Result};
 use std::error::Error as StdError;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering::SeqCst;
@@ -15,4 +15,13 @@ fn test_convert() {
     assert_eq!("oh no!", box_dyn.to_string());
     drop(box_dyn);
     assert!(has_dropped.load(SeqCst));
+}
+
+#[test]
+fn test_question_mark() -> Result<(), Box<dyn StdError>> {
+    fn f() -> Result<()> {
+        Ok(())
+    }
+    f()?;
+    Ok(())
 }
