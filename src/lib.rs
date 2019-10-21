@@ -183,9 +183,47 @@ mod kind;
 #[cfg(not(feature = "std"))]
 compile_error!("no_std support is not implemented yet");
 
+use crate::error::ErrorImpl;
+use std::error::Error as StdError;
 use std::fmt::Display;
+use std::mem::ManuallyDrop;
 
-pub use crate::error::{Chain, Error};
+/// The `Error` type, a wrapper around a dynamic error type.
+///
+/// `Error` works a lot like `Box<dyn std::error::Error>`, but with these
+/// differences:
+///
+/// - `Error` requires that the error is `Send`, `Sync`, and `'static`.
+/// - `Error` guarantees that a backtrace is available, even if the underlying
+///   error type does not provide one.
+/// - `Error` is represented as a narrow pointer &mdash; exactly one word in
+///   size instead of two.
+pub struct Error {
+    inner: ManuallyDrop<Box<ErrorImpl<()>>>,
+}
+
+/// Iterator of a chain of source errors.
+///
+/// This type is the iterator returned by [`Error::chain`].
+///
+/// # Example
+///
+/// ```
+/// use anyhow::Error;
+/// use std::io;
+///
+/// pub fn underlying_io_error_kind(error: &Error) -> Option<io::ErrorKind> {
+///     for cause in error.chain() {
+///         if let Some(io_error) = cause.downcast_ref::<io::Error>() {
+///             return Some(io_error.kind());
+///         }
+///     }
+///     None
+/// }
+/// ```
+pub struct Chain<'a> {
+    next: Option<&'a (dyn StdError + 'static)>,
+}
 
 /// `Result<T, Error>`
 ///

@@ -1,25 +1,12 @@
 use crate::backtrace::Backtrace;
 use crate::context::ContextError;
+use crate::{Chain, Error};
 use std::any::TypeId;
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 use std::mem::{self, ManuallyDrop};
 use std::ops::{Deref, DerefMut};
 use std::ptr;
-
-/// The `Error` type, a wrapper around a dynamic error type.
-///
-/// `Error` works a lot like `Box<dyn std::error::Error>`, but with these
-/// differences:
-///
-/// - `Error` requires that the error is `Send`, `Sync`, and `'static`.
-/// - `Error` guarantees that a backtrace is available, even if the underlying
-///   error type does not provide one.
-/// - `Error` is represented as a narrow pointer &mdash; exactly one word in
-///   size instead of two.
-pub struct Error {
-    inner: ManuallyDrop<Box<ErrorImpl<()>>>,
-}
 
 impl Error {
     /// Create a new error object from any error type.
@@ -405,7 +392,7 @@ where
 
 // repr C to ensure that `E` remains in the final position
 #[repr(C)]
-struct ErrorImpl<E> {
+pub(crate) struct ErrorImpl<E> {
     vtable: &'static ErrorVTable,
     type_id: TypeId,
     backtrace: Option<Backtrace>,
@@ -576,29 +563,6 @@ impl From<Error> for Box<dyn StdError + 'static> {
     fn from(error: Error) -> Self {
         Box::<dyn StdError + Send + Sync>::from(error)
     }
-}
-
-/// Iterator of a chain of source errors.
-///
-/// This type is the iterator returned by [`Error::chain`].
-///
-/// # Example
-///
-/// ```
-/// use anyhow::Error;
-/// use std::io;
-///
-/// pub fn underlying_io_error_kind(error: &Error) -> Option<io::ErrorKind> {
-///     for cause in error.chain() {
-///         if let Some(io_error) = cause.downcast_ref::<io::Error>() {
-///             return Some(io_error.kind());
-///         }
-///     }
-///     None
-/// }
-/// ```
-pub struct Chain<'a> {
-    next: Option<&'a (dyn StdError + 'static)>,
 }
 
 impl<'a> Iterator for Chain<'a> {
