@@ -1,69 +1,10 @@
-use crate::Error;
+use crate::{Context, Error};
 use std::convert::Infallible;
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 
 #[cfg(backtrace)]
 use std::backtrace::Backtrace;
-
-/// Provides the `context` method for `Result`.
-///
-/// This trait is sealed and cannot be implemented for types outside of
-/// `anyhow`.
-///
-/// # Example
-///
-/// ```
-/// use anyhow::{Context, Result};
-/// use std::fs;
-/// use std::path::PathBuf;
-///
-/// pub struct ImportantThing {
-///     path: PathBuf,
-/// }
-///
-/// impl ImportantThing {
-///     # const IGNORE: &'static str = stringify! {
-///     pub fn detach(&mut self) -> Result<()> {...}
-///     # };
-///     # fn detach(&mut self) -> Result<()> {
-///     #     unimplemented!()
-///     # }
-/// }
-///
-/// pub fn do_it(mut it: ImportantThing) -> Result<Vec<u8>> {
-///     it.detach().context("failed to detach the important thing")?;
-///
-///     let path = &it.path;
-///     let content = fs::read(path)
-///         .with_context(|| format!("failed to read instrs from {}", path.display()))?;
-///
-///     Ok(content)
-/// }
-/// ```
-///
-/// When printed, the outermost context would be printed first and the lower
-/// level underlying causes would be enumerated below.
-///
-/// ```console
-/// Error: failed to read instrs from ./path/to/instrs.jsox
-///
-/// caused by:
-///     No such file or directory (os error 2)
-/// ```
-pub trait Context<T, E>: private::Sealed {
-    /// Wrap the error value with additional context.
-    fn context<C>(self, context: C) -> Result<T, Error>
-    where
-        C: Display + Send + Sync + 'static;
-
-    /// Wrap the error value with additional context that is evaluated lazily
-    /// only once an error does occur.
-    fn with_context<C, F>(self, f: F) -> Result<T, Error>
-    where
-        C: Display + Send + Sync + 'static,
-        F: FnOnce() -> C;
-}
 
 mod ext {
     use super::*;
@@ -209,7 +150,7 @@ where
     }
 }
 
-mod private {
+pub(crate) mod private {
     use super::*;
 
     pub trait Sealed {}
