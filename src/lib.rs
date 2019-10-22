@@ -319,7 +319,7 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 /// ```console
 /// Error: failed to read instrs from ./path/to/instrs.jsox
 ///
-/// caused by:
+/// Caused by:
 ///     No such file or directory (os error 2)
 /// ```
 pub trait Context<T, E>: context::private::Sealed {
