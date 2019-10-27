@@ -5,7 +5,7 @@ use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 use std::mem::{self, ManuallyDrop};
 use std::ops::{Deref, DerefMut};
-use std::ptr;
+use std::ptr::{self, NonNull};
 
 impl Error {
     /// Create a new error object from any error type.
@@ -34,6 +34,7 @@ impl Error {
             object_mut: object_mut::<E>,
             object_boxed: object_boxed::<E>,
             object_is: object_is::<E>,
+            object_downcast: object_downcast::<E>,
         };
 
         // Safety: passing vtable that operates on the right type E.
@@ -52,6 +53,7 @@ impl Error {
             object_mut: object_mut::<MessageError<M>>,
             object_boxed: object_boxed::<MessageError<M>>,
             object_is: object_is::<M>,
+            object_downcast: object_downcast::<M>,
         };
 
         // Safety: MessageError is repr(transparent) so it is okay for the
@@ -71,6 +73,7 @@ impl Error {
             object_mut: object_mut::<DisplayError<M>>,
             object_boxed: object_boxed::<DisplayError<M>>,
             object_is: object_is::<M>,
+            object_downcast: object_downcast::<M>,
         };
 
         // Safety: DisplayError is repr(transparent) so it is okay for the
@@ -92,6 +95,7 @@ impl Error {
             object_mut: object_mut::<ContextError<C, E>>,
             object_boxed: object_boxed::<ContextError<C, E>>,
             object_is: object_is::<ContextError<C, E>>,
+            object_downcast: object_downcast::<ContextError<C, E>>,
         };
 
         // Safety: passing vtable that operates on the right type.
@@ -191,6 +195,7 @@ impl Error {
             object_mut: object_mut::<ContextError<C, Error>>,
             object_boxed: object_boxed::<ContextError<C, Error>>,
             object_is: object_is::<ContextError<C, Error>>,
+            object_downcast: object_downcast::<ContextError<C, Error>>,
         };
 
         // As the cause is anyhow::Error, we already have a backtrace for it.
@@ -269,19 +274,18 @@ impl Error {
     where
         E: Display + Debug + Send + Sync + 'static,
     {
-        if self.is::<E>() {
+        let target = TypeId::of::<E>();
+        unsafe {
+            let addr = match (self.inner.vtable.object_downcast)(&self.inner, target) {
+                Some(addr) => addr,
+                None => return Err(self),
+            };
             let outer = ManuallyDrop::new(self);
-            unsafe {
-                let error = ptr::read(
-                    outer.inner.error() as *const (dyn StdError + Send + Sync) as *const E
-                );
-                let inner = ptr::read(&outer.inner);
-                let erased = ManuallyDrop::into_inner(inner);
-                (erased.vtable.object_drop_front)(erased);
-                Ok(error)
-            }
-        } else {
-            Err(self)
+            let error = ptr::read(addr.cast::<E>().as_ptr());
+            let inner = ptr::read(&outer.inner);
+            let erased = ManuallyDrop::into_inner(inner);
+            (erased.vtable.object_drop_front)(erased);
+            Ok(error)
         }
     }
 
@@ -325,12 +329,10 @@ impl Error {
     where
         E: Display + Debug + Send + Sync + 'static,
     {
-        if self.is::<E>() {
-            Some(unsafe {
-                &*(self.inner.error() as *const (dyn StdError + Send + Sync) as *const E)
-            })
-        } else {
-            None
+        let target = TypeId::of::<E>();
+        unsafe {
+            let addr = (self.inner.vtable.object_downcast)(&self.inner, target)?;
+            Some(&*addr.cast::<E>().as_ptr())
         }
     }
 
@@ -339,12 +341,10 @@ impl Error {
     where
         E: Display + Debug + Send + Sync + 'static,
     {
-        if self.is::<E>() {
-            Some(unsafe {
-                &mut *(self.inner.error_mut() as *mut (dyn StdError + Send + Sync) as *mut E)
-            })
-        } else {
-            None
+        let target = TypeId::of::<E>();
+        unsafe {
+            let addr = (self.inner.vtable.object_downcast)(&self.inner, target)?;
+            Some(&mut *addr.cast::<E>().as_ptr())
         }
     }
 }
@@ -405,6 +405,7 @@ struct ErrorVTable {
     object_mut: unsafe fn(&mut ErrorImpl<()>) -> &mut (dyn StdError + Send + Sync + 'static),
     object_boxed: unsafe fn(Box<ErrorImpl<()>>) -> Box<dyn StdError + Send + Sync + 'static>,
     object_is: unsafe fn(TypeId) -> bool,
+    object_downcast: unsafe fn(&ErrorImpl<()>, TypeId) -> Option<NonNull<()>>,
 }
 
 unsafe fn object_drop<E>(e: Box<ErrorImpl<()>>) {
@@ -443,11 +444,24 @@ where
     mem::transmute::<Box<ErrorImpl<()>>, Box<ErrorImpl<E>>>(e)
 }
 
-unsafe fn object_is<T>(target: TypeId) -> bool
+unsafe fn object_is<E>(target: TypeId) -> bool
 where
-    T: 'static,
+    E: 'static,
 {
-    TypeId::of::<T>() == target
+    TypeId::of::<E>() == target
+}
+
+unsafe fn object_downcast<E>(e: &ErrorImpl<()>, target: TypeId) -> Option<NonNull<()>>
+where
+    E: 'static,
+{
+    if TypeId::of::<E>() == target {
+        let unerased = e as *const ErrorImpl<()> as *const ErrorImpl<E>;
+        let addr = &(*unerased)._error as *const E as *mut ();
+        Some(NonNull::new_unchecked(addr))
+    } else {
+        None
+    }
 }
 
 // repr C to ensure that `E` remains in the final position
