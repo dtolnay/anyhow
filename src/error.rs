@@ -27,10 +27,17 @@ impl Error {
     where
         E: StdError + Send + Sync + 'static,
     {
-        let type_id = TypeId::of::<E>();
+        let vtable = &ErrorVTable {
+            object_drop: object_drop::<E>,
+            object_drop_front: object_drop_front::<E>,
+            object_ref: object_ref::<E>,
+            object_mut: object_mut::<E>,
+            object_boxed: object_boxed::<E>,
+            object_is: object_is::<E>,
+        };
 
-        // Safety: passing typeid of the right type E.
-        unsafe { Error::construct(error, type_id, backtrace) }
+        // Safety: passing vtable that operates on the right type E.
+        unsafe { Error::construct(error, vtable, backtrace) }
     }
 
     pub(crate) fn from_adhoc<M>(message: M, backtrace: Option<Backtrace>) -> Self
@@ -38,11 +45,18 @@ impl Error {
         M: Display + Debug + Send + Sync + 'static,
     {
         let error = MessageError(message);
-        let type_id = TypeId::of::<M>();
+        let vtable = &ErrorVTable {
+            object_drop: object_drop::<MessageError<M>>,
+            object_drop_front: object_drop_front::<MessageError<M>>,
+            object_ref: object_ref::<MessageError<M>>,
+            object_mut: object_mut::<MessageError<M>>,
+            object_boxed: object_boxed::<MessageError<M>>,
+            object_is: object_is::<M>,
+        };
 
-        // Safety: MessageError is repr(transparent) so MessageError<M> has the
-        // same layout as the typeid specifies.
-        unsafe { Error::construct(error, type_id, backtrace) }
+        // Safety: MessageError is repr(transparent) so it is okay for the
+        // vtable to allow casting the MessageError<M> to M.
+        unsafe { Error::construct(error, vtable, backtrace) }
     }
 
     pub(crate) fn from_display<M>(message: M, backtrace: Option<Backtrace>) -> Self
@@ -50,11 +64,18 @@ impl Error {
         M: Display + Send + Sync + 'static,
     {
         let error = DisplayError(message);
-        let type_id = TypeId::of::<M>();
+        let vtable = &ErrorVTable {
+            object_drop: object_drop::<DisplayError<M>>,
+            object_drop_front: object_drop_front::<DisplayError<M>>,
+            object_ref: object_ref::<DisplayError<M>>,
+            object_mut: object_mut::<DisplayError<M>>,
+            object_boxed: object_boxed::<DisplayError<M>>,
+            object_is: object_is::<M>,
+        };
 
-        // Safety: DisplayError is repr(transparent) so DisplayError<M> has the
-        // same layout as the typeid specifies.
-        unsafe { Error::construct(error, type_id, backtrace) }
+        // Safety: DisplayError is repr(transparent) so it is okay for the
+        // vtable to allow casting the DisplayError<M> to M.
+        unsafe { Error::construct(error, vtable, backtrace) }
     }
 
     pub(crate) fn from_context<C, E>(context: C, error: E) -> Self
@@ -68,22 +89,18 @@ impl Error {
     // Takes backtrace as argument rather than capturing it here so that the
     // user sees one fewer layer of wrapping noise in the backtrace.
     //
-    // Unsafe because the type represented by type_id must have the same layout
-    // as E or else we allow invalid downcasts.
-    unsafe fn construct<E>(error: E, type_id: TypeId, backtrace: Option<Backtrace>) -> Self
+    // Unsafe because the given vtable must have sensible behavior on the error
+    // value of type E.
+    unsafe fn construct<E>(
+        error: E,
+        vtable: &'static ErrorVTable,
+        backtrace: Option<Backtrace>,
+    ) -> Self
     where
         E: StdError + Send + Sync + 'static,
     {
-        let vtable = &ErrorVTable {
-            object_drop: object_drop::<E>,
-            object_drop_front: object_drop_front::<E>,
-            object_ref: object_ref::<E>,
-            object_mut: object_mut::<E>,
-            object_boxed: object_boxed::<E>,
-        };
         let inner = Box::new(ErrorImpl {
             vtable,
-            type_id,
             backtrace,
             _error: error,
         });
@@ -216,7 +233,8 @@ impl Error {
     where
         E: Display + Debug + Send + Sync + 'static,
     {
-        TypeId::of::<E>() == self.inner.type_id
+        let target = TypeId::of::<E>();
+        unsafe { (self.inner.vtable.object_is)(target) }
     }
 
     /// Attempt to downcast the error object to a concrete type.
@@ -359,6 +377,7 @@ struct ErrorVTable {
     object_ref: unsafe fn(&ErrorImpl<()>) -> &(dyn StdError + Send + Sync + 'static),
     object_mut: unsafe fn(&mut ErrorImpl<()>) -> &mut (dyn StdError + Send + Sync + 'static),
     object_boxed: unsafe fn(Box<ErrorImpl<()>>) -> Box<dyn StdError + Send + Sync + 'static>,
+    object_is: unsafe fn(TypeId) -> bool,
 }
 
 unsafe fn object_drop<E>(e: Box<ErrorImpl<()>>) {
@@ -397,11 +416,17 @@ where
     mem::transmute::<Box<ErrorImpl<()>>, Box<ErrorImpl<E>>>(e)
 }
 
+unsafe fn object_is<T>(target: TypeId) -> bool
+where
+    T: 'static,
+{
+    TypeId::of::<T>() == target
+}
+
 // repr C to ensure that `E` remains in the final position
 #[repr(C)]
 pub(crate) struct ErrorImpl<E> {
     vtable: &'static ErrorVTable,
-    type_id: TypeId,
     backtrace: Option<Backtrace>,
     // NOTE: Don't use directly. Use only through vtable. Erased type may have different alignment.
     _error: E,
