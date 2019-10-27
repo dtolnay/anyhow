@@ -99,3 +99,11 @@ fn test_large_alignment() {
         error.downcast_ref::<LargeAlignedError>().unwrap().0
     );
 }
+
+#[test]
+fn test_unsuccessful_downcast() {
+    let mut error = bail_error().unwrap_err();
+    assert!(error.downcast_ref::<&str>().is_none());
+    assert!(error.downcast_mut::<&str>().is_none());
+    assert!(error.downcast::<&str>().is_err());
+}
