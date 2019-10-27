@@ -44,7 +44,7 @@ impl Error {
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        let error = MessageError(message);
+        let error: MessageError<M> = MessageError(message);
         let vtable = &ErrorVTable {
             object_drop: object_drop::<MessageError<M>>,
             object_drop_front: object_drop_front::<MessageError<M>>,
@@ -63,7 +63,7 @@ impl Error {
     where
         M: Display + Send + Sync + 'static,
     {
-        let error = DisplayError(message);
+        let error: DisplayError<M> = DisplayError(message);
         let vtable = &ErrorVTable {
             object_drop: object_drop::<DisplayError<M>>,
             object_drop_front: object_drop_front::<DisplayError<M>>,
@@ -167,7 +167,7 @@ impl Error {
     where
         C: Display + Send + Sync + 'static,
     {
-        let error = ContextError {
+        let error: ContextError<C, Error> = ContextError {
             context,
             error: self,
         };
