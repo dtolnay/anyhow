@@ -167,10 +167,25 @@ impl Error {
     where
         C: Display + Send + Sync + 'static,
     {
-        Error::new(ContextError {
+        let error = ContextError {
             context,
             error: self,
-        })
+        };
+
+        let vtable = &ErrorVTable {
+            object_drop: object_drop::<ContextError<C, Error>>,
+            object_drop_front: object_drop_front::<ContextError<C, Error>>,
+            object_ref: object_ref::<ContextError<C, Error>>,
+            object_mut: object_mut::<ContextError<C, Error>>,
+            object_boxed: object_boxed::<ContextError<C, Error>>,
+            object_is: object_is::<ContextError<C, Error>>,
+        };
+
+        // As the cause is anyhow::Error, we already have a backtrace for it.
+        let backtrace = None;
+
+        // Safety: passing vtable that operates on the right type.
+        unsafe { Error::construct(error, vtable, backtrace) }
     }
 
     /// Get the backtrace for this Error.
