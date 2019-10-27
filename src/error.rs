@@ -1,5 +1,4 @@
 use crate::backtrace::Backtrace;
-use crate::context::ContextError;
 use crate::{Chain, Error};
 use std::any::TypeId;
 use std::error::Error as StdError;
@@ -56,6 +55,14 @@ impl Error {
         // Safety: DisplayError is repr(transparent) so DisplayError<M> has the
         // same layout as the typeid specifies.
         unsafe { Error::construct(error, type_id, backtrace) }
+    }
+
+    pub(crate) fn from_context<C, E>(context: C, error: E) -> Self
+    where
+        C: Display + Send + Sync + 'static,
+        E: StdError + Send + Sync + 'static,
+    {
+        Error::new(ContextError { context, error })
     }
 
     // Takes backtrace as argument rather than capturing it here so that the
@@ -398,6 +405,11 @@ pub(crate) struct ErrorImpl<E> {
     backtrace: Option<Backtrace>,
     // NOTE: Don't use directly. Use only through vtable. Erased type may have different alignment.
     _error: E,
+}
+
+pub(crate) struct ContextError<C, E> {
+    pub context: C,
+    pub error: E,
 }
 
 #[repr(transparent)]

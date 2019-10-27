@@ -1,3 +1,4 @@
+use crate::error::ContextError;
 use crate::{Context, Error};
 use std::convert::Infallible;
 use std::error::Error as StdError;
@@ -23,10 +24,7 @@ mod ext {
         where
             C: Display + Send + Sync + 'static,
         {
-            Error::new(ContextError {
-                context,
-                error: self,
-            })
+            Error::from_context(context, self)
         }
     }
 
@@ -95,11 +93,6 @@ impl<T> Context<T, Infallible> for Option<T> {
     {
         self.ok_or_else(|| Error::from_display(context(), backtrace!()))
     }
-}
-
-pub(crate) struct ContextError<C, E> {
-    pub context: C,
-    pub error: E,
 }
 
 impl<C, E> Debug for ContextError<C, E>
