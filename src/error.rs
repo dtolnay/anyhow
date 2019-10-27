@@ -144,8 +144,8 @@ impl Error {
         C: Display + Send + Sync + 'static,
     {
         Error::new(ContextError {
-            error: self,
             context,
+            error: self,
         })
     }
 

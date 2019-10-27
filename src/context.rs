@@ -24,8 +24,8 @@ mod ext {
             C: Display + Send + Sync + 'static,
         {
             Error::new(ContextError {
-                error: self,
                 context,
+                error: self,
             })
         }
     }
@@ -97,22 +97,22 @@ impl<T> Context<T, Infallible> for Option<T> {
     }
 }
 
-pub(crate) struct ContextError<E, C> {
-    pub error: E,
+pub(crate) struct ContextError<C, E> {
     pub context: C,
+    pub error: E,
 }
 
-impl<E, C> Debug for ContextError<E, C>
+impl<C, E> Debug for ContextError<C, E>
 where
-    E: Debug,
     C: Display,
+    E: Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}\n\n{}", self.error, self.context)
     }
 }
 
-impl<E, C> Display for ContextError<E, C>
+impl<C, E> Display for ContextError<C, E>
 where
     C: Display,
 {
@@ -121,10 +121,10 @@ where
     }
 }
 
-impl<E, C> StdError for ContextError<E, C>
+impl<C, E> StdError for ContextError<C, E>
 where
-    E: StdError + 'static,
     C: Display,
+    E: StdError + 'static,
 {
     #[cfg(backtrace)]
     fn backtrace(&self) -> Option<&Backtrace> {
@@ -136,7 +136,7 @@ where
     }
 }
 
-impl<C> StdError for ContextError<Error, C>
+impl<C> StdError for ContextError<C, Error>
 where
     C: Display,
 {
