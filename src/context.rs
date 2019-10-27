@@ -24,7 +24,8 @@ mod ext {
         where
             C: Display + Send + Sync + 'static,
         {
-            Error::from_context(context, self)
+            let backtrace = backtrace_if_absent!(self);
+            Error::from_context(context, self, backtrace)
         }
     }
 

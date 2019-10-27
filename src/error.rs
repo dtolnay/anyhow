@@ -78,12 +78,24 @@ impl Error {
         unsafe { Error::construct(error, vtable, backtrace) }
     }
 
-    pub(crate) fn from_context<C, E>(context: C, error: E) -> Self
+    pub(crate) fn from_context<C, E>(context: C, error: E, backtrace: Option<Backtrace>) -> Self
     where
         C: Display + Send + Sync + 'static,
         E: StdError + Send + Sync + 'static,
     {
-        Error::new(ContextError { context, error })
+        let error: ContextError<C, E> = ContextError { context, error };
+
+        let vtable = &ErrorVTable {
+            object_drop: object_drop::<ContextError<C, E>>,
+            object_drop_front: object_drop_front::<ContextError<C, E>>,
+            object_ref: object_ref::<ContextError<C, E>>,
+            object_mut: object_mut::<ContextError<C, E>>,
+            object_boxed: object_boxed::<ContextError<C, E>>,
+            object_is: object_is::<ContextError<C, E>>,
+        };
+
+        // Safety: passing vtable that operates on the right type.
+        unsafe { Error::construct(error, vtable, backtrace) }
     }
 
     // Takes backtrace as argument rather than capturing it here so that the
