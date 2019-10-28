@@ -32,7 +32,6 @@ impl Error {
             object_ref: object_ref::<E>,
             object_mut: object_mut::<E>,
             object_boxed: object_boxed::<E>,
-            object_is: object_is::<E>,
             object_downcast: object_downcast::<E>,
             object_drop_rest: object_drop_front::<E>,
         };
@@ -51,7 +50,6 @@ impl Error {
             object_ref: object_ref::<MessageError<M>>,
             object_mut: object_mut::<MessageError<M>>,
             object_boxed: object_boxed::<MessageError<M>>,
-            object_is: object_is::<M>,
             object_downcast: object_downcast::<M>,
             object_drop_rest: object_drop_front::<M>,
         };
@@ -71,7 +69,6 @@ impl Error {
             object_ref: object_ref::<DisplayError<M>>,
             object_mut: object_mut::<DisplayError<M>>,
             object_boxed: object_boxed::<DisplayError<M>>,
-            object_is: object_is::<M>,
             object_downcast: object_downcast::<M>,
             object_drop_rest: object_drop_front::<M>,
         };
@@ -93,7 +90,6 @@ impl Error {
             object_ref: object_ref::<ContextError<C, E>>,
             object_mut: object_mut::<ContextError<C, E>>,
             object_boxed: object_boxed::<ContextError<C, E>>,
-            object_is: context_is::<C, E>,
             object_downcast: context_downcast::<C, E>,
             object_drop_rest: context_drop_rest::<C, E>,
         };
@@ -193,7 +189,6 @@ impl Error {
             object_ref: object_ref::<ContextError<C, Error>>,
             object_mut: object_mut::<ContextError<C, Error>>,
             object_boxed: object_boxed::<ContextError<C, Error>>,
-            object_is: context_chain_is::<C>,
             object_downcast: context_chain_downcast::<C>,
             object_drop_rest: context_chain_drop_rest::<C>,
         };
@@ -265,8 +260,7 @@ impl Error {
     where
         E: Display + Debug + Send + Sync + 'static,
     {
-        let target = TypeId::of::<E>();
-        unsafe { (self.inner.vtable.object_is)(&self.inner, target) }
+        self.downcast_ref::<E>().is_some()
     }
 
     /// Attempt to downcast the error object to a concrete type.
@@ -403,7 +397,6 @@ struct ErrorVTable {
     object_ref: unsafe fn(&ErrorImpl<()>) -> &(dyn StdError + Send + Sync + 'static),
     object_mut: unsafe fn(&mut ErrorImpl<()>) -> &mut (dyn StdError + Send + Sync + 'static),
     object_boxed: unsafe fn(Box<ErrorImpl<()>>) -> Box<dyn StdError + Send + Sync + 'static>,
-    object_is: unsafe fn(&ErrorImpl<()>, TypeId) -> bool,
     object_downcast: unsafe fn(&ErrorImpl<()>, TypeId) -> Option<NonNull<()>>,
     object_drop_rest: unsafe fn(Box<ErrorImpl<()>>, TypeId),
 }
@@ -445,14 +438,6 @@ where
     mem::transmute::<Box<ErrorImpl<()>>, Box<ErrorImpl<E>>>(e)
 }
 
-unsafe fn object_is<E>(e: &ErrorImpl<()>, target: TypeId) -> bool
-where
-    E: 'static,
-{
-    let _ = e;
-    TypeId::of::<E>() == target
-}
-
 unsafe fn object_downcast<E>(e: &ErrorImpl<()>, target: TypeId) -> Option<NonNull<()>>
 where
     E: 'static,
@@ -464,15 +449,6 @@ where
     } else {
         None
     }
-}
-
-unsafe fn context_is<C, E>(e: &ErrorImpl<()>, target: TypeId) -> bool
-where
-    C: 'static,
-    E: 'static,
-{
-    let _ = e;
-    TypeId::of::<C>() == target || TypeId::of::<E>() == target
 }
 
 unsafe fn context_downcast<C, E>(e: &ErrorImpl<()>, target: TypeId) -> Option<NonNull<()>>
@@ -512,19 +488,6 @@ where
             Box<ErrorImpl<ContextError<C, ManuallyDrop<E>>>>,
         >(e);
         drop(unerased);
-    }
-}
-
-unsafe fn context_chain_is<C>(e: &ErrorImpl<()>, target: TypeId) -> bool
-where
-    C: 'static,
-{
-    if TypeId::of::<C>() == target {
-        true
-    } else {
-        let unerased = e as *const ErrorImpl<()> as *const ErrorImpl<ContextError<C, Error>>;
-        let source = &(*unerased)._object.error;
-        (source.inner.vtable.object_is)(&source.inner, target)
     }
 }
 
