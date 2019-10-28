@@ -193,9 +193,9 @@ impl Error {
             object_ref: object_ref::<ContextError<C, Error>>,
             object_mut: object_mut::<ContextError<C, Error>>,
             object_boxed: object_boxed::<ContextError<C, Error>>,
-            object_is: object_is::<ContextError<C, Error>>,
-            object_downcast: object_downcast::<ContextError<C, Error>>,
-            object_drop_rest: object_drop_front::<ContextError<C, Error>>,
+            object_is: context_chain_is::<C>,
+            object_downcast: context_chain_downcast::<C>,
+            object_drop_rest: context_chain_drop_rest::<C>,
         };
 
         // As the cause is anyhow::Error, we already have a backtrace for it.
@@ -266,7 +266,7 @@ impl Error {
         E: Display + Debug + Send + Sync + 'static,
     {
         let target = TypeId::of::<E>();
-        unsafe { (self.inner.vtable.object_is)(target) }
+        unsafe { (self.inner.vtable.object_is)(&self.inner, target) }
     }
 
     /// Attempt to downcast the error object to a concrete type.
@@ -403,7 +403,7 @@ struct ErrorVTable {
     object_ref: unsafe fn(&ErrorImpl<()>) -> &(dyn StdError + Send + Sync + 'static),
     object_mut: unsafe fn(&mut ErrorImpl<()>) -> &mut (dyn StdError + Send + Sync + 'static),
     object_boxed: unsafe fn(Box<ErrorImpl<()>>) -> Box<dyn StdError + Send + Sync + 'static>,
-    object_is: unsafe fn(TypeId) -> bool,
+    object_is: unsafe fn(&ErrorImpl<()>, TypeId) -> bool,
     object_downcast: unsafe fn(&ErrorImpl<()>, TypeId) -> Option<NonNull<()>>,
     object_drop_rest: unsafe fn(Box<ErrorImpl<()>>, TypeId),
 }
@@ -445,10 +445,11 @@ where
     mem::transmute::<Box<ErrorImpl<()>>, Box<ErrorImpl<E>>>(e)
 }
 
-unsafe fn object_is<E>(target: TypeId) -> bool
+unsafe fn object_is<E>(e: &ErrorImpl<()>, target: TypeId) -> bool
 where
     E: 'static,
 {
+    let _ = e;
     TypeId::of::<E>() == target
 }
 
@@ -465,11 +466,12 @@ where
     }
 }
 
-unsafe fn context_is<C, E>(target: TypeId) -> bool
+unsafe fn context_is<C, E>(e: &ErrorImpl<()>, target: TypeId) -> bool
 where
     C: 'static,
     E: 'static,
 {
+    let _ = e;
     TypeId::of::<C>() == target || TypeId::of::<E>() == target
 }
 
@@ -510,6 +512,58 @@ where
             Box<ErrorImpl<ContextError<C, ManuallyDrop<E>>>>,
         >(e);
         drop(unerased);
+    }
+}
+
+unsafe fn context_chain_is<C>(e: &ErrorImpl<()>, target: TypeId) -> bool
+where
+    C: 'static,
+{
+    if TypeId::of::<C>() == target {
+        true
+    } else {
+        let unerased = e as *const ErrorImpl<()> as *const ErrorImpl<ContextError<C, Error>>;
+        let source = &(*unerased)._error.error;
+        (source.inner.vtable.object_is)(&source.inner, target)
+    }
+}
+
+unsafe fn context_chain_downcast<C>(e: &ErrorImpl<()>, target: TypeId) -> Option<NonNull<()>>
+where
+    C: 'static,
+{
+    if TypeId::of::<C>() == target {
+        let unerased = e as *const ErrorImpl<()> as *const ErrorImpl<ContextError<C, Error>>;
+        let addr = &(*unerased)._error.context as *const C as *mut ();
+        Some(NonNull::new_unchecked(addr))
+    } else {
+        let unerased = e as *const ErrorImpl<()> as *const ErrorImpl<ContextError<C, Error>>;
+        let source = &(*unerased)._error.error;
+        (source.inner.vtable.object_downcast)(&source.inner, target)
+    }
+}
+
+unsafe fn context_chain_drop_rest<C>(e: Box<ErrorImpl<()>>, target: TypeId)
+where
+    C: 'static,
+{
+    // Called after downcasting by value to either the C or one of the causes
+    // and doing a ptr::read to take ownership of that value.
+    if TypeId::of::<C>() == target {
+        let unerased = mem::transmute::<
+            Box<ErrorImpl<()>>,
+            Box<ErrorImpl<ContextError<ManuallyDrop<C>, Error>>>,
+        >(e);
+        drop(unerased);
+    } else {
+        let unerased = mem::transmute::<
+            Box<ErrorImpl<()>>,
+            Box<ErrorImpl<ContextError<C, ManuallyDrop<Error>>>>,
+        >(e);
+        let inner = ptr::read(&unerased._error.error.inner);
+        drop(unerased);
+        let erased = ManuallyDrop::into_inner(inner);
+        (erased.vtable.object_drop_rest)(erased, target);
     }
 }
 
