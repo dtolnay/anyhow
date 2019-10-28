@@ -2,14 +2,11 @@ mod common;
 mod drop;
 
 use self::common::*;
-use self::drop::DetectDrop;
+use self::drop::{DetectDrop, Flag};
 use anyhow::Error;
 use std::error::Error as StdError;
 use std::fmt::{self, Display};
 use std::io;
-use std::sync::atomic::AtomicBool;
-use std::sync::atomic::Ordering::SeqCst;
-use std::sync::Arc;
 
 #[test]
 fn test_downcast() {
@@ -73,10 +70,10 @@ fn test_downcast_mut() {
 
 #[test]
 fn test_drop() {
-    let has_dropped = Arc::new(AtomicBool::new(false));
+    let has_dropped = Flag::new();
     let error = Error::new(DetectDrop::new(&has_dropped));
     drop(error.downcast::<DetectDrop>().unwrap());
-    assert!(has_dropped.load(SeqCst));
+    assert!(has_dropped.get());
 }
 
 #[test]

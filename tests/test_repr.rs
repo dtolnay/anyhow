@@ -1,12 +1,9 @@
 mod drop;
 
-use self::drop::DetectDrop;
+use self::drop::{DetectDrop, Flag};
 use anyhow::Error;
 use std::marker::Unpin;
 use std::mem;
-use std::sync::atomic::AtomicBool;
-use std::sync::atomic::Ordering::SeqCst;
-use std::sync::Arc;
 
 #[test]
 fn test_error_size() {
@@ -26,7 +23,7 @@ fn test_autotraits() {
 
 #[test]
 fn test_drop() {
-    let has_dropped = Arc::new(AtomicBool::new(false));
+    let has_dropped = Flag::new();
     drop(Error::new(DetectDrop::new(&has_dropped)));
-    assert!(has_dropped.load(SeqCst));
+    assert!(has_dropped.get());
 }

@@ -5,14 +5,33 @@ use std::sync::atomic::Ordering::SeqCst;
 use std::sync::Arc;
 
 #[derive(Debug)]
+pub struct Flag {
+    atomic: Arc<AtomicBool>,
+}
+
+impl Flag {
+    pub fn new() -> Self {
+        Flag {
+            atomic: Arc::new(AtomicBool::new(false)),
+        }
+    }
+
+    pub fn get(&self) -> bool {
+        self.atomic.load(SeqCst)
+    }
+}
+
+#[derive(Debug)]
 pub struct DetectDrop {
-    has_dropped: Arc<AtomicBool>,
+    has_dropped: Flag,
 }
 
 impl DetectDrop {
-    pub fn new(has_dropped: &Arc<AtomicBool>) -> Self {
+    pub fn new(has_dropped: &Flag) -> Self {
         DetectDrop {
-            has_dropped: Arc::clone(has_dropped),
+            has_dropped: Flag {
+                atomic: Arc::clone(&has_dropped.atomic),
+            },
         }
     }
 }
@@ -27,7 +46,7 @@ impl Display for DetectDrop {
 
 impl Drop for DetectDrop {
     fn drop(&mut self) {
-        let already_dropped = self.has_dropped.swap(true, SeqCst);
+        let already_dropped = self.has_dropped.atomic.swap(true, SeqCst);
         assert!(!already_dropped);
     }
 }
