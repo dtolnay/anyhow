@@ -286,6 +286,8 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 /// This trait is sealed and cannot be implemented for types outside of
 /// `anyhow`.
 ///
+/// <br>
+///
 /// # Example
 ///
 /// ```
@@ -326,6 +328,100 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 /// Caused by:
 ///     No such file or directory (os error 2)
 /// ```
+///
+/// <br>
+///
+/// # Effect on downcasting
+///
+/// After attaching context of type `C` onto an error of type `E`, the resulting
+/// `anyhow::Error` may be downcast to `C` **or** to `E`.
+///
+/// That is, in codebases that rely on downcasting, Anyhow's context supports
+/// both of the following use cases:
+///
+///   - **Attaching context whose type is insignificant onto errors whose type
+///     is used in downcasts.**
+///
+///     In other error libraries whose context is not designed this way, it can
+///     be risky to introduce context to existing code because new context might
+///     break existing working downcasts. In Anyhow, any downcast that worked
+///     before adding context will continue to work after you add a context, so
+///     you should freely add human-readable context to errors wherever it would
+///     be helpful.
+///
+///     ```
+///     # use anyhow::bail;
+///     # use thiserror::Error;
+///     #
+///     # #[derive(Error, Debug)]
+///     # #[error("???")]
+///     # struct SuspiciousError;
+///     #
+///     # fn helper() -> Result<()> {
+///     #     bail!(SuspiciousError);
+///     # }
+///     #
+///     use anyhow::{Context, Result};
+///
+///     fn do_it() -> Result<()> {
+///         helper().context("failed to complete the work")?;
+///         # const IGNORE: &str = stringify! {
+///         ...
+///         # };
+///         # unreachable!()
+///     }
+///
+///     fn main() {
+///         let err = do_it().unwrap_err();
+///         if let Some(e) = err.downcast_ref::<SuspiciousError>() {
+///             // If helper() returned SuspiciousError, this downcast will
+///             // correctly succeed even with the context in between.
+///             # return;
+///         }
+///         # panic!("expected downcast to succeed");
+///     }
+///     ```
+///
+///   - **Attaching context whose type is used in downcasts onto errors whose
+///     type is insignificant.**
+///
+///     Some codebases prefer to use machine-readable context to categorize
+///     lower level errors in a way that will be actionable to higher levels of
+///     the application.
+///
+///     ```
+///     # use anyhow::bail;
+///     # use thiserror::Error;
+///     #
+///     # #[derive(Error, Debug)]
+///     # #[error("???")]
+///     # struct HelperFailed;
+///     #
+///     # fn helper() -> Result<()> {
+///     #     bail!("no such file or directory");
+///     # }
+///     #
+///     use anyhow::{Context, Result};
+///
+///     fn do_it() -> Result<()> {
+///         helper().context(HelperFailed)?;
+///         # const IGNORE: &str = stringify! {
+///         ...
+///         # };
+///         # unreachable!()
+///     }
+///
+///     fn main() {
+///         let err = do_it().unwrap_err();
+///         if let Some(e) = err.downcast_ref::<HelperFailed>() {
+///             // If helper failed, this downcast will succeed because
+///             // HelperFailed is the context that has been attached to
+///             // that error.
+///             # return;
+///         }
+///         # panic!("expected downcast to succeed");
+///     }
+///     ```
 pub trait Context<T, E>: context::private::Sealed {
     /// Wrap the error value with additional context.
     fn context<C>(self, context: C) -> Result<T, Error>

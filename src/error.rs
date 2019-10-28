@@ -255,7 +255,14 @@ impl Error {
         root_cause
     }
 
-    /// Returns `true` if `E` is the type wrapped by this error object.
+    /// Returns true if `E` is the type held by this error object.
+    ///
+    /// For errors with context, this method returns true if `E` matches the
+    /// type of the context `C` **or** the type of the error on which the
+    /// context has been attached. For details about the interaction between
+    /// context and downcasting, [see here].
+    ///
+    /// [see here]: trait.Context.html#effect-on-downcasting
     pub fn is<E>(&self) -> bool
     where
         E: Display + Debug + Send + Sync + 'static,
