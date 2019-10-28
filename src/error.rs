@@ -118,7 +118,7 @@ impl Error {
         let inner = Box::new(ErrorImpl {
             vtable,
             backtrace,
-            _error: error,
+            _object: error,
         });
         let erased = mem::transmute::<Box<ErrorImpl<E>>, Box<ErrorImpl<()>>>(inner);
         let inner = ManuallyDrop::new(erased);
@@ -428,14 +428,14 @@ unsafe fn object_ref<E>(e: &ErrorImpl<()>) -> &(dyn StdError + Send + Sync + 'st
 where
     E: StdError + Send + Sync + 'static,
 {
-    &(*(e as *const ErrorImpl<()> as *const ErrorImpl<E>))._error
+    &(*(e as *const ErrorImpl<()> as *const ErrorImpl<E>))._object
 }
 
 unsafe fn object_mut<E>(e: &mut ErrorImpl<()>) -> &mut (dyn StdError + Send + Sync + 'static)
 where
     E: StdError + Send + Sync + 'static,
 {
-    &mut (*(e as *mut ErrorImpl<()> as *mut ErrorImpl<E>))._error
+    &mut (*(e as *mut ErrorImpl<()> as *mut ErrorImpl<E>))._object
 }
 
 unsafe fn object_boxed<E>(e: Box<ErrorImpl<()>>) -> Box<dyn StdError + Send + Sync + 'static>
@@ -459,7 +459,7 @@ where
 {
     if TypeId::of::<E>() == target {
         let unerased = e as *const ErrorImpl<()> as *const ErrorImpl<E>;
-        let addr = &(*unerased)._error as *const E as *mut ();
+        let addr = &(*unerased)._object as *const E as *mut ();
         Some(NonNull::new_unchecked(addr))
     } else {
         None
@@ -482,11 +482,11 @@ where
 {
     if TypeId::of::<C>() == target {
         let unerased = e as *const ErrorImpl<()> as *const ErrorImpl<ContextError<C, E>>;
-        let addr = &(*unerased)._error.context as *const C as *mut ();
+        let addr = &(*unerased)._object.context as *const C as *mut ();
         Some(NonNull::new_unchecked(addr))
     } else if TypeId::of::<E>() == target {
         let unerased = e as *const ErrorImpl<()> as *const ErrorImpl<ContextError<C, E>>;
-        let addr = &(*unerased)._error.error as *const E as *mut ();
+        let addr = &(*unerased)._object.error as *const E as *mut ();
         Some(NonNull::new_unchecked(addr))
     } else {
         None
@@ -523,7 +523,7 @@ where
         true
     } else {
         let unerased = e as *const ErrorImpl<()> as *const ErrorImpl<ContextError<C, Error>>;
-        let source = &(*unerased)._error.error;
+        let source = &(*unerased)._object.error;
         (source.inner.vtable.object_is)(&source.inner, target)
     }
 }
@@ -534,11 +534,11 @@ where
 {
     if TypeId::of::<C>() == target {
         let unerased = e as *const ErrorImpl<()> as *const ErrorImpl<ContextError<C, Error>>;
-        let addr = &(*unerased)._error.context as *const C as *mut ();
+        let addr = &(*unerased)._object.context as *const C as *mut ();
         Some(NonNull::new_unchecked(addr))
     } else {
         let unerased = e as *const ErrorImpl<()> as *const ErrorImpl<ContextError<C, Error>>;
-        let source = &(*unerased)._error.error;
+        let source = &(*unerased)._object.error;
         (source.inner.vtable.object_downcast)(&source.inner, target)
     }
 }
@@ -560,7 +560,7 @@ where
             Box<ErrorImpl<()>>,
             Box<ErrorImpl<ContextError<C, ManuallyDrop<Error>>>>,
         >(e);
-        let inner = ptr::read(&unerased._error.error.inner);
+        let inner = ptr::read(&unerased._object.error.inner);
         drop(unerased);
         let erased = ManuallyDrop::into_inner(inner);
         (erased.vtable.object_drop_rest)(erased, target);
@@ -574,7 +574,7 @@ pub(crate) struct ErrorImpl<E> {
     backtrace: Option<Backtrace>,
     // NOTE: Don't use directly. Use only through vtable. Erased type may have
     // different alignment.
-    _error: E,
+    _object: E,
 }
 
 // repr C to ensure that ContextError<C, E> has the same layout as
