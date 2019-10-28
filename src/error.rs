@@ -29,12 +29,12 @@ impl Error {
     {
         let vtable = &ErrorVTable {
             object_drop: object_drop::<E>,
-            object_drop_front: object_drop_front::<E>,
             object_ref: object_ref::<E>,
             object_mut: object_mut::<E>,
             object_boxed: object_boxed::<E>,
             object_is: object_is::<E>,
             object_downcast: object_downcast::<E>,
+            object_drop_rest: object_drop_front::<E>,
         };
 
         // Safety: passing vtable that operates on the right type E.
@@ -48,12 +48,12 @@ impl Error {
         let error: MessageError<M> = MessageError(message);
         let vtable = &ErrorVTable {
             object_drop: object_drop::<MessageError<M>>,
-            object_drop_front: object_drop_front::<MessageError<M>>,
             object_ref: object_ref::<MessageError<M>>,
             object_mut: object_mut::<MessageError<M>>,
             object_boxed: object_boxed::<MessageError<M>>,
             object_is: object_is::<M>,
             object_downcast: object_downcast::<M>,
+            object_drop_rest: object_drop_front::<M>,
         };
 
         // Safety: MessageError is repr(transparent) so it is okay for the
@@ -68,12 +68,12 @@ impl Error {
         let error: DisplayError<M> = DisplayError(message);
         let vtable = &ErrorVTable {
             object_drop: object_drop::<DisplayError<M>>,
-            object_drop_front: object_drop_front::<DisplayError<M>>,
             object_ref: object_ref::<DisplayError<M>>,
             object_mut: object_mut::<DisplayError<M>>,
             object_boxed: object_boxed::<DisplayError<M>>,
             object_is: object_is::<M>,
             object_downcast: object_downcast::<M>,
+            object_drop_rest: object_drop_front::<M>,
         };
 
         // Safety: DisplayError is repr(transparent) so it is okay for the
@@ -90,12 +90,12 @@ impl Error {
 
         let vtable = &ErrorVTable {
             object_drop: object_drop::<ContextError<C, E>>,
-            object_drop_front: object_drop_front::<ContextError<C, E>>,
             object_ref: object_ref::<ContextError<C, E>>,
             object_mut: object_mut::<ContextError<C, E>>,
             object_boxed: object_boxed::<ContextError<C, E>>,
-            object_is: object_is::<ContextError<C, E>>,
-            object_downcast: object_downcast::<ContextError<C, E>>,
+            object_is: context_is::<C, E>,
+            object_downcast: context_downcast::<C, E>,
+            object_drop_rest: context_drop_rest::<C, E>,
         };
 
         // Safety: passing vtable that operates on the right type.
@@ -190,12 +190,12 @@ impl Error {
 
         let vtable = &ErrorVTable {
             object_drop: object_drop::<ContextError<C, Error>>,
-            object_drop_front: object_drop_front::<ContextError<C, Error>>,
             object_ref: object_ref::<ContextError<C, Error>>,
             object_mut: object_mut::<ContextError<C, Error>>,
             object_boxed: object_boxed::<ContextError<C, Error>>,
             object_is: object_is::<ContextError<C, Error>>,
             object_downcast: object_downcast::<ContextError<C, Error>>,
+            object_drop_rest: object_drop_front::<ContextError<C, Error>>,
         };
 
         // As the cause is anyhow::Error, we already have a backtrace for it.
@@ -284,7 +284,7 @@ impl Error {
             let error = ptr::read(addr.cast::<E>().as_ptr());
             let inner = ptr::read(&outer.inner);
             let erased = ManuallyDrop::into_inner(inner);
-            (erased.vtable.object_drop_front)(erased);
+            (erased.vtable.object_drop_rest)(erased, target);
             Ok(error)
         }
     }
@@ -400,12 +400,12 @@ impl Drop for Error {
 
 struct ErrorVTable {
     object_drop: unsafe fn(Box<ErrorImpl<()>>),
-    object_drop_front: unsafe fn(Box<ErrorImpl<()>>),
     object_ref: unsafe fn(&ErrorImpl<()>) -> &(dyn StdError + Send + Sync + 'static),
     object_mut: unsafe fn(&mut ErrorImpl<()>) -> &mut (dyn StdError + Send + Sync + 'static),
     object_boxed: unsafe fn(Box<ErrorImpl<()>>) -> Box<dyn StdError + Send + Sync + 'static>,
     object_is: unsafe fn(TypeId) -> bool,
     object_downcast: unsafe fn(&ErrorImpl<()>, TypeId) -> Option<NonNull<()>>,
+    object_drop_rest: unsafe fn(Box<ErrorImpl<()>>, TypeId),
 }
 
 unsafe fn object_drop<E>(e: Box<ErrorImpl<()>>) {
@@ -415,10 +415,11 @@ unsafe fn object_drop<E>(e: Box<ErrorImpl<()>>) {
     drop(unerased);
 }
 
-unsafe fn object_drop_front<E>(e: Box<ErrorImpl<()>>) {
+unsafe fn object_drop_front<E>(e: Box<ErrorImpl<()>>, target: TypeId) {
     // Drop the fields of ErrorImpl other than E as well as the Box allocation,
     // without dropping E itself. This is used by downcast after doing a
     // ptr::read to take ownership of the E.
+    let _ = target;
     let unerased = mem::transmute::<Box<ErrorImpl<()>>, Box<ErrorImpl<ManuallyDrop<E>>>>(e);
     drop(unerased);
 }
@@ -464,15 +465,67 @@ where
     }
 }
 
-// repr C to ensure that `E` remains in the final position
+unsafe fn context_is<C, E>(target: TypeId) -> bool
+where
+    C: 'static,
+    E: 'static,
+{
+    TypeId::of::<C>() == target || TypeId::of::<E>() == target
+}
+
+unsafe fn context_downcast<C, E>(e: &ErrorImpl<()>, target: TypeId) -> Option<NonNull<()>>
+where
+    C: 'static,
+    E: 'static,
+{
+    if TypeId::of::<C>() == target {
+        let unerased = e as *const ErrorImpl<()> as *const ErrorImpl<ContextError<C, E>>;
+        let addr = &(*unerased)._error.context as *const C as *mut ();
+        Some(NonNull::new_unchecked(addr))
+    } else if TypeId::of::<E>() == target {
+        let unerased = e as *const ErrorImpl<()> as *const ErrorImpl<ContextError<C, E>>;
+        let addr = &(*unerased)._error.error as *const E as *mut ();
+        Some(NonNull::new_unchecked(addr))
+    } else {
+        None
+    }
+}
+
+unsafe fn context_drop_rest<C, E>(e: Box<ErrorImpl<()>>, target: TypeId)
+where
+    C: 'static,
+    E: 'static,
+{
+    // Called after downcasting by value to either the C or the E and doing a
+    // ptr::read to take ownership of that value.
+    if TypeId::of::<C>() == target {
+        let unerased = mem::transmute::<
+            Box<ErrorImpl<()>>,
+            Box<ErrorImpl<ContextError<ManuallyDrop<C>, E>>>,
+        >(e);
+        drop(unerased);
+    } else {
+        let unerased = mem::transmute::<
+            Box<ErrorImpl<()>>,
+            Box<ErrorImpl<ContextError<C, ManuallyDrop<E>>>>,
+        >(e);
+        drop(unerased);
+    }
+}
+
+// repr C to ensure that E remains in the final position.
 #[repr(C)]
 pub(crate) struct ErrorImpl<E> {
     vtable: &'static ErrorVTable,
     backtrace: Option<Backtrace>,
-    // NOTE: Don't use directly. Use only through vtable. Erased type may have different alignment.
+    // NOTE: Don't use directly. Use only through vtable. Erased type may have
+    // different alignment.
     _error: E,
 }
 
+// repr C to ensure that ContextError<C, E> has the same layout as
+// ContextError<ManuallyDrop<C>, E> and ContextError<C, ManuallyDrop<E>>.
+#[repr(C)]
 pub(crate) struct ContextError<C, E> {
     pub context: C,
     pub error: E,
