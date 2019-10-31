@@ -109,9 +109,10 @@ where
 impl<C, E> Display for ContextError<C, E>
 where
     C: Display,
+    E: Display,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        Display::fmt(&self.context, f)
+        write!(f, "{}\nCaused by: {}", self.context, self.error)
     }
 }
 
