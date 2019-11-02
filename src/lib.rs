@@ -182,6 +182,8 @@ use std::error::Error as StdError;
 use std::fmt::Display;
 use std::mem::ManuallyDrop;
 
+pub use anyhow as format_err;
+
 /// The `Error` type, a wrapper around a dynamic error type.
 ///
 /// `Error` works a lot like `Box<dyn std::error::Error>`, but with these
