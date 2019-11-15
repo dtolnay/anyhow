@@ -14,5 +14,6 @@ default = ["std"]
 std = []
 
 [dev-dependencies]
+futures = "0.3"
 rustversion = "1.0"
 thiserror = "1.0"
