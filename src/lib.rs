@@ -217,6 +217,7 @@ pub struct Error {
 ///     None
 /// }
 /// ```
+#[derive(Clone)]
 pub struct Chain<'a> {
     next: Option<&'a (dyn StdError + 'static)>,
 }
