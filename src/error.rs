@@ -678,6 +678,10 @@ impl ErrorImpl<()> {
     }
 
     fn debug(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if f.alternate() {
+            return Debug::fmt(self.error(), f);
+        }
+
         writeln!(f, "{}", self.error())?;
 
         let mut chain = self.chain().skip(1).enumerate().peekable();

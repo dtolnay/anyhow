@@ -102,7 +102,10 @@ where
     E: Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}\nCaused by: {:?}", self.context, self.error)
+        f.debug_struct("Error")
+            .field("context", &self.context.to_string())
+            .field("source", &self.error)
+            .finish()
     }
 }
 
