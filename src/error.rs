@@ -699,6 +699,11 @@ impl ErrorImpl<()> {
             let backtrace = self.backtrace();
             match backtrace.status() {
                 BacktraceStatus::Captured => {
+                    let mut backtrace = backtrace.to_string();
+                    if backtrace.starts_with("stack backtrace:") {
+                        // Capitalize to match "Caused by:"
+                        backtrace.replace_range(0..1, "S");
+                    }
                     write!(f, "\n{}", backtrace)?;
                 }
                 BacktraceStatus::Disabled => {
