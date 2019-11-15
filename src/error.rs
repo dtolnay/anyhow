@@ -709,7 +709,7 @@ impl ErrorImpl<()> {
                 BacktraceStatus::Disabled => {
                     writeln!(
                         f,
-                        "\nBacktrace disabled; run with RUST_LIB_BACKTRACE=1 environment variable to display a backtrace"
+                        "\nStack backtrace:\n    Run with RUST_LIB_BACKTRACE=1 env variable to display a backtrace"
                     )?;
                 }
                 _ => {}

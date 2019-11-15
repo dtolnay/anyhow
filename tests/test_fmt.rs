@@ -15,7 +15,8 @@ fn h() -> Result<()> {
 const EXPECTED_DEBUG_F: &str = "\
 oh no!
 
-Backtrace disabled; run with RUST_LIB_BACKTRACE=1 environment variable to display a backtrace
+Stack backtrace:
+    Run with RUST_LIB_BACKTRACE=1 env variable to display a backtrace
 ";
 
 const EXPECTED_DEBUG_G: &str = "\
@@ -24,7 +25,8 @@ f failed
 Caused by:
     oh no!
 
-Backtrace disabled; run with RUST_LIB_BACKTRACE=1 environment variable to display a backtrace
+Stack backtrace:
+    Run with RUST_LIB_BACKTRACE=1 env variable to display a backtrace
 ";
 
 const EXPECTED_DEBUG_H: &str = "\
@@ -34,7 +36,8 @@ Caused by:
     0: f failed
     1: oh no!
 
-Backtrace disabled; run with RUST_LIB_BACKTRACE=1 environment variable to display a backtrace
+Stack backtrace:
+    Run with RUST_LIB_BACKTRACE=1 env variable to display a backtrace
 ";
 
 #[test]
