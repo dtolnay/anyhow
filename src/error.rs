@@ -699,7 +699,7 @@ impl ErrorImpl<()> {
             let backtrace = self.backtrace();
             match backtrace.status() {
                 BacktraceStatus::Captured => {
-                    writeln!(f, "\n{}", backtrace)?;
+                    write!(f, "\n{}", backtrace)?;
                 }
                 BacktraceStatus::Disabled => {
                     writeln!(
