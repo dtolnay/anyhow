@@ -418,15 +418,15 @@ impl DerefMut for Error {
     }
 }
 
-impl Debug for Error {
+impl Display for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        self.inner.debug(formatter)
+        self.inner.display(formatter)
     }
 }
 
-impl Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.inner.error())
+impl Debug for Error {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        self.inner.debug(formatter)
     }
 }
 
@@ -652,16 +652,16 @@ impl<E> ErrorImpl<E> {
 }
 
 impl ErrorImpl<()> {
-    fn error(&self) -> &(dyn StdError + Send + Sync + 'static) {
+    pub(crate) fn error(&self) -> &(dyn StdError + Send + Sync + 'static) {
         unsafe { &*(self.vtable.object_ref)(self) }
     }
 
-    fn error_mut(&mut self) -> &mut (dyn StdError + Send + Sync + 'static) {
+    pub(crate) fn error_mut(&mut self) -> &mut (dyn StdError + Send + Sync + 'static) {
         unsafe { &mut *(self.vtable.object_mut)(self) }
     }
 
     #[cfg(backtrace)]
-    fn backtrace(&self) -> &Backtrace {
+    pub(crate) fn backtrace(&self) -> &Backtrace {
         // This unwrap can only panic if the underlying error's backtrace method
         // is nondeterministic, which would only happen in maliciously
         // constructed code.
@@ -671,47 +671,10 @@ impl ErrorImpl<()> {
             .expect("backtrace capture failed")
     }
 
-    fn chain(&self) -> Chain {
+    pub(crate) fn chain(&self) -> Chain {
         Chain {
             next: Some(self.error()),
         }
-    }
-
-    fn debug(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "{}", self.error())?;
-
-        let mut chain = self.chain().skip(1).enumerate().peekable();
-        if let Some((n, error)) = chain.next() {
-            write!(f, "\nCaused by:\n    ")?;
-            if chain.peek().is_some() {
-                write!(f, "{}: ", n)?;
-            }
-            writeln!(f, "{}", error)?;
-            for (n, error) in chain {
-                writeln!(f, "    {}: {}", n, error)?;
-            }
-        }
-
-        #[cfg(backtrace)]
-        {
-            use std::backtrace::BacktraceStatus;
-
-            let backtrace = self.backtrace();
-            match backtrace.status() {
-                BacktraceStatus::Captured => {
-                    writeln!(f, "\n{}", backtrace)?;
-                }
-                BacktraceStatus::Disabled => {
-                    writeln!(
-                        f,
-                        "\nBacktrace disabled; run with RUST_LIB_BACKTRACE=1 environment variable to display a backtrace"
-                    )?;
-                }
-                _ => {}
-            }
-        }
-
-        Ok(())
     }
 }
 
