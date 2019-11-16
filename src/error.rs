@@ -418,15 +418,15 @@ impl DerefMut for Error {
     }
 }
 
-impl Debug for Error {
+impl Display for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        self.inner.debug(formatter)
+        self.inner.display(formatter)
     }
 }
 
-impl Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.inner.error())
+impl Debug for Error {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        self.inner.debug(formatter)
     }
 }
 
@@ -677,24 +677,39 @@ impl ErrorImpl<()> {
         }
     }
 
+    fn print_chain(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.error())?;
+
+        let mut chain = self.chain().skip(1).enumerate().peekable();
+        if let Some((n, error)) = chain.next() {
+            write!(f, "\n\nCaused by:\n    ")?;
+            if chain.peek().is_some() {
+                write!(f, "{}: ", n)?;
+            }
+            write!(f, "{}", error)?;
+            for (n, error) in chain {
+                write!(f, "\n    {}: {}", n, error)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    fn display(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if f.alternate() {
+            self.print_chain(f)
+        } else {
+            write!(f, "{}", self.error())
+        }
+    }
+
     fn debug(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if f.alternate() {
             return Debug::fmt(self.error(), f);
         }
 
-        writeln!(f, "{}", self.error())?;
-
-        let mut chain = self.chain().skip(1).enumerate().peekable();
-        if let Some((n, error)) = chain.next() {
-            write!(f, "\nCaused by:\n    ")?;
-            if chain.peek().is_some() {
-                write!(f, "{}: ", n)?;
-            }
-            writeln!(f, "{}", error)?;
-            for (n, error) in chain {
-                writeln!(f, "    {}: {}", n, error)?;
-            }
-        }
+        self.print_chain(f)?;
+        writeln!(f)?;
 
         #[cfg(backtrace)]
         {
