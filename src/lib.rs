@@ -64,10 +64,10 @@
 //!       # let it = It;
 //!       # let path = "./path/to/instrs.jsox";
 //!       #
-//!       it.detach().context("failed to detach the important thing")?;
+//!       it.detach().context("Failed to detach the important thing")?;
 //!
 //!       let content = std::fs::read(path)
-//!           .with_context(|| format!("failed to read instrs from {}", path))?;
+//!           .with_context(|| format!("Failed to read instrs from {}", path))?;
 //!       #
 //!       # const _: &str = stringify! {
 //!       ...
@@ -78,7 +78,7 @@
 //!   ```
 //!
 //!   ```console
-//!   Error: failed to read instrs from ./path/to/instrs.jsox
+//!   Error: Failed to read instrs from ./path/to/instrs.jsox
 //!
 //!   Caused by:
 //!       No such file or directory (os error 2)
@@ -136,12 +136,12 @@
 //!
 //!   #[derive(Error, Debug)]
 //!   pub enum FormatError {
-//!       #[error("invalid header (expected {expected:?}, got {found:?})")]
+//!       #[error("Invalid header (expected {expected:?}, got {found:?})")]
 //!       InvalidHeader {
 //!           expected: String,
 //!           found: String,
 //!       },
-//!       #[error("missing attribute: {0}")]
+//!       #[error("Missing attribute: {0}")]
 //!       MissingAttribute(String),
 //!   }
 //!   ```
@@ -154,7 +154,7 @@
 //!   #
 //!   # fn demo() -> Result<()> {
 //!   #     let missing = "...";
-//!   return Err(anyhow!("missing attribute: {}", missing));
+//!   return Err(anyhow!("Missing attribute: {}", missing));
 //!   #     Ok(())
 //!   # }
 //!   ```
@@ -206,14 +206,14 @@ pub use anyhow as format_err;
 /// which you constructed your anyhow::Error.
 ///
 /// ```console
-/// failed to read instrs from ./path/to/instrs.jsox
+/// Failed to read instrs from ./path/to/instrs.jsox
 /// ```
 ///
 /// To print causes as well using anyhow's default formatting of causes, use the
 /// alternate selector "{:#}".
 ///
 /// ```console
-/// failed to read instrs from ./path/to/instrs.jsox: No such file or directory (os error 2)
+/// Failed to read instrs from ./path/to/instrs.jsox: No such file or directory (os error 2)
 /// ```
 ///
 /// The Debug format "{:?}" includes your backtrace if one was captured. Note
@@ -221,7 +221,7 @@ pub use anyhow as format_err;
 /// from `fn main` instead of printing it explicitly yourself.
 ///
 /// ```console
-/// Error: failed to read instrs from ./path/to/instrs.jsox
+/// Error: Failed to read instrs from ./path/to/instrs.jsox
 ///
 /// Caused by:
 ///     No such file or directory (os error 2)
@@ -246,7 +246,7 @@ pub use anyhow as format_err;
 ///
 /// ```console
 /// Error {
-///     context: "failed to read instrs from ./path/to/instrs.jsox",
+///     context: "Failed to read instrs from ./path/to/instrs.jsox",
 ///     source: Os {
 ///         code: 2,
 ///         kind: NotFound,
@@ -384,11 +384,11 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 /// }
 ///
 /// pub fn do_it(mut it: ImportantThing) -> Result<Vec<u8>> {
-///     it.detach().context("failed to detach the important thing")?;
+///     it.detach().context("Failed to detach the important thing")?;
 ///
 ///     let path = &it.path;
 ///     let content = fs::read(path)
-///         .with_context(|| format!("failed to read instrs from {}", path.display()))?;
+///         .with_context(|| format!("Failed to read instrs from {}", path.display()))?;
 ///
 ///     Ok(content)
 /// }
@@ -398,7 +398,7 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 /// level underlying causes would be enumerated below.
 ///
 /// ```console
-/// Error: failed to read instrs from ./path/to/instrs.jsox
+/// Error: Failed to read instrs from ./path/to/instrs.jsox
 ///
 /// Caused by:
 ///     No such file or directory (os error 2)
@@ -439,7 +439,7 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 ///     use anyhow::{Context, Result};
 ///
 ///     fn do_it() -> Result<()> {
-///         helper().context("failed to complete the work")?;
+///         helper().context("Failed to complete the work")?;
 ///         # const IGNORE: &str = stringify! {
 ///         ...
 ///         # };

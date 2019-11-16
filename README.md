@@ -47,16 +47,16 @@ anyhow = "1.0"
 
   fn main() -> Result<()> {
       ...
-      it.detach().context("failed to detach the important thing")?;
+      it.detach().context("Failed to detach the important thing")?;
 
       let content = std::fs::read(path)
-          .with_context(|| format!("failed to read instrs from {}", path))?;
+          .with_context(|| format!("Failed to read instrs from {}", path))?;
       ...
   }
   ```
 
   ```console
-  Error: failed to read instrs from ./path/to/instrs.jsox
+  Error: Failed to read instrs from ./path/to/instrs.jsox
 
   Caused by:
       No such file or directory (os error 2)
@@ -88,12 +88,12 @@ anyhow = "1.0"
 
   #[derive(Error, Debug)]
   pub enum FormatError {
-      #[error("invalid header (expected {expected:?}, got {found:?})")]
+      #[error("Invalid header (expected {expected:?}, got {found:?})")]
       InvalidHeader {
           expected: String,
           found: String,
       },
-      #[error("missing attribute: {0}")]
+      #[error("Missing attribute: {0}")]
       MissingAttribute(String),
   }
   ```
@@ -102,7 +102,7 @@ anyhow = "1.0"
   supports string interpolation and produces an `anyhow::Error`.
 
   ```rust
-  return Err(anyhow!("missing attribute: {}", missing));
+  return Err(anyhow!("Missing attribute: {}", missing));
   ```
 
 <br>
