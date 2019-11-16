@@ -213,10 +213,7 @@ pub use anyhow as format_err;
 /// alternate selector "{:#}".
 ///
 /// ```console
-/// failed to read instrs from ./path/to/instrs.jsox
-///
-/// Caused by:
-///     No such file or directory (os error 2)
+/// failed to read instrs from ./path/to/instrs.jsox: No such file or directory (os error 2)
 /// ```
 ///
 /// The Debug format "{:?}" includes your backtrace if one was captured. Note

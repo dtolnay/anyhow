@@ -2,30 +2,16 @@ use crate::error::ErrorImpl;
 use std::fmt::{self, Debug};
 
 impl ErrorImpl<()> {
-    fn print_chain(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    pub(crate) fn display(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.error())?;
 
-        let mut chain = self.chain().skip(1).enumerate().peekable();
-        if let Some((n, error)) = chain.next() {
-            write!(f, "\n\nCaused by:\n    ")?;
-            if chain.peek().is_some() {
-                write!(f, "{}: ", n)?;
-            }
-            write!(f, "{}", error)?;
-            for (n, error) in chain {
-                write!(f, "\n    {}: {}", n, error)?;
+        if f.alternate() {
+            for cause in self.chain().skip(1) {
+                write!(f, ": {}", cause)?;
             }
         }
 
         Ok(())
-    }
-
-    pub(crate) fn display(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if f.alternate() {
-            self.print_chain(f)
-        } else {
-            write!(f, "{}", self.error())
-        }
     }
 
     pub(crate) fn debug(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -33,8 +19,19 @@ impl ErrorImpl<()> {
             return Debug::fmt(self.error(), f);
         }
 
-        self.print_chain(f)?;
-        writeln!(f)?;
+        writeln!(f, "{}", self.error())?;
+
+        let mut chain = self.chain().skip(1).enumerate().peekable();
+        if let Some((n, error)) = chain.next() {
+            write!(f, "\nCaused by:\n    ")?;
+            if chain.peek().is_some() {
+                write!(f, "{}: ", n)?;
+            }
+            writeln!(f, "{}", error)?;
+            for (n, error) in chain {
+                writeln!(f, "    {}: {}", n, error)?;
+            }
+        }
 
         #[cfg(backtrace)]
         {

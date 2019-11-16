@@ -18,18 +18,11 @@ oh no!\
 ";
 
 const EXPECTED_ALTDISPLAY_G: &str = "\
-f failed
-
-Caused by:
-    oh no!\
+f failed: oh no!\
 ";
 
 const EXPECTED_ALTDISPLAY_H: &str = "\
-g failed
-
-Caused by:
-    0: f failed
-    1: oh no!\
+g failed: f failed: oh no!\
 ";
 
 const EXPECTED_DEBUG_F: &str = "\
