@@ -171,6 +171,7 @@
 mod backtrace;
 mod context;
 mod error;
+mod fmt;
 mod kind;
 mod macros;
 
