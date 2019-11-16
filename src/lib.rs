@@ -62,7 +62,7 @@
 //!       # };
 //!       #
 //!       # let it = It;
-//!       # let path = "./path/to/instrs.jsox";
+//!       # let path = "./path/to/instrs.json";
 //!       #
 //!       it.detach().context("Failed to detach the important thing")?;
 //!
@@ -78,7 +78,7 @@
 //!   ```
 //!
 //!   ```console
-//!   Error: Failed to read instrs from ./path/to/instrs.jsox
+//!   Error: Failed to read instrs from ./path/to/instrs.json
 //!
 //!   Caused by:
 //!       No such file or directory (os error 2)
@@ -206,14 +206,14 @@ pub use anyhow as format_err;
 /// which you constructed your anyhow::Error.
 ///
 /// ```console
-/// Failed to read instrs from ./path/to/instrs.jsox
+/// Failed to read instrs from ./path/to/instrs.json
 /// ```
 ///
 /// To print causes as well using anyhow's default formatting of causes, use the
 /// alternate selector "{:#}".
 ///
 /// ```console
-/// Failed to read instrs from ./path/to/instrs.jsox: No such file or directory (os error 2)
+/// Failed to read instrs from ./path/to/instrs.json: No such file or directory (os error 2)
 /// ```
 ///
 /// The Debug format "{:?}" includes your backtrace if one was captured. Note
@@ -221,7 +221,7 @@ pub use anyhow as format_err;
 /// from `fn main` instead of printing it explicitly yourself.
 ///
 /// ```console
-/// Error: Failed to read instrs from ./path/to/instrs.jsox
+/// Error: Failed to read instrs from ./path/to/instrs.json
 ///
 /// Caused by:
 ///     No such file or directory (os error 2)
@@ -246,7 +246,7 @@ pub use anyhow as format_err;
 ///
 /// ```console
 /// Error {
-///     context: "Failed to read instrs from ./path/to/instrs.jsox",
+///     context: "Failed to read instrs from ./path/to/instrs.json",
 ///     source: Os {
 ///         code: 2,
 ///         kind: NotFound,
@@ -398,7 +398,7 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 /// level underlying causes would be enumerated below.
 ///
 /// ```console
-/// Error: Failed to read instrs from ./path/to/instrs.jsox
+/// Error: Failed to read instrs from ./path/to/instrs.json
 ///
 /// Caused by:
 ///     No such file or directory (os error 2)

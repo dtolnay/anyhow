@@ -56,7 +56,7 @@ anyhow = "1.0"
   ```
 
   ```console
-  Error: Failed to read instrs from ./path/to/instrs.jsox
+  Error: Failed to read instrs from ./path/to/instrs.json
 
   Caused by:
       No such file or directory (os error 2)
