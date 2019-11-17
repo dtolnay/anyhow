@@ -169,6 +169,7 @@
 
 #[macro_use]
 mod backtrace;
+mod chain;
 mod context;
 mod error;
 mod fmt;
@@ -178,8 +179,8 @@ mod macros;
 #[cfg(not(feature = "std"))]
 compile_error!("no_std support is not implemented yet");
 
+use crate::chain::ChainState;
 use crate::error::ErrorImpl;
-use std::error::Error as StdError;
 use std::fmt::Display;
 use std::mem::ManuallyDrop;
 
@@ -302,7 +303,7 @@ pub struct Error {
 /// ```
 #[derive(Clone)]
 pub struct Chain<'a> {
-    next: Option<&'a (dyn StdError + 'static)>,
+    state: ChainState<'a>,
 }
 
 /// `Result<T, Error>`

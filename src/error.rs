@@ -1,4 +1,5 @@
 use crate::backtrace::Backtrace;
+use crate::chain::ChainState;
 use crate::{Chain, Error};
 use std::any::TypeId;
 use std::error::Error as StdError;
@@ -673,7 +674,9 @@ impl ErrorImpl<()> {
 
     pub(crate) fn chain(&self) -> Chain {
         Chain {
-            next: Some(self.error()),
+            state: ChainState::Linked {
+                next: Some(self.error()),
+            },
         }
     }
 }
@@ -724,15 +727,5 @@ impl From<Error> for Box<dyn StdError + Send + Sync + 'static> {
 impl From<Error> for Box<dyn StdError + 'static> {
     fn from(error: Error) -> Self {
         Box::<dyn StdError + Send + Sync>::from(error)
-    }
-}
-
-impl<'a> Iterator for Chain<'a> {
-    type Item = &'a (dyn StdError + 'static);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let next = self.next?;
-        self.next = next.source();
-        Some(next)
     }
 }
