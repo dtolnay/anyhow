@@ -26,6 +26,11 @@ impl<'a> Iterator for Chain<'a> {
             Buffered { rest } => rest.next(),
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let len = self.len();
+        (len, Some(len))
+    }
 }
 
 impl DoubleEndedIterator for Chain<'_> {
@@ -43,6 +48,22 @@ impl DoubleEndedIterator for Chain<'_> {
                 last
             }
             Buffered { rest } => rest.next_back(),
+        }
+    }
+}
+
+impl ExactSizeIterator for Chain<'_> {
+    fn len(&self) -> usize {
+        match &self.state {
+            Linked { mut next } => {
+                let mut len = 0;
+                while let Some(cause) = next {
+                    next = cause.source();
+                    len += 1;
+                }
+                len
+            }
+            Buffered { rest } => rest.len(),
         }
     }
 }
