@@ -726,13 +726,3 @@ impl From<Error> for Box<dyn StdError + 'static> {
         Box::<dyn StdError + Send + Sync>::from(error)
     }
 }
-
-impl<'a> Iterator for Chain<'a> {
-    type Item = &'a (dyn StdError + 'static);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let next = self.next?;
-        self.next = next.source();
-        Some(next)
-    }
-}

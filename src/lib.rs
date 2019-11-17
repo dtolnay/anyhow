@@ -169,6 +169,7 @@
 
 #[macro_use]
 mod backtrace;
+mod chain;
 mod context;
 mod error;
 mod fmt;
