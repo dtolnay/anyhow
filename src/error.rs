@@ -1,4 +1,5 @@
 use crate::backtrace::Backtrace;
+use crate::chain::ChainState;
 use crate::{Chain, Error};
 use std::any::TypeId;
 use std::error::Error as StdError;
@@ -673,7 +674,9 @@ impl ErrorImpl<()> {
 
     pub(crate) fn chain(&self) -> Chain {
         Chain {
-            next: Some(self.error()),
+            state: ChainState::Linked {
+                next: Some(self.error()),
+            },
         }
     }
 }

@@ -1,12 +1,48 @@
+use self::ChainState::{Buffered, Linked};
 use crate::Chain;
 use std::error::Error as StdError;
+use std::vec;
+
+#[derive(Clone)]
+pub(crate) enum ChainState<'a> {
+    Linked {
+        next: Option<&'a (dyn StdError + 'static)>,
+    },
+    Buffered {
+        rest: vec::IntoIter<&'a (dyn StdError + 'static)>,
+    },
+}
 
 impl<'a> Iterator for Chain<'a> {
     type Item = &'a (dyn StdError + 'static);
 
     fn next(&mut self) -> Option<Self::Item> {
-        let next = self.next?;
-        self.next = next.source();
-        Some(next)
+        match &mut self.state {
+            Linked { next } => {
+                let error = (*next)?;
+                *next = error.source();
+                Some(error)
+            }
+            Buffered { rest } => rest.next(),
+        }
+    }
+}
+
+impl DoubleEndedIterator for Chain<'_> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        match &mut self.state {
+            Linked { mut next } => {
+                let mut rest = Vec::new();
+                while let Some(cause) = next {
+                    next = cause.source();
+                    rest.push(cause);
+                }
+                let mut rest = rest.into_iter();
+                let last = rest.next_back();
+                self.state = Buffered { rest };
+                last
+            }
+            Buffered { rest } => rest.next_back(),
+        }
     }
 }
