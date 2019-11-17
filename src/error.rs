@@ -431,9 +431,6 @@ impl Debug for Error {
     }
 }
 
-unsafe impl Send for Error {}
-unsafe impl Sync for Error {}
-
 impl Drop for Error {
     fn drop(&mut self) {
         unsafe {
