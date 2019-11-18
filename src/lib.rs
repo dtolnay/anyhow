@@ -159,7 +159,7 @@
 //!   # }
 //!   ```
 
-#![doc(html_root_url = "https://docs.rs/anyhow/1.0.21")]
+#![doc(html_root_url = "https://docs.rs/anyhow/1.0.22")]
 #![cfg_attr(backtrace, feature(backtrace))]
 #![allow(
     clippy::needless_doctest_main,
