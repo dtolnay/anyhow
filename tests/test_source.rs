@@ -53,3 +53,10 @@ fn test_io_source() {
     let error = anyhow!(TestError::Io(io));
     assert_eq!("oh no!", error.source().unwrap().to_string());
 }
+
+#[test]
+fn test_anyhow_from_anyhow() {
+    let error = anyhow!("oh no!").context("context");
+    let error = anyhow!(error);
+    assert_eq!("oh no!", error.source().unwrap().to_string());
+}
