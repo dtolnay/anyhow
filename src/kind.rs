@@ -45,7 +45,6 @@
 //     (&error).anyhow_kind().new(error)
 
 use crate::Error;
-use std::error::Error as StdError;
 use std::fmt::{Debug, Display};
 
 #[cfg(backtrace)]
@@ -80,13 +79,13 @@ pub trait TraitKind: Sized {
     }
 }
 
-impl<T> TraitKind for T where T: StdError + Send + Sync + 'static {}
+impl<E> TraitKind for E where E: Into<Error> {}
 
 impl Trait {
     pub fn new<E>(self, error: E) -> Error
     where
-        E: StdError + Send + Sync + 'static,
+        E: Into<Error>,
     {
-        Error::from_std(error, backtrace!())
+        error.into()
     }
 }
