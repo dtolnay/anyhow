@@ -21,9 +21,6 @@ const EXPECTED_ALTDISPLAY_H: &str = "g failed: f failed: oh no!";
 
 const EXPECTED_DEBUG_F: &str = "\
 oh no!
-
-Stack backtrace:
-    Run with RUST_LIB_BACKTRACE=1 env variable to display a backtrace
 ";
 
 const EXPECTED_DEBUG_G: &str = "\
@@ -31,9 +28,6 @@ f failed
 
 Caused by:
     oh no!
-
-Stack backtrace:
-    Run with RUST_LIB_BACKTRACE=1 env variable to display a backtrace
 ";
 
 const EXPECTED_DEBUG_H: &str = "\
@@ -42,9 +36,6 @@ g failed
 Caused by:
     0: f failed
     1: oh no!
-
-Stack backtrace:
-    Run with RUST_LIB_BACKTRACE=1 env variable to display a backtrace
 ";
 
 const EXPECTED_ALTDEBUG_F: &str = "\

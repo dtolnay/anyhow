@@ -38,22 +38,13 @@ impl ErrorImpl<()> {
             use std::backtrace::BacktraceStatus;
 
             let backtrace = self.backtrace();
-            match backtrace.status() {
-                BacktraceStatus::Captured => {
-                    let mut backtrace = backtrace.to_string();
-                    if backtrace.starts_with("stack backtrace:") {
-                        // Capitalize to match "Caused by:"
-                        backtrace.replace_range(0..1, "S");
-                    }
-                    write!(f, "\n{}", backtrace)?;
+            if let BacktraceStatus::Captured = backtrace.status() {
+                let mut backtrace = backtrace.to_string();
+                if backtrace.starts_with("stack backtrace:") {
+                    // Capitalize to match "Caused by:"
+                    backtrace.replace_range(0..1, "S");
                 }
-                BacktraceStatus::Disabled => {
-                    writeln!(
-                        f,
-                        "\nStack backtrace:\n    Run with RUST_LIB_BACKTRACE=1 env variable to display a backtrace"
-                    )?;
-                }
-                _ => {}
+                write!(f, "\n{}", backtrace)?;
             }
         }
 
