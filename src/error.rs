@@ -783,3 +783,15 @@ impl From<Error> for Box<dyn StdError + 'static> {
         Box::<dyn StdError + Send + Sync>::from(error)
     }
 }
+
+impl AsRef<dyn StdError + Send + Sync> for Error {
+    fn as_ref(&self) -> &(dyn StdError + Send + Sync + 'static) {
+        &**self
+    }
+}
+
+impl AsRef<dyn StdError> for Error {
+    fn as_ref(&self) -> &(dyn StdError + 'static) {
+        &**self
+    }
+}
