@@ -1,4 +1,5 @@
 use crate::error::ErrorImpl;
+use crate::Chain;
 use std::fmt::{self, Debug};
 
 impl ErrorImpl<()> {
@@ -15,21 +16,23 @@ impl ErrorImpl<()> {
     }
 
     pub(crate) fn debug(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let error = self.error();
+
         if f.alternate() {
-            return Debug::fmt(self.error(), f);
+            return Debug::fmt(error, f);
         }
 
-        writeln!(f, "{}", self.error())?;
+        writeln!(f, "{}", error)?;
 
-        let mut chain = self.chain().skip(1).enumerate().peekable();
-        if let Some((n, error)) = chain.next() {
-            write!(f, "\nCaused by:\n    ")?;
-            if chain.peek().is_some() {
-                write!(f, "{}: ", n)?;
-            }
-            writeln!(f, "{}", error)?;
-            for (n, error) in chain {
-                writeln!(f, "    {}: {}", n, error)?;
+        if let Some(cause) = error.source() {
+            write!(f, "\nCaused by:\n")?;
+            let multiple = cause.source().is_some();
+            for (n, error) in Chain::new(cause).enumerate() {
+                write!(f, "    ")?;
+                if multiple {
+                    write!(f, "{}: ", n)?;
+                }
+                writeln!(f, "{}", error)?;
             }
         }
 
