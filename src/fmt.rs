@@ -22,17 +22,17 @@ impl ErrorImpl<()> {
             return Debug::fmt(error, f);
         }
 
-        writeln!(f, "{}", error)?;
+        write!(f, "{}", error)?;
 
         if let Some(cause) = error.source() {
-            write!(f, "\nCaused by:\n")?;
+            write!(f, "\n\nCaused by:")?;
             let multiple = cause.source().is_some();
             for (n, error) in Chain::new(cause).enumerate() {
-                write!(f, "    ")?;
+                write!(f, "\n    ")?;
                 if multiple {
                     write!(f, "{}: ", n)?;
                 }
-                writeln!(f, "{}", error)?;
+                write!(f, "{}", error)?;
             }
         }
 
@@ -47,7 +47,8 @@ impl ErrorImpl<()> {
                     // Capitalize to match "Caused by:"
                     backtrace.replace_range(0..1, "S");
                 }
-                write!(f, "\n{}", backtrace)?;
+                backtrace.truncate(backtrace.trim_end().len());
+                write!(f, "\n\n{}", backtrace)?;
             }
         }
 
