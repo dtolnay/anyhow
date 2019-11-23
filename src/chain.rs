@@ -75,3 +75,13 @@ impl ExactSizeIterator for Chain<'_> {
         }
     }
 }
+
+impl Default for Chain<'_> {
+    fn default() -> Self {
+        Chain {
+            state: ChainState::Buffered {
+                rest: Vec::new().into_iter(),
+            },
+        }
+    }
+}
