@@ -24,31 +24,19 @@
 ///
 /// ```
 /// # use anyhow::{bail, Result};
-/// # use std::fmt::{self, Display};
-/// #
-/// # #[derive(Debug)]
-/// # enum ScienceError {
-/// #     RecursionLimitExceeded,
-/// # }
-/// #
-/// # impl std::error::Error for ScienceError {}
-/// #
-/// # impl Display for ScienceError {
-/// #     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-/// #         unimplemented!()
-/// #     }
-/// # }
+/// # use thiserror::Error;
 /// #
 /// # const MAX_DEPTH: usize = 1;
 /// #
-/// # const IGNORE: &str = stringify! {
 /// #[derive(Error, Debug)]
 /// enum ScienceError {
-///     #[error(display = "recursion limit exceeded")]
+///     #[error("recursion limit exceeded")]
 ///     RecursionLimitExceeded,
+///     # #[error("...")]
+///     # More = (stringify! {
 ///     ...
+///     # }, 1).1,
 /// }
-/// # };
 ///
 /// # fn main() -> Result<()> {
 /// #     let depth = 0;
@@ -95,31 +83,19 @@ macro_rules! bail {
 ///
 /// ```
 /// # use anyhow::{ensure, Result};
-/// # use std::fmt::{self, Display};
-/// #
-/// # #[derive(Debug)]
-/// # enum ScienceError {
-/// #     RecursionLimitExceeded,
-/// # }
-/// #
-/// # impl std::error::Error for ScienceError {}
-/// #
-/// # impl Display for ScienceError {
-/// #     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-/// #         unimplemented!()
-/// #     }
-/// # }
+/// # use thiserror::Error;
 /// #
 /// # const MAX_DEPTH: usize = 1;
 /// #
-/// # const IGNORE: &str = stringify! {
 /// #[derive(Error, Debug)]
 /// enum ScienceError {
-///     #[error(display = "recursion limit exceeded")]
+///     #[error("recursion limit exceeded")]
 ///     RecursionLimitExceeded,
+///     # #[error("...")]
+///     # More = (stringify! {
 ///     ...
+///     # }, 1).1,
 /// }
-/// # };
 ///
 /// # fn main() -> Result<()> {
 /// #     let depth = 0;
