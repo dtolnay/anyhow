@@ -175,6 +175,7 @@ mod error;
 mod fmt;
 mod kind;
 mod macros;
+mod wrapper;
 
 #[cfg(not(feature = "std"))]
 compile_error!("no_std support is not implemented yet");
