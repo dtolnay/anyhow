@@ -45,6 +45,7 @@
 //     (&error).anyhow_kind().new(error)
 
 use crate::Error;
+use std::error::Error as StdError;
 use std::fmt::{Debug, Display};
 
 #[cfg(backtrace)]
@@ -87,5 +88,23 @@ impl Trait {
         E: Into<Error>,
     {
         error.into()
+    }
+}
+
+pub struct Boxed;
+
+pub trait BoxedKind: Sized {
+    #[inline]
+    fn anyhow_kind(&self) -> Boxed {
+        Boxed
+    }
+}
+
+impl BoxedKind for Box<dyn StdError + Send + Sync> {}
+
+impl Boxed {
+    pub fn new(self, error: Box<dyn StdError + Send + Sync>) -> Error {
+        let backtrace = backtrace_if_absent!(error);
+        Error::from_boxed(error, backtrace)
     }
 }

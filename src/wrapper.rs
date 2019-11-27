@@ -1,3 +1,4 @@
+use crate::backtrace::Backtrace;
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 
@@ -46,3 +47,29 @@ where
 }
 
 impl<M> StdError for DisplayError<M> where M: Display + 'static {}
+
+#[repr(transparent)]
+pub struct BoxedError(pub Box<dyn StdError + Send + Sync>);
+
+impl Debug for BoxedError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        Debug::fmt(&self.0, f)
+    }
+}
+
+impl Display for BoxedError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        Display::fmt(&self.0, f)
+    }
+}
+
+impl StdError for BoxedError {
+    #[cfg(backtrace)]
+    fn backtrace(&self) -> Option<&Backtrace> {
+        self.0.backtrace()
+    }
+
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        self.0.source()
+    }
+}

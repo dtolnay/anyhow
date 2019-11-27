@@ -1,5 +1,5 @@
 use crate::backtrace::Backtrace;
-use crate::wrapper::{DisplayError, MessageError};
+use crate::wrapper::{BoxedError, DisplayError, MessageError};
 use crate::{Chain, Error};
 use std::any::TypeId;
 use std::error::Error as StdError;
@@ -140,6 +140,25 @@ impl Error {
         };
 
         // Safety: passing vtable that operates on the right type.
+        unsafe { Error::construct(error, vtable, backtrace) }
+    }
+
+    pub(crate) fn from_boxed(
+        error: Box<dyn StdError + Send + Sync>,
+        backtrace: Option<Backtrace>,
+    ) -> Self {
+        let error = BoxedError(error);
+        let vtable = &ErrorVTable {
+            object_drop: object_drop::<BoxedError>,
+            object_ref: object_ref::<BoxedError>,
+            object_mut: object_mut::<BoxedError>,
+            object_boxed: object_boxed::<BoxedError>,
+            object_downcast: object_downcast::<Box<dyn StdError + Send + Sync>>,
+            object_drop_rest: object_drop_front::<Box<dyn StdError + Send + Sync>>,
+        };
+
+        // Safety: BoxedError is repr(transparent) so it is okay for the vtable
+        // to allow casting to Box<dyn StdError + Send + Sync>.
         unsafe { Error::construct(error, vtable, backtrace) }
     }
 
