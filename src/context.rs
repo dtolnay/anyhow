@@ -2,7 +2,7 @@ use crate::error::ContextError;
 use crate::{Context, Error};
 use std::convert::Infallible;
 use std::error::Error as StdError;
-use std::fmt::{self, Debug, Display};
+use std::fmt::{self, Debug, Display, Write};
 
 #[cfg(backtrace)]
 use std::backtrace::Backtrace;
@@ -103,7 +103,7 @@ where
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("Error")
-            .field("context", &self.context.to_string())
+            .field("context", &Quoted(&self.context))
             .field("source", &self.error)
             .finish()
     }
@@ -144,6 +144,26 @@ where
 
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         Some(&*self.error)
+    }
+}
+
+struct Quoted<C>(C);
+
+impl<C> Debug for Quoted<C>
+where
+    C: Display,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_char('"')?;
+        Quoted(&mut *formatter).write_fmt(format_args!("{}", self.0))?;
+        formatter.write_char('"')?;
+        Ok(())
+    }
+}
+
+impl Write for Quoted<&mut fmt::Formatter<'_>> {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        Display::fmt(&s.escape_debug(), self.0)
     }
 }
 
