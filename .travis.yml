@@ -5,12 +5,16 @@ rust:
   - beta
   - stable
 
-script: cargo test
+script:
+  - cargo test
+  - cargo check --no-default-features
 
 matrix:
   include:
     - rust: 1.34.0
-      script: cargo check
+      script:
+        - cargo check
+        - cargo check --no-default-features
     - rust: nightly
       name: Clippy
       script:
