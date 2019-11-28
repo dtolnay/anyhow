@@ -158,14 +158,44 @@
 //!   #     Ok(())
 //!   # }
 //!   ```
+//!
+//! <br>
+//!
+//! # No-std support
+//!
+//! In no_std mode, the same API is almost all available and works the same way.
+//! To depend on Anyhow in no_std mode, disable our default enabled "std"
+//! feature in Cargo.toml. A global allocator is required.
+//!
+//! ```toml
+//! [dependencies]
+//! anyhow = { version = "1.0", default-features = false }
+//! ```
+//!
+//! Since the `?`-based error conversions would normally rely on the
+//! `std::error::Error` trait which is only available through std, no_std mode
+//! will require an explicit `.map_err(Error::msg)` when working with a
+//! non-Anyhow error type inside a function that returns Anyhow's error type.
 
 #![doc(html_root_url = "https://docs.rs/anyhow/1.0.24")]
 #![cfg_attr(backtrace, feature(backtrace))]
+#![cfg_attr(not(feature = "std"), no_std)]
 #![allow(
     clippy::needless_doctest_main,
     clippy::new_ret_no_self,
     clippy::wrong_self_convention
 )]
+
+mod alloc {
+    #[cfg(not(feature = "std"))]
+    extern crate alloc;
+
+    #[cfg(not(feature = "std"))]
+    pub use alloc::boxed::Box;
+
+    #[cfg(feature = "std")]
+    pub use std::boxed::Box;
+}
 
 #[macro_use]
 mod backtrace;
@@ -177,13 +207,23 @@ mod kind;
 mod macros;
 mod wrapper;
 
-#[cfg(not(feature = "std"))]
-compile_error!("no_std support is not implemented yet");
-
-use crate::chain::ChainState;
+use crate::alloc::Box;
 use crate::error::ErrorImpl;
-use std::fmt::Display;
-use std::mem::ManuallyDrop;
+use core::fmt::Display;
+use core::mem::ManuallyDrop;
+
+#[cfg(not(feature = "std"))]
+use core::fmt::Debug;
+
+#[cfg(feature = "std")]
+use std::error::Error as StdError;
+
+#[cfg(not(feature = "std"))]
+trait StdError: Debug + Display {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        None
+    }
+}
 
 pub use anyhow as format_err;
 
@@ -302,9 +342,10 @@ pub struct Error {
 ///     None
 /// }
 /// ```
+#[cfg(feature = "std")]
 #[derive(Clone)]
 pub struct Chain<'a> {
-    state: ChainState<'a>,
+    state: crate::chain::ChainState<'a>,
 }
 
 /// `Result<T, Error>`
@@ -356,7 +397,7 @@ pub struct Chain<'a> {
 ///     Ok(())
 /// }
 /// ```
-pub type Result<T, E = Error> = std::result::Result<T, E>;
+pub type Result<T, E = Error> = core::result::Result<T, E>;
 
 /// Provides the `context` method for `Result`.
 ///
@@ -517,14 +558,19 @@ pub trait Context<T, E>: context::private::Sealed {
 #[doc(hidden)]
 pub mod private {
     use crate::Error;
-    use std::fmt::{Debug, Display};
+    use core::fmt::{Debug, Display};
 
     #[cfg(backtrace)]
     use std::backtrace::Backtrace;
 
+    pub use core::result::Result::Err;
+
     #[doc(hidden)]
     pub mod kind {
-        pub use crate::kind::{AdhocKind, BoxedKind, TraitKind};
+        pub use crate::kind::{AdhocKind, TraitKind};
+
+        #[cfg(feature = "std")]
+        pub use crate::kind::BoxedKind;
     }
 
     pub fn new_adhoc<M>(message: M) -> Error

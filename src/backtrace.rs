@@ -28,7 +28,7 @@ macro_rules! backtrace_if_absent {
     };
 }
 
-#[cfg(not(backtrace))]
+#[cfg(all(feature = "std", not(backtrace)))]
 macro_rules! backtrace_if_absent {
     ($err:expr) => {
         None

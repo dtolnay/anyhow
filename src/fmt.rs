@@ -1,6 +1,6 @@
+use crate::chain::Chain;
 use crate::error::ErrorImpl;
-use crate::Chain;
-use std::fmt::{self, Debug};
+use core::fmt::{self, Debug};
 
 impl ErrorImpl<()> {
     pub(crate) fn display(&self, f: &mut fmt::Formatter) -> fmt::Result {
