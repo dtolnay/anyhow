@@ -1,5 +1,5 @@
+use core::fmt::{self, Debug, Display};
 use std::error::Error as StdError;
-use std::fmt::{self, Debug, Display};
 
 #[repr(transparent)]
 pub struct MessageError<M>(pub M);

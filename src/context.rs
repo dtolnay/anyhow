@@ -1,8 +1,8 @@
 use crate::error::ContextError;
 use crate::{Context, Error};
-use std::convert::Infallible;
+use core::convert::Infallible;
+use core::fmt::{self, Debug, Display, Write};
 use std::error::Error as StdError;
-use std::fmt::{self, Debug, Display, Write};
 
 #[cfg(backtrace)]
 use std::backtrace::Backtrace;

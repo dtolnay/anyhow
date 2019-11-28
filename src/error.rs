@@ -1,12 +1,12 @@
 use crate::backtrace::Backtrace;
 use crate::wrapper::{BoxedError, DisplayError, MessageError};
 use crate::{Chain, Error};
-use std::any::TypeId;
+use core::any::TypeId;
+use core::fmt::{self, Debug, Display};
+use core::mem::{self, ManuallyDrop};
+use core::ops::{Deref, DerefMut};
+use core::ptr::{self, NonNull};
 use std::error::Error as StdError;
-use std::fmt::{self, Debug, Display};
-use std::mem::{self, ManuallyDrop};
-use std::ops::{Deref, DerefMut};
-use std::ptr::{self, NonNull};
 
 impl Error {
     /// Create a new error object from any error type.

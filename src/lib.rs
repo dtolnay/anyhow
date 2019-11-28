@@ -182,8 +182,8 @@ compile_error!("no_std support is not implemented yet");
 
 use crate::chain::ChainState;
 use crate::error::ErrorImpl;
-use std::fmt::Display;
-use std::mem::ManuallyDrop;
+use core::fmt::Display;
+use core::mem::ManuallyDrop;
 
 pub use anyhow as format_err;
 
@@ -356,7 +356,7 @@ pub struct Chain<'a> {
 ///     Ok(())
 /// }
 /// ```
-pub type Result<T, E = Error> = std::result::Result<T, E>;
+pub type Result<T, E = Error> = core::result::Result<T, E>;
 
 /// Provides the `context` method for `Result`.
 ///
@@ -517,10 +517,12 @@ pub trait Context<T, E>: context::private::Sealed {
 #[doc(hidden)]
 pub mod private {
     use crate::Error;
-    use std::fmt::{Debug, Display};
+    use core::fmt::{Debug, Display};
 
     #[cfg(backtrace)]
     use std::backtrace::Backtrace;
+
+    pub use core::result::Result::Err;
 
     #[doc(hidden)]
     pub mod kind {

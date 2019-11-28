@@ -45,8 +45,8 @@
 //     (&error).anyhow_kind().new(error)
 
 use crate::Error;
+use core::fmt::{Debug, Display};
 use std::error::Error as StdError;
-use std::fmt::{Debug, Display};
 
 #[cfg(backtrace)]
 use std::backtrace::Backtrace;
