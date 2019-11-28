@@ -107,6 +107,24 @@ anyhow = "1.0"
 
 <br>
 
+## No-std support
+
+In no_std mode, the same API is almost all available and works the same way. To
+depend on Anyhow in no_std mode, disable our default enabled "std" feature in
+Cargo.toml. A global allocator is required.
+
+```toml
+[dependencies]
+anyhow = { version = "1.0", default-features = false }
+```
+
+Since the `?`-based error conversions would normally rely on the
+`std::error::Error` trait which is only available through std, no_std mode will
+require an explicit `.map_err(Error::msg)` when working with a non-Anyhow error
+type inside a function that returns Anyhow's error type.
+
+<br>
+
 ## Comparison to failure
 
 The `anyhow::Error` type works something like `failure::Error`, but unlike
