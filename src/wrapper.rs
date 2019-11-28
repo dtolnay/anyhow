@@ -1,4 +1,3 @@
-use crate::backtrace::Backtrace;
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 
@@ -65,7 +64,7 @@ impl Display for BoxedError {
 
 impl StdError for BoxedError {
     #[cfg(backtrace)]
-    fn backtrace(&self) -> Option<&Backtrace> {
+    fn backtrace(&self) -> Option<&crate::backtrace::Backtrace> {
         self.0.backtrace()
     }
 
