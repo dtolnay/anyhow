@@ -35,6 +35,9 @@ const PROBE: &str = r#"
 "#;
 
 fn main() {
+    if !cfg!(feature = "std") {
+        return;
+    }
     match compile_probe() {
         Some(status) if status.success() => println!("cargo:rustc-cfg=backtrace"),
         _ => {}
