@@ -1,5 +1,5 @@
+use crate::chain::Chain;
 use crate::error::ErrorImpl;
-use crate::Chain;
 use core::fmt::{self, Debug};
 
 impl ErrorImpl<()> {
