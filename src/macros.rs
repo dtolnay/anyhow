@@ -153,8 +153,7 @@ macro_rules! anyhow {
         $crate::private::new_adhoc($msg)
     };
     ($err:expr $(,)?) => ({
-        #[allow(unused_imports)]
-        use $crate::private::{AdhocKind, BoxedKind, TraitKind};
+        use $crate::private::kind::*;
         let error = $err;
         (&error).anyhow_kind().new(error)
     });

@@ -522,7 +522,10 @@ pub mod private {
     #[cfg(backtrace)]
     use std::backtrace::Backtrace;
 
-    pub use crate::kind::{AdhocKind, BoxedKind, TraitKind};
+    #[doc(hidden)]
+    pub mod kind {
+        pub use crate::kind::{AdhocKind, BoxedKind, TraitKind};
+    }
 
     pub fn new_adhoc<M>(message: M) -> Error
     where
