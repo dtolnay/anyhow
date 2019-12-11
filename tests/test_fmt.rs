@@ -32,8 +32,8 @@ const EXPECTED_DEBUG_H: &str = "\
 g failed
 
 Caused by:
-    0: f failed
-    1: oh no!\
+   0: f failed
+   1: oh no!\
 ";
 
 const EXPECTED_ALTDEBUG_F: &str = "\
