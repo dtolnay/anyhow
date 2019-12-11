@@ -111,10 +111,6 @@ mod tests {
         .write_str(input)
         .unwrap();
 
-        println!("{}", input);
-        println!("{}", output);
-        println!("{}", expected);
-
         assert_eq!(expected, output);
     }
 
@@ -132,10 +128,6 @@ mod tests {
         .write_str(input)
         .unwrap();
 
-        println!("{}", input);
-        println!("{}", output);
-        println!("{}", expected);
-
         assert_eq!(expected, output);
     }
 
@@ -152,10 +144,6 @@ mod tests {
         }
         .write_str(input)
         .unwrap();
-
-        println!("{}", input);
-        println!("{}", output);
-        println!("{}", expected);
 
         assert_eq!(expected, output);
     }
