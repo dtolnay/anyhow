@@ -69,7 +69,7 @@ where
     T: fmt::Write,
 {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        for (ind, mut line) in s.split('\n').enumerate() {
+        for (ind, mut line) in s.lines().enumerate() {
             if !self.started {
                 // trim first line to ensure it lines up with the number nicely
                 line = line.trim();
