@@ -26,16 +26,16 @@ impl ErrorImpl<()> {
         write!(f, "{}", error)?;
 
         if let Some(cause) = error.source() {
-            writeln!(f, "\n\nCaused by:")?;
+            write!(f, "\n\nCaused by:")?;
             let multiple = cause.source().is_some();
             for (n, error) in Chain::new(cause).enumerate() {
+                writeln!(f)?;
                 let mut f2 = Numbered {
                     inner: &mut *f,
                     ind: Some(n).filter(|_| multiple),
                     started: false,
                 };
                 write!(f2, "{}", error)?;
-                writeln!(f)?;
             }
         }
 
@@ -70,23 +70,29 @@ where
     T: fmt::Write,
 {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        for line in s.split_terminator('\n') {
-            match (self.ind.as_ref(), self.started) {
-                // Numbered Cases
-                (Some(ind), false) => {
-                    self.started = true;
-                    self.inner.write_fmt(format_args!("{: >4}: ", ind))?;
+        // Don't render the first line unless its actually got text on it
+        for (ind, mut line) in s.split('\n').enumerate() {
+            if !self.started {
+                // trim first line to ensure it lines up with the number nicely
+                line = line.trim();
+                if line.is_empty() {
+                    return Ok(());
                 }
-                (Some(_), true) => self.inner.write_fmt(format_args!("\n      "))?,
-                // Unnumbered Cases
-                (None, false) => {
-                    self.started = true;
+                self.started = true;
+                match self.ind {
+                    Some(ind) => self.inner.write_fmt(format_args!("{: >4}: ", ind))?,
+                    None => self.inner.write_fmt(format_args!("    "))?,
+                }
+            } else if ind > 0 {
+                self.inner.write_char('\n')?;
+                if self.ind.is_some() {
+                    self.inner.write_fmt(format_args!("      "))?;
+                } else {
                     self.inner.write_fmt(format_args!("    "))?;
                 }
-                _ => self.inner.write_fmt(format_args!("\n    "))?,
             }
 
-            self.inner.write_str(line)?;
+            self.inner.write_fmt(format_args!("{}", line))?;
         }
 
         Ok(())
