@@ -77,15 +77,8 @@ where
     T: fmt::Write,
 {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        for (ind, mut line) in s.lines().enumerate() {
+        for (ind, line) in s.lines().enumerate() {
             if !self.started {
-                // trim first line to ensure it lines up with the number nicely
-                line = line.trim();
-                // Don't render the first line unless its actually got text on it
-                if line.is_empty() {
-                    continue;
-                }
-
                 self.started = true;
                 match self.ind {
                     Some(ind) => self.inner.write_fmt(format_args!("{: >4}: ", ind))?,
