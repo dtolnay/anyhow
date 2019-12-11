@@ -29,12 +29,13 @@ impl ErrorImpl<()> {
             writeln!(f, "\n\nCaused by:")?;
             let multiple = cause.source().is_some();
             for (n, error) in Chain::new(cause).enumerate() {
-                let mut f = Numbered {
+                let mut f2 = Numbered {
                     inner: &mut *f,
                     ind: Some(n).filter(|_| multiple),
                     started: false,
                 };
-                writeln!(f, "{}", error)?;
+                write!(f2, "{}", error)?;
+                writeln!(f)?;
             }
         }
 
@@ -69,28 +70,26 @@ where
     T: fmt::Write,
 {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        if !self.started {
-            if let Some(ind) = &self.ind {
-                self.inner.write_fmt(format_args!("{: >4}: ", ind))?;
-            } else {
-                self.inner.write_str("    ")?;
+        for line in s.split_terminator('\n') {
+            match (self.ind.as_ref(), self.started) {
+                // Numbered Cases
+                (Some(ind), false) => {
+                    self.started = true;
+                    self.inner.write_fmt(format_args!("{: >4}: ", ind))?;
+                }
+                (Some(_), true) => self.inner.write_fmt(format_args!("\n      "))?,
+                // Unnumbered Cases
+                (None, false) => {
+                    self.started = true;
+                    self.inner.write_fmt(format_args!("    "))?;
+                }
+                _ => self.inner.write_fmt(format_args!("\n    "))?,
             }
-            self.started = true;
+
+            self.inner.write_str(line)?;
         }
 
-        s.chars().try_for_each(|c| {
-            self.inner.write_char(c)?;
-
-            if c == '\n' {
-                if self.ind.is_some() {
-                    self.inner.write_str("      ")?;
-                } else {
-                    self.inner.write_str("    ")?;
-                }
-            }
-
-            Ok(())
-        })
+        Ok(())
     }
 }
 
