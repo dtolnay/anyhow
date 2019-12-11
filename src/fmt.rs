@@ -1,7 +1,7 @@
 use crate::chain::Chain;
 use crate::error::ErrorImpl;
+use core::fmt::Write;
 use core::fmt::{self, Debug};
-use std::fmt::Write;
 
 impl ErrorImpl<()> {
     pub(crate) fn display(&self, f: &mut fmt::Formatter) -> fmt::Result {
