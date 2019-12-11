@@ -77,17 +77,17 @@ where
     T: fmt::Write,
 {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        for (ind, line) in s.lines().enumerate() {
+        for (ind, line) in s.split('\n').enumerate() {
             if !self.started {
                 self.started = true;
                 match self.ind {
-                    Some(ind) => self.inner.write_fmt(format_args!("{: >4}: ", ind))?,
+                    Some(ind) => self.inner.write_fmt(format_args!("{: >5}: ", ind))?,
                     None => self.inner.write_fmt(format_args!("    "))?,
                 }
             } else if ind > 0 {
                 self.inner.write_char('\n')?;
                 if self.ind.is_some() {
-                    self.inner.write_fmt(format_args!("      "))?;
+                    self.inner.write_fmt(format_args!("       "))?;
                 } else {
                     self.inner.write_fmt(format_args!("    "))?;
                 }
@@ -107,7 +107,7 @@ mod tests {
     #[test]
     fn one_digit() {
         let input = "verify\nthis";
-        let expected = "   2: verify\n      this";
+        let expected = "    2: verify\n       this";
         let mut output = String::new();
 
         Indented {
@@ -124,7 +124,7 @@ mod tests {
     #[test]
     fn two_digits() {
         let input = "verify\nthis";
-        let expected = "  12: verify\n      this";
+        let expected = "   12: verify\n       this";
         let mut output = String::new();
 
         Indented {
