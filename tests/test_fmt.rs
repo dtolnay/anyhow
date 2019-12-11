@@ -19,17 +19,17 @@ const EXPECTED_ALTDISPLAY_G: &str = "f failed: oh no!";
 
 const EXPECTED_ALTDISPLAY_H: &str = "g failed: f failed: oh no!";
 
-const EXPECTED_DEBUG_F: &str = "oh no!";
+const EXPECTED_DEBUG_F: &str = "\n    oh no!";
 
-const EXPECTED_DEBUG_G: &str = "\
-f failed
+const EXPECTED_DEBUG_G: &str = "
+    f failed
 
 Caused by:
     oh no!\
 ";
 
-const EXPECTED_DEBUG_H: &str = "\
-g failed
+const EXPECTED_DEBUG_H: &str = "
+    g failed
 
 Caused by:
    0: f failed

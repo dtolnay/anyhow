@@ -22,14 +22,22 @@ impl ErrorImpl<()> {
             return Debug::fmt(error, f);
         }
 
-        write!(f, "{}", error)?;
+        {
+            writeln!(f)?;
+            let mut f = Indented {
+                inner: &mut *f,
+                ind: None,
+                started: false,
+            };
+            write!(f, "{}", error)?;
+        }
 
         if let Some(cause) = error.source() {
             write!(f, "\n\nCaused by:")?;
             let multiple = cause.source().is_some();
             for (n, error) in Chain::new(cause).enumerate() {
                 writeln!(f)?;
-                let mut f2 = Numbered {
+                let mut f2 = Indented {
                     inner: &mut *f,
                     ind: Some(n).filter(|_| multiple),
                     started: false,
@@ -58,13 +66,13 @@ impl ErrorImpl<()> {
     }
 }
 
-struct Numbered<D> {
+struct Indented<D> {
     inner: D,
     ind: Option<usize>,
     started: bool,
 }
 
-impl<T> fmt::Write for Numbered<T>
+impl<T> fmt::Write for Indented<T>
 where
     T: fmt::Write,
 {
@@ -109,7 +117,7 @@ mod tests {
         let expected = "   2: verify\n      this";
         let mut output = String::new();
 
-        Numbered {
+        Indented {
             inner: &mut output,
             ind: Some(2),
             started: false,
@@ -126,7 +134,7 @@ mod tests {
         let expected = "  12: verify\n      this";
         let mut output = String::new();
 
-        Numbered {
+        Indented {
             inner: &mut output,
             ind: Some(12),
             started: false,
@@ -143,7 +151,7 @@ mod tests {
         let expected = "    verify\n    this";
         let mut output = String::new();
 
-        Numbered {
+        Indented {
             inner: &mut output,
             ind: None,
             started: false,
