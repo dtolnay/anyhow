@@ -50,7 +50,7 @@ impl ErrorImpl<()> {
                     backtrace.replace_range(0..1, "S");
                 }
                 backtrace.truncate(backtrace.trim_end().len());
-                write!(f, "\n{}", backtrace)?;
+                write!(f, "\n\n{}", backtrace)?;
             }
         }
 
