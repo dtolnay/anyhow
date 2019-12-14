@@ -29,12 +29,15 @@ impl ErrorImpl<()> {
             let multiple = cause.source().is_some();
             for (n, error) in Chain::new(cause).enumerate() {
                 writeln!(f)?;
-                let mut f2 = Numbered {
-                    inner: &mut *f,
-                    ind: Some(n).filter(|_| multiple),
-                    started: false,
-                };
-                write!(f2, "{}", error)?;
+                write!(
+                    if multiple {
+                        Indented::numbered(f, n)
+                    } else {
+                        Indented::new(f)
+                    },
+                    "{}",
+                    error
+                )?;
             }
         }
 
@@ -58,13 +61,31 @@ impl ErrorImpl<()> {
     }
 }
 
-struct Numbered<D> {
-    inner: D,
+struct Indented<'a, D> {
+    inner: &'a mut D,
     ind: Option<usize>,
     started: bool,
 }
 
-impl<T> fmt::Write for Numbered<T>
+impl<'a, D> Indented<'a, D> {
+    fn numbered(inner: &'a mut D, ind: usize) -> Self {
+        Self {
+            inner,
+            ind: Some(ind),
+            started: false,
+        }
+    }
+
+    fn new(inner: &'a mut D) -> Self {
+        Self {
+            inner,
+            ind: None,
+            started: false,
+        }
+    }
+}
+
+impl<T> fmt::Write for Indented<'_, T>
 where
     T: fmt::Write,
 {
@@ -109,7 +130,7 @@ mod tests {
         let expected = "    2: verify\n       this";
         let mut output = String::new();
 
-        Numbered {
+        Indented {
             inner: &mut output,
             ind: Some(2),
             started: false,
@@ -126,7 +147,7 @@ mod tests {
         let expected = "   12: verify\n       this";
         let mut output = String::new();
 
-        Numbered {
+        Indented {
             inner: &mut output,
             ind: Some(12),
             started: false,
@@ -143,7 +164,7 @@ mod tests {
         let expected = "    verify\n    this";
         let mut output = String::new();
 
-        Numbered {
+        Indented {
             inner: &mut output,
             ind: None,
             started: false,
