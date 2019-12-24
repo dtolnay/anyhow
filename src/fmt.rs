@@ -73,19 +73,19 @@ where
             if !self.started {
                 self.started = true;
                 match self.ind {
-                    Some(ind) => self.inner.write_fmt(format_args!("{: >5}: ", ind))?,
-                    None => self.inner.write_fmt(format_args!("    "))?,
+                    Some(ind) => write!(self.inner, "{: >5}: ", ind)?,
+                    None => self.inner.write_str("    ")?,
                 }
             } else if ind > 0 {
                 self.inner.write_char('\n')?;
                 if self.ind.is_some() {
-                    self.inner.write_fmt(format_args!("       "))?;
+                    self.inner.write_str("       ")?;
                 } else {
-                    self.inner.write_fmt(format_args!("    "))?;
+                    self.inner.write_str("    ")?;
                 }
             }
 
-            self.inner.write_fmt(format_args!("{}", line))?;
+            self.inner.write_str(line)?;
         }
 
         Ok(())
