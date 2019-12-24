@@ -31,7 +31,7 @@ impl ErrorImpl<()> {
                 writeln!(f)?;
                 let mut indented = Indented {
                     inner: f,
-                    ind: if multiple { Some(n) } else { None },
+                    number: if multiple { Some(n) } else { None },
                     started: false,
                 };
                 write!(indented, "{}", error)?;
@@ -60,7 +60,7 @@ impl ErrorImpl<()> {
 
 struct Indented<'a, D> {
     inner: &'a mut D,
-    ind: Option<usize>,
+    number: Option<usize>,
     started: bool,
 }
 
@@ -69,16 +69,16 @@ where
     T: Write,
 {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        for (ind, line) in s.split('\n').enumerate() {
+        for (i, line) in s.split('\n').enumerate() {
             if !self.started {
                 self.started = true;
-                match self.ind {
-                    Some(ind) => write!(self.inner, "{: >5}: ", ind)?,
+                match self.number {
+                    Some(number) => write!(self.inner, "{: >5}: ", number)?,
                     None => self.inner.write_str("    ")?,
                 }
-            } else if ind > 0 {
+            } else if i > 0 {
                 self.inner.write_char('\n')?;
-                if self.ind.is_some() {
+                if self.number.is_some() {
                     self.inner.write_str("       ")?;
                 } else {
                     self.inner.write_str("    ")?;
@@ -104,7 +104,7 @@ mod tests {
 
         Indented {
             inner: &mut output,
-            ind: Some(2),
+            number: Some(2),
             started: false,
         }
         .write_str(input)
@@ -121,7 +121,7 @@ mod tests {
 
         Indented {
             inner: &mut output,
-            ind: Some(12),
+            number: Some(12),
             started: false,
         }
         .write_str(input)
@@ -138,7 +138,7 @@ mod tests {
 
         Indented {
             inner: &mut output,
-            ind: None,
+            number: None,
             started: false,
         }
         .write_str(input)
