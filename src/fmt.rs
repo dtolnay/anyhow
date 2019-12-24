@@ -29,15 +29,12 @@ impl ErrorImpl<()> {
             let multiple = cause.source().is_some();
             for (n, error) in Chain::new(cause).enumerate() {
                 writeln!(f)?;
-                write!(
-                    if multiple {
-                        Indented::numbered(f, n)
-                    } else {
-                        Indented::new(f)
-                    },
-                    "{}",
-                    error
-                )?;
+                let mut indented = Indented {
+                    inner: f,
+                    ind: if multiple { Some(n) } else { None },
+                    started: false,
+                };
+                write!(indented, "{}", error)?;
             }
         }
 
@@ -67,27 +64,9 @@ struct Indented<'a, D> {
     started: bool,
 }
 
-impl<'a, D> Indented<'a, D> {
-    fn numbered(inner: &'a mut D, ind: usize) -> Self {
-        Self {
-            inner,
-            ind: Some(ind),
-            started: false,
-        }
-    }
-
-    fn new(inner: &'a mut D) -> Self {
-        Self {
-            inner,
-            ind: None,
-            started: false,
-        }
-    }
-}
-
-impl<T> fmt::Write for Indented<'_, T>
+impl<T> Write for Indented<'_, T>
 where
-    T: fmt::Write,
+    T: Write,
 {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         for (ind, mut line) in s.split('\n').enumerate() {
