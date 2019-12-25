@@ -20,4 +20,4 @@ std = []
 futures = "0.3"
 rustversion = "1.0"
 thiserror = "1.0"
-trybuild = "1.0"
+trybuild = { version = "1.0.19", features = ["diff"] }
