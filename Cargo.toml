@@ -9,6 +9,9 @@ repository = "https://github.com/dtolnay/anyhow"
 documentation = "https://docs.rs/anyhow"
 readme = "README.md"
 
+[badges]
+travis-ci = { repository = "dtolnay/anyhow" }
+
 [features]
 default = ["std"]
 std = []
