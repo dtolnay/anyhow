@@ -102,6 +102,8 @@ impl Error {
             #[cfg(feature = "std")]
             object_mut: object_mut::<MessageError<M>>,
             object_boxed: object_boxed::<MessageError<M>>,
+            // Safety: we can treat treating MessageError<M> as M when
+            // downcasting because it is #[repr(transparent)]
             object_downcast: object_downcast::<M>,
             object_drop_rest: object_drop_front::<M>,
         };
