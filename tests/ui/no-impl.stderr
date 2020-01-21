@@ -1,4 +1,4 @@
-error[E0599]: no method named `anyhow_kind` found for type `&Error` in the current scope
+error[E0599]: no method named `anyhow_kind` found for reference `&Error` in the current scope
  --> $DIR/no-impl.rs:7:13
   |
 7 |     let _ = anyhow!(Error);
