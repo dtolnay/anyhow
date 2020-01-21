@@ -105,7 +105,7 @@ impl Error {
             // Safety: we can treat treating MessageError<M> as M when
             // downcasting because it is #[repr(transparent)]
             object_downcast: object_downcast::<M>,
-            object_drop_rest: object_drop_front::<M>,
+            object_drop_rest: object_drop_front::<MessageError<M>>,
         };
 
         // Safety: MessageError is repr(transparent) so it is okay for the
