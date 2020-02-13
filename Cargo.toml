@@ -8,6 +8,7 @@ description = "Flexible concrete Error type built on std::error::Error"
 repository = "https://github.com/dtolnay/anyhow"
 documentation = "https://docs.rs/anyhow"
 readme = "README.md"
+categories = ["rust-patterns"]
 
 [badges]
 travis-ci = { repository = "dtolnay/anyhow" }
