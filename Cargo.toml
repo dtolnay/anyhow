@@ -18,7 +18,7 @@ default = ["std"]
 std = []
 
 [dev-dependencies]
-futures = "0.3"
+futures = { version = "0.3", default-features = false }
 rustversion = "1.0"
 thiserror = "1.0"
 trybuild = { version = "1.0.19", features = ["diff"] }
