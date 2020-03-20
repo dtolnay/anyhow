@@ -84,7 +84,11 @@ anyhow = "1.0"
   - If you want only panics to have backtraces, set `RUST_BACKTRACE=1` and
     `RUST_LIB_BACKTRACE=0`.
 
+  Backtraces are only available on the nightly channel. Tracking issue:
+  [rust-lang/rust#53487][tracking].
+
   [`std::backtrace`]: https://doc.rust-lang.org/std/backtrace/index.html#environment-variables
+  [tracking]: https://github.com/rust-lang/rust/issues/53487
 
 - Anyhow works with any error type that has an impl of `std::error::Error`,
   including ones defined in your crate. We do not bundle a `derive(Error)` macro
