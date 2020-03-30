@@ -18,6 +18,8 @@ impl Error {
     ///
     /// If the error type does not provide a backtrace, a backtrace will be
     /// created here to ensure that a backtrace exists.
+    ///
+    /// `Error::new` is not available in `no_std`.
     #[cfg(feature = "std")]
     pub fn new<E>(error: E) -> Self
     where
@@ -31,7 +33,10 @@ impl Error {
     ///
     /// If the argument implements std::error::Error, prefer `Error::new`
     /// instead which preserves the underlying error's cause chain and
-    /// backtrace. If the argument may or may not implement std::error::Error
+    /// backtrace, unless in a `no_std` crate (in which case `Error::new`
+    /// is unavailable).
+    ///
+    /// If the argument may or may not implement std::error::Error
     /// now or in the future, use `anyhow!(err)` which handles either way
     /// correctly.
     ///
