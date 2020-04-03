@@ -260,10 +260,12 @@ impl Error {
     ///     })
     /// }
     /// ```
-    pub fn context<C>(self, context: C) -> Self
+    pub fn context<C>(mut self, context: C) -> Self
     where
         C: Display + Send + Sync + 'static,
     {
+        let backtrace = self.inner.backtrace.take();
+
         let error: ContextError<C, Error> = ContextError {
             context,
             error: self,
@@ -278,9 +280,6 @@ impl Error {
             object_downcast: context_chain_downcast::<C>,
             object_drop_rest: context_chain_drop_rest::<C>,
         };
-
-        // As the cause is anyhow::Error, we already have a backtrace for it.
-        let backtrace = None;
 
         // Safety: passing vtable that operates on the right type.
         unsafe { Error::construct(error, vtable, backtrace) }

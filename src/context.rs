@@ -125,7 +125,7 @@ where
 {
     #[cfg(backtrace)]
     fn backtrace(&self) -> Option<&Backtrace> {
-        self.error.backtrace()
+        None
     }
 
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
@@ -139,7 +139,7 @@ where
 {
     #[cfg(backtrace)]
     fn backtrace(&self) -> Option<&Backtrace> {
-        Some(self.error.backtrace())
+        None
     }
 
     fn source(&self) -> Option<&(dyn StdError + 'static)> {

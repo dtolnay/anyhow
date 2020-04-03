@@ -4,6 +4,8 @@ use core::fmt::{self, Debug, Display};
 #[repr(transparent)]
 pub struct MessageError<M>(pub M);
 
+// TODO add backtrace member to message error
+
 impl<M> Debug for MessageError<M>
 where
     M: Display + Debug,
