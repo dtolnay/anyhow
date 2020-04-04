@@ -1,7 +1,7 @@
 mod common;
 
 use self::common::*;
-use anyhow::ensure;
+use anyhow::{ensure, bail};
 
 #[test]
 fn test_messages() {
@@ -30,4 +30,19 @@ fn test_ensure() {
         Ok(())
     };
     assert!(f().is_err());
+}
+
+#[test]
+fn test_boxed_ensure() {
+    fn inner() -> Result<(), Box<dyn std::error::Error>> {
+        ensure!(true, "error");
+        Ok(())
+    }
+}
+
+#[test]
+fn test_boxed_bail() {
+    fn inner() -> Result<(), Box<dyn std::error::Error>> {
+        bail!("error");
+    }
 }

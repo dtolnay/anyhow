@@ -50,13 +50,13 @@
 #[macro_export]
 macro_rules! bail {
     ($msg:literal $(,)?) => {
-        return $crate::private::Err($crate::anyhow!($msg));
+        return $crate::private::Err($crate::anyhow!($msg).into());
     };
     ($err:expr $(,)?) => {
-        return $crate::private::Err($crate::anyhow!($err));
+        return $crate::private::Err($crate::anyhow!($err).into());
     };
     ($fmt:expr, $($arg:tt)*) => {
-        return $crate::private::Err($crate::anyhow!($fmt, $($arg)*));
+        return $crate::private::Err($crate::anyhow!($fmt, $($arg)*).into());
     };
 }
 
@@ -108,17 +108,17 @@ macro_rules! bail {
 macro_rules! ensure {
     ($cond:expr, $msg:literal $(,)?) => {
         if !$cond {
-            return $crate::private::Err($crate::anyhow!($msg));
+            return $crate::private::Err($crate::anyhow!($msg).into());
         }
     };
     ($cond:expr, $err:expr $(,)?) => {
         if !$cond {
-            return $crate::private::Err($crate::anyhow!($err));
+            return $crate::private::Err($crate::anyhow!($err).into());
         }
     };
     ($cond:expr, $fmt:expr, $($arg:tt)*) => {
         if !$cond {
-            return $crate::private::Err($crate::anyhow!($fmt, $($arg)*));
+            return $crate::private::Err($crate::anyhow!($fmt, $($arg)*).into());
         }
     };
 }
