@@ -10,9 +10,6 @@ documentation = "https://docs.rs/anyhow"
 readme = "README.md"
 categories = ["rust-patterns"]
 
-[badges]
-travis-ci = { repository = "dtolnay/anyhow" }
-
 [features]
 default = ["std"]
 std = []
