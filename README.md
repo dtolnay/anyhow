@@ -1,7 +1,7 @@
 Anyhow&ensp;¯\\\_(ツ)\_/¯
 =========================
 
-[![Build Status](https://api.travis-ci.com/dtolnay/anyhow.svg?branch=master)](https://travis-ci.com/dtolnay/anyhow)
+[![Build Status](https://img.shields.io/github/workflow/status/dtolnay/anyhow/CI/master)](https://github.com/dtolnay/anyhow/actions?query=branch%3Amaster)
 [![Latest Version](https://img.shields.io/crates/v/anyhow.svg)](https://crates.io/crates/anyhow)
 [![Rust Documentation](https://img.shields.io/badge/api-rustdoc-blue.svg)](https://docs.rs/anyhow)
 
