@@ -288,6 +288,15 @@ pub use anyhow as format_err;
 ///
 /// Caused by:
 ///     No such file or directory (os error 2)
+/// ```
+///
+/// and if there is a backtrace available:
+///
+/// ```console
+/// Error: Failed to read instrs from ./path/to/instrs.json
+///
+/// Caused by:
+///     No such file or directory (os error 2)
 ///
 /// Stack backtrace:
 ///    0: <E as anyhow::context::ext::StdError>::ext_context
