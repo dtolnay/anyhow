@@ -45,12 +45,17 @@ impl ErrorImpl<()> {
             let backtrace = self.backtrace();
             if let BacktraceStatus::Captured = backtrace.status() {
                 let mut backtrace = backtrace.to_string();
+                write!(f, "\n\n")?;
                 if backtrace.starts_with("stack backtrace:") {
                     // Capitalize to match "Caused by:"
                     backtrace.replace_range(0..1, "S");
+                } else {
+                    // "stack backtrace:" prefix was removed in
+                    // https://github.com/rust-lang/backtrace-rs/pull/286
+                    writeln!(f, "Stack backtrace:")?;
                 }
                 backtrace.truncate(backtrace.trim_end().len());
-                write!(f, "\n\n{}", backtrace)?;
+                write!(f, "{}", backtrace)?;
             }
         }
 
