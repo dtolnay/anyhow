@@ -607,6 +607,35 @@ pub fn set_hook(hook: ErrorHook) -> Result<(), Box<dyn StdError + Send + Sync + 
         .map_err(|_| "unable to set global hook".into())
 }
 
+impl dyn ReportHandler {
+    pub fn is<T: ReportHandler>(&self) -> bool {
+        // Get `TypeId` of the type this function is instantiated with.
+        let t = core::any::TypeId::of::<T>();
+
+        // Get `TypeId` of the type in the trait object (`self`).
+        let concrete = self.type_id();
+
+        // Compare both `TypeId`s on equality.
+        t == concrete
+    }
+
+    pub fn downcast_ref<T: ReportHandler>(&self) -> Option<&T> {
+        if self.is::<T>() {
+            unsafe { Some(&*(self as *const dyn ReportHandler as *const T)) }
+        } else {
+            None
+        }
+    }
+
+    pub fn downcast_mut<T: ReportHandler>(&mut self) -> Option<&mut T> {
+        if self.is::<T>() {
+            unsafe { Some(&mut *(self as *mut dyn ReportHandler as *mut T)) }
+        } else {
+            None
+        }
+    }
+}
+
 struct DefaultHandler;
 
 // Not public API. Referenced by macro-generated code.

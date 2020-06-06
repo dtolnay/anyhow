@@ -12,32 +12,34 @@ impl anyhow::ReportHandler for CustomHandler {
     }
 }
 
+static EXPECTED: &str = "hook is set!";
+
 #[test]
 fn test_custom_hook() {
-    let expected = "hook is set!";
-    anyhow::set_hook(Box::new(move |_error| {
-        Box::new(CustomHandler { msg: expected })
-    }))
-    .unwrap();
+    let _ = anyhow::set_hook(Box::new(move |_error| {
+        Box::new(CustomHandler { msg: EXPECTED })
+    }));
 
     let report = anyhow::anyhow!("heres the message!");
     let actual = format!("{:?}", report);
 
-    assert_eq!(expected, actual);
+    assert_eq!(EXPECTED, actual);
 }
 
 #[test]
 fn test_mutable_hook() {
-    let fake_expected = "hook is set!";
     let real_expected = "the context was modified!";
 
-    anyhow::set_hook(Box::new(move |_error| {
-        Box::new(CustomHandler { msg: fake_expected })
-    }))
-    .unwrap();
+    let _ = anyhow::set_hook(Box::new(move |_error| {
+        Box::new(CustomHandler { msg: EXPECTED })
+    }));
 
     let mut report = anyhow::anyhow!("heres the message!");
-    report.handler_mut().downcast_mut::<CustomHandler>().msg = real_expected;
+    report
+        .handler_mut()
+        .downcast_mut::<CustomHandler>()
+        .unwrap()
+        .msg = real_expected;
     let actual = format!("{:?}", report);
 
     assert_eq!(real_expected, actual);
