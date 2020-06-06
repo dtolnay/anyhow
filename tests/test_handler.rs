@@ -36,8 +36,8 @@ fn test_mutable_hook() {
     }))
     .unwrap();
 
-    let report = anyhow::anyhow!("heres the message!");
-    let handler: &mut dyn core::any::Any = report.handler_mut() as _;
+    let mut report = anyhow::anyhow!("heres the message!");
+    report.handler_mut().downcast_mut::<CustomHandler>().msg = real_expected;
     let actual = format!("{:?}", report);
 
     assert_eq!(real_expected, actual);
