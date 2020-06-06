@@ -1,6 +1,6 @@
 use crate::chain::Chain;
 use crate::error::ErrorImpl;
-use core::fmt::{self, Debug, Write};
+use core::fmt::{self, Write};
 
 impl ErrorImpl<()> {
     pub(crate) fn display(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -17,9 +17,20 @@ impl ErrorImpl<()> {
 
     pub(crate) fn debug(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let error = self.error();
+        let handler = self.handler();
 
+        handler.report(error, f)
+    }
+}
+
+impl crate::ReportHandler for crate::DefaultHandler {
+    fn report(
+        &self,
+        error: &(dyn crate::StdError + 'static),
+        f: &mut core::fmt::Formatter<'_>,
+    ) -> core::fmt::Result {
         if f.alternate() {
-            return Debug::fmt(error, f);
+            return core::fmt::Debug::fmt(error, f);
         }
 
         write!(f, "{}", error)?;

@@ -247,6 +247,7 @@ trait StdError: Debug + Display {
 }
 
 pub use anyhow as format_err;
+use once_cell::sync::OnceCell;
 
 /// The `Error` type, a wrapper around a dynamic error type.
 ///
@@ -583,6 +584,29 @@ pub trait Context<T, E>: context::private::Sealed {
         C: Display + Send + Sync + 'static,
         F: FnOnce() -> C;
 }
+
+static HOOK: OnceCell<ErrorHook> = OnceCell::new();
+
+pub trait ReportHandler: core::any::Any {
+    fn report(
+        &self,
+        error: &(dyn StdError + 'static),
+        f: &mut core::fmt::Formatter<'_>,
+    ) -> core::fmt::Result;
+}
+
+type ErrorHook = Box<
+    dyn Fn(&(dyn StdError + 'static)) -> Box<dyn ReportHandler + Send + Sync + 'static>
+        + Sync
+        + Send
+        + 'static,
+>;
+
+pub fn set_hook(hook: ErrorHook) -> Result<(), ErrorHook> {
+    HOOK.set(hook)
+}
+
+struct DefaultHandler;
 
 // Not public API. Referenced by macro-generated code.
 #[doc(hidden)]

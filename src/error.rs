@@ -190,9 +190,13 @@ impl Error {
     where
         E: StdError + Send + Sync + 'static,
     {
+        let handler =
+            crate::HOOK.get_or_init(|| Box::new(|_| Box::new(crate::DefaultHandler)))(&error);
+
         let inner = Box::new(ErrorImpl {
             vtable,
             backtrace,
+            handler,
             _object: error,
         });
         // Erase the concrete type of E from the compile-time type system. This
@@ -681,6 +685,7 @@ where
 pub(crate) struct ErrorImpl<E> {
     vtable: &'static ErrorVTable,
     backtrace: Option<Backtrace>,
+    handler: Box<dyn crate::ReportHandler + Send + Sync + 'static>,
     // NOTE: Don't use directly. Use only through vtable. Erased type may have
     // different alignment.
     _object: E,
@@ -726,6 +731,10 @@ impl ErrorImpl<()> {
             .as_ref()
             .or_else(|| self.error().backtrace())
             .expect("backtrace capture failed")
+    }
+
+    pub(crate) fn handler(&self) -> &dyn crate::ReportHandler {
+        self.handler.as_ref()
     }
 
     pub(crate) fn chain(&self) -> Chain {
