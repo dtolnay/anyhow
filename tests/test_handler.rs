@@ -16,6 +16,8 @@ static EXPECTED: &str = "hook is set!";
 
 #[test]
 fn test_custom_hook() {
+    // discard the result because the tests in the same file race against
+    // eachother to set the global hook and one will panic
     let _ = anyhow::set_hook(Box::new(move |_error| {
         Box::new(CustomHandler { msg: EXPECTED })
     }));
@@ -30,6 +32,8 @@ fn test_custom_hook() {
 fn test_mutable_hook() {
     let real_expected = "the context was modified!";
 
+    // discard the result because the tests in the same file race against
+    // eachother to set the global hook and one will panic
     let _ = anyhow::set_hook(Box::new(move |_error| {
         Box::new(CustomHandler { msg: EXPECTED })
     }));
