@@ -314,6 +314,14 @@ impl Error {
         self.inner.backtrace()
     }
 
+    pub fn handler(&self) -> &dyn crate::ReportHandler {
+        self.inner.handler()
+    }
+
+    pub fn handler_mut(&mut self) -> &mut dyn crate::ReportHandler {
+        self.inner.handler_mut()
+    }
+
     /// An iterator of the chain of source errors contained by this Error.
     ///
     /// This iterator will visit every error in the cause chain of this error
@@ -735,6 +743,10 @@ impl ErrorImpl<()> {
 
     pub(crate) fn handler(&self) -> &dyn crate::ReportHandler {
         self.handler.as_ref()
+    }
+
+    pub(crate) fn handler_mut(&mut self) -> &mut dyn crate::ReportHandler {
+        self.handler.as_mut()
     }
 
     pub(crate) fn chain(&self) -> Chain {

@@ -602,8 +602,9 @@ type ErrorHook = Box<
         + 'static,
 >;
 
-pub fn set_hook(hook: ErrorHook) -> Result<(), ErrorHook> {
+pub fn set_hook(hook: ErrorHook) -> Result<(), Box<dyn StdError + Send + Sync + 'static>> {
     HOOK.set(hook)
+        .map_err(|_| "unable to set global hook".into())
 }
 
 struct DefaultHandler;
