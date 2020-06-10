@@ -1,3 +1,5 @@
+#![allow(clippy::eq_op)]
+
 mod common;
 
 use self::common::*;
