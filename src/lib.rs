@@ -656,13 +656,18 @@ type ErrorHook = Box<
 >;
 
 #[derive(Debug)]
+#[cfg(feature = "std")]
 pub struct HookError;
 
+#[cfg(feature = "std")]
 impl core::fmt::Display for HookError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_str("unable to set global hook")
     }
 }
+
+#[cfg(feature = "std")]
+impl StdError for HookError {}
 
 #[cfg(feature = "std")]
 pub fn set_hook(hook: ErrorHook) -> Result<(), HookError> {

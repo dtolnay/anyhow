@@ -738,6 +738,7 @@ impl ErrorImpl<()> {
         self.handler.as_mut()
     }
 
+    #[cfg(feature = "std")]
     pub(crate) fn chain(&self) -> Chain {
         Chain::new(self.error())
     }
