@@ -239,6 +239,9 @@ use core::fmt::Debug;
 #[cfg(feature = "std")]
 use std::error::Error as StdError;
 
+#[cfg(backtrace)]
+use std::backtrace::Backtrace;
+
 #[cfg(not(feature = "std"))]
 trait StdError: Debug + Display {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
@@ -587,12 +590,32 @@ pub trait Context<T, E>: context::private::Sealed {
 
 static HOOK: OnceCell<ErrorHook> = OnceCell::new();
 
-pub trait ReportHandler: core::any::Any {
-    fn report(
+pub trait ReportHandler: core::any::Any + Send + Sync {
+    fn debug(
         &self,
         error: &(dyn StdError + 'static),
         f: &mut core::fmt::Formatter<'_>,
     ) -> core::fmt::Result;
+
+    #[cfg(backtrace)]
+    fn backtrace<'a>(&'a self, error: &'a (dyn StdError + 'static)) -> &'a Backtrace;
+
+    /// Override for the `Display` format
+    fn display(
+        &self,
+        error: &(dyn StdError + 'static),
+        f: &mut core::fmt::Formatter<'_>,
+    ) -> core::fmt::Result {
+        write!(f, "{}", error)?;
+
+        if f.alternate() {
+            for cause in crate::chain::Chain::new(error).skip(1) {
+                write!(f, ": {}", cause)?;
+            }
+        }
+
+        Ok(())
+    }
 }
 
 type ErrorHook = Box<
@@ -636,16 +659,30 @@ impl dyn ReportHandler {
     }
 }
 
-struct DefaultHandler;
+struct DefaultHandler {
+    #[cfg(backtrace)]
+    backtrace: Option<Backtrace>,
+}
+
+impl DefaultHandler {
+    #[cfg(backtrace)]
+    fn new(error: &(dyn StdError + 'static)) -> Self {
+        let backtrace = backtrace_if_absent!(error);
+
+        Self { backtrace }
+    }
+
+    #[cfg(not(backtrace))]
+    fn new(_error: &(dyn StdError + 'static)) -> Self {
+        Self {}
+    }
+}
 
 // Not public API. Referenced by macro-generated code.
 #[doc(hidden)]
 pub mod private {
     use crate::Error;
     use core::fmt::{Debug, Display};
-
-    #[cfg(backtrace)]
-    use std::backtrace::Backtrace;
 
     pub use core::result::Result::Err;
 
@@ -661,6 +698,6 @@ pub mod private {
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        Error::from_adhoc(message, backtrace!())
+        Error::from_adhoc(message)
     }
 }

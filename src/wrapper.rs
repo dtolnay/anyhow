@@ -68,7 +68,7 @@ impl Display for BoxedError {
 #[cfg(feature = "std")]
 impl StdError for BoxedError {
     #[cfg(backtrace)]
-    fn backtrace(&self) -> Option<&crate::backtrace::Backtrace> {
+    fn backtrace(&self) -> Option<&std::backtrace::Backtrace> {
         self.0.backtrace()
     }
 

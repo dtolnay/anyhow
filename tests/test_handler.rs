@@ -1,9 +1,19 @@
+#![cfg_attr(backtrace, feature(backtrace))]
+
 struct CustomHandler {
     msg: &'static str,
 }
 
 impl anyhow::ReportHandler for CustomHandler {
-    fn report(
+    #[cfg(backtrace)]
+    fn backtrace<'a>(
+        &'a self,
+        _error: &'a (dyn std::error::Error + 'static),
+    ) -> &std::backtrace::Backtrace {
+        unimplemented!()
+    }
+
+    fn debug(
         &self,
         _error: &(dyn std::error::Error + 'static),
         f: &mut std::fmt::Formatter<'_>,

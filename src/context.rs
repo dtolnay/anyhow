@@ -24,8 +24,7 @@ mod ext {
         where
             C: Display + Send + Sync + 'static,
         {
-            let backtrace = backtrace_if_absent!(self);
-            Error::from_context(context, self, backtrace)
+            Error::from_context(context, self)
         }
     }
 
@@ -84,7 +83,7 @@ impl<T> Context<T, Infallible> for Option<T> {
     where
         C: Display + Send + Sync + 'static,
     {
-        self.ok_or_else(|| Error::from_display(context, backtrace!()))
+        self.ok_or_else(|| Error::from_display(context))
     }
 
     fn with_context<C, F>(self, context: F) -> Result<T, Error>
@@ -92,7 +91,7 @@ impl<T> Context<T, Infallible> for Option<T> {
         C: Display + Send + Sync + 'static,
         F: FnOnce() -> C,
     {
-        self.ok_or_else(|| Error::from_display(context(), backtrace!()))
+        self.ok_or_else(|| Error::from_display(context()))
     }
 }
 

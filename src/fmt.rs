@@ -19,12 +19,23 @@ impl ErrorImpl<()> {
         let error = self.error();
         let handler = self.handler();
 
-        handler.report(error, f)
+        handler.debug(error, f)
     }
 }
 
 impl crate::ReportHandler for crate::DefaultHandler {
-    fn report(
+    #[cfg(backtrace)]
+    fn backtrace<'a>(
+        &'a self,
+        error: &'a (dyn crate::StdError + 'static),
+    ) -> &'a std::backtrace::Backtrace {
+        error
+            .backtrace()
+            .or_else(|| self.backtrace.as_ref())
+            .expect("backtrace must have been captured")
+    }
+
+    fn debug(
         &self,
         error: &(dyn crate::StdError + 'static),
         f: &mut core::fmt::Formatter<'_>,
@@ -53,7 +64,7 @@ impl crate::ReportHandler for crate::DefaultHandler {
         {
             use std::backtrace::BacktraceStatus;
 
-            let backtrace = self.backtrace();
+            let backtrace = self.backtrace(error);
             if let BacktraceStatus::Captured = backtrace.status() {
                 let mut backtrace = backtrace.to_string();
                 write!(f, "\n\n")?;
