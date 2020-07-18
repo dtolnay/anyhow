@@ -305,10 +305,12 @@ impl Error {
         self.inner.backtrace()
     }
 
+    #[cfg(feature = "std")]
     pub fn handler(&self) -> &dyn crate::ReportHandler {
         self.inner.handler()
     }
 
+    #[cfg(feature = "std")]
     pub fn handler_mut(&mut self) -> &mut dyn crate::ReportHandler {
         self.inner.handler_mut()
     }
@@ -731,6 +733,7 @@ impl ErrorImpl<()> {
         self.handler.as_ref()
     }
 
+    #[cfg(feature = "std")]
     pub(crate) fn handler_mut(&mut self) -> &mut dyn crate::ReportHandler {
         self.handler.as_mut()
     }

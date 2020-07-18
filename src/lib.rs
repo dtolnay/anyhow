@@ -242,6 +242,9 @@ use std::error::Error as StdError;
 #[cfg(backtrace)]
 use std::backtrace::Backtrace;
 
+#[cfg(feature = "std")]
+pub use {set_hook, ReportHandler};
+
 #[cfg(not(feature = "std"))]
 trait StdError: Debug + Display {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
@@ -590,7 +593,7 @@ pub trait Context<T, E>: context::private::Sealed {
 
 static HOOK: OnceCell<ErrorHook> = OnceCell::new();
 
-pub trait ReportHandler: core::any::Any + Send + Sync {
+trait ReportHandler: core::any::Any + Send + Sync {
     fn debug(
         &self,
         error: &(dyn StdError + 'static),
@@ -625,11 +628,21 @@ type ErrorHook = Box<
         + 'static,
 >;
 
-pub fn set_hook(hook: ErrorHook) -> Result<(), Box<dyn StdError + Send + Sync + 'static>> {
-    HOOK.set(hook)
-        .map_err(|_| "unable to set global hook".into())
+#[derive(Debug)]
+pub struct HookError;
+
+impl core::fmt::Display for HookError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str("unable to set global hook")
+    }
 }
 
+#[cfg(feature = "std")]
+pub fn set_hook(hook: ErrorHook) -> Result<(), HookError> {
+    HOOK.set(hook).map_err(|_| HookError)
+}
+
+#[cfg(feature = "std")]
 impl dyn ReportHandler {
     pub fn is<T: ReportHandler>(&self) -> bool {
         // Get `TypeId` of the type this function is instantiated with.
