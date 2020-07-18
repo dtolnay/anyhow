@@ -11,7 +11,7 @@ readme = "README.md"
 categories = ["rust-patterns"]
 
 [features]
-default = []
+default = ["std"]
 std = []
 
 [dev-dependencies]
