@@ -242,9 +242,6 @@ use std::error::Error as StdError;
 #[cfg(backtrace)]
 use std::backtrace::Backtrace;
 
-#[cfg(feature = "std")]
-pub use {set_hook, ReportHandler};
-
 #[cfg(not(feature = "std"))]
 trait StdError: Debug + Display {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
@@ -593,6 +590,36 @@ pub trait Context<T, E>: context::private::Sealed {
 
 static HOOK: OnceCell<ErrorHook> = OnceCell::new();
 
+#[cfg(feature = "std")]
+pub trait ReportHandler: core::any::Any + Send + Sync {
+    fn debug(
+        &self,
+        error: &(dyn StdError + 'static),
+        f: &mut core::fmt::Formatter<'_>,
+    ) -> core::fmt::Result;
+
+    #[cfg(backtrace)]
+    fn backtrace<'a>(&'a self, error: &'a (dyn StdError + 'static)) -> &'a Backtrace;
+
+    /// Override for the `Display` format
+    fn display(
+        &self,
+        error: &(dyn StdError + 'static),
+        f: &mut core::fmt::Formatter<'_>,
+    ) -> core::fmt::Result {
+        write!(f, "{}", error)?;
+
+        if f.alternate() {
+            for cause in crate::chain::Chain::new(error).skip(1) {
+                write!(f, ": {}", cause)?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
+#[cfg(not(feature = "std"))]
 trait ReportHandler: core::any::Any + Send + Sync {
     fn debug(
         &self,

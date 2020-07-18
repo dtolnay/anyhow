@@ -4,15 +4,10 @@ use core::fmt::{self, Write};
 
 impl ErrorImpl<()> {
     pub(crate) fn display(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.error())?;
+        let error = self.error();
+        let handler = self.handler();
 
-        if f.alternate() {
-            for cause in self.chain().skip(1) {
-                write!(f, ": {}", cause)?;
-            }
-        }
-
-        Ok(())
+        handler.display(error, f)
     }
 
     pub(crate) fn debug(&self, f: &mut fmt::Formatter) -> fmt::Result {
