@@ -781,6 +781,12 @@ impl From<Error> for Box<dyn StdError + Send + Sync + 'static> {
     }
 }
 
+impl From<Error> for Box<dyn StdError + Send + 'static> {
+    fn from(error: Error) -> Self {
+        Box::<dyn StdError + Send + Sync>::from(error)
+    }
+}
+
 impl From<Error> for Box<dyn StdError + 'static> {
     fn from(error: Error) -> Self {
         Box::<dyn StdError + Send + Sync>::from(error)
