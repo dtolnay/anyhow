@@ -12,12 +12,11 @@ categories = ["rust-patterns"]
 
 [features]
 default = ["std"]
-future = ["futures", "futures-util"]
+future = ["futures"]
 std = []
 
 [dependencies]
 futures = { version = "0.3", default-features = false, optional = true }
-futures-util = { version = "0.3", default-features = false, optional = true }
 
 [dev-dependencies]
 futures = { version = "0.3", default-features = false, features = ["executor"] }

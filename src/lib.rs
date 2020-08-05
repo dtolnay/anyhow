@@ -224,11 +224,11 @@ mod chain;
 mod context;
 mod error;
 mod fmt;
+#[cfg(feature = "future")]
+pub mod futures;
 mod kind;
 mod macros;
 mod wrapper;
-#[cfg(feature = "future")]
-pub mod futures;
 
 use crate::alloc::Box;
 use crate::error::ErrorImpl;

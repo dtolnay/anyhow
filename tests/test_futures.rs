@@ -1,8 +1,8 @@
 #[cfg(feature = "futures")]
 #[test]
 pub fn test_future_context() {
+    use anyhow::{anyhow, futures::AsyncContext, Result};
     use futures::executor::block_on;
-    use anyhow::{Result, anyhow, futures::AsyncContext};
 
     let result: Result<()> = Err(anyhow!("oh no"));
     let fut = futures::future::ready(result).context("context");
