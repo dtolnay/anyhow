@@ -1,6 +1,6 @@
 use crate::{Context, Error};
-use std::future::Future;
 use std::fmt::Display;
+use std::future::Future;
 use std::pin::Pin;
 
 pub trait AsyncContext<T, E> {
