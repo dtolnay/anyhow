@@ -1,5 +1,5 @@
 use crate::{Context, Error};
-use futures::future::Future;
+use std::future::Future;
 use std::fmt::Display;
 use std::pin::Pin;
 

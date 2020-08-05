@@ -224,7 +224,7 @@ mod chain;
 mod context;
 mod error;
 mod fmt;
-#[cfg(feature = "future")]
+#[cfg(feature = "std")]
 pub mod futures;
 mod kind;
 mod macros;

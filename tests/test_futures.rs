@@ -1,4 +1,4 @@
-#[cfg(feature = "futures")]
+#[cfg(feature = "std")]
 #[test]
 pub fn test_future_context() {
     use anyhow::{anyhow, futures::AsyncContext, Result};
