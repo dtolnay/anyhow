@@ -227,6 +227,8 @@ mod fmt;
 mod kind;
 mod macros;
 mod wrapper;
+#[cfg(feature = "future")]
+pub mod futures;
 
 use crate::alloc::Box;
 use crate::error::ErrorImpl;

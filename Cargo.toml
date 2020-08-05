@@ -12,10 +12,15 @@ categories = ["rust-patterns"]
 
 [features]
 default = ["std"]
+future = ["futures", "futures-util"]
 std = []
 
+[dependencies]
+futures = { version = "0.3", default-features = false, optional = true }
+futures-util = { version = "0.3", default-features = false, optional = true }
+
 [dev-dependencies]
-futures = { version = "0.3", default-features = false }
+futures = { version = "0.3", default-features = false, features = ["executor"] }
 rustversion = "1.0"
 thiserror = "1.0"
 trybuild = { version = "1.0.19", features = ["diff"] }
