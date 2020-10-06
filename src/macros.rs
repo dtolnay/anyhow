@@ -1,6 +1,6 @@
 /// Return early with an error.
 ///
-/// This macro is equivalent to `return Err(anyhow!($args...))`.
+/// This macro is equivalent to `return Err(`[`anyhow!($args...)`][anyhow!]`)`.
 ///
 /// The surrounding function's or closure's return value is required to be
 /// `Result<_,`[`anyhow::Error`][crate::Error]`>`.
@@ -65,7 +65,8 @@ macro_rules! bail {
 
 /// Return early with an error if a condition is not satisfied.
 ///
-/// This macro is equivalent to `if !$cond { return Err(anyhow!($args...)); }`.
+/// This macro is equivalent to `if !$cond { return
+/// Err(`[`anyhow!($args...)`][anyhow!]`); }`.
 ///
 /// The surrounding function's or closure's return value is required to be
 /// `Result<_,`[`anyhow::Error`][crate::Error]`>`.
