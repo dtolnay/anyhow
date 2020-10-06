@@ -123,7 +123,8 @@ macro_rules! ensure {
     };
 }
 
-/// Construct an ad-hoc error from a string.
+/// Construct an ad-hoc error from a string or existing non-`anyhow` error
+/// value.
 ///
 /// This evaluates to an `Error`. It can take either just a string, or a format
 /// string with arguments. It also can take any custom type which implements
