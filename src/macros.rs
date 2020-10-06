@@ -3,7 +3,7 @@
 /// This macro is equivalent to `return Err(anyhow!($args...))`.
 ///
 /// The surrounding function's or closure's return value is required to be
-/// `Result<_, anyhow::Error>`.
+/// `Result<_,`[`anyhow::Error`][crate::Error]`>`.
 ///
 /// # Example
 ///
@@ -68,7 +68,7 @@ macro_rules! bail {
 /// This macro is equivalent to `if !$cond { return Err(anyhow!($args...)); }`.
 ///
 /// The surrounding function's or closure's return value is required to be
-/// `Result<_, anyhow::Error>`.
+/// `Result<_,`[`anyhow::Error`][crate::Error]`>`.
 ///
 /// Analogously to `assert!`, `ensure!` takes a condition and exits the function
 /// if the condition fails. Unlike `assert!`, `ensure!` returns an `Error`
