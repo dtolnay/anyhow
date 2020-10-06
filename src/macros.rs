@@ -126,9 +126,9 @@ macro_rules! ensure {
 /// Construct an ad-hoc error from a string or existing non-`anyhow` error
 /// value.
 ///
-/// This evaluates to an `Error`. It can take either just a string, or a format
-/// string with arguments. It also can take any custom type which implements
-/// `Debug` and `Display`.
+/// This evaluates to an [`Error`][crate::Error]. It can take either just a
+/// string, or a format string with arguments. It also can take any custom type
+/// which implements `Debug` and `Display`.
 ///
 /// If called with a single argument whose type implements `std::error::Error`
 /// (in addition to `Debug` and `Display`, which are always required), then that
