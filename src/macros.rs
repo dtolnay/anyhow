@@ -1,6 +1,9 @@
 /// Return early with an error.
 ///
-/// This macro is equivalent to `return Err(From::from($err))`.
+/// This macro is equivalent to `return Err(`[`anyhow!($args...)`][anyhow!]`)`.
+///
+/// The surrounding function's or closure's return value is required to be
+/// `Result<_,`[`anyhow::Error`][crate::Error]`>`.
 ///
 /// # Example
 ///
@@ -62,7 +65,11 @@ macro_rules! bail {
 
 /// Return early with an error if a condition is not satisfied.
 ///
-/// This macro is equivalent to `if !$cond { return Err(From::from($err)); }`.
+/// This macro is equivalent to `if !$cond { return
+/// Err(`[`anyhow!($args...)`][anyhow!]`); }`.
+///
+/// The surrounding function's or closure's return value is required to be
+/// `Result<_,`[`anyhow::Error`][crate::Error]`>`.
 ///
 /// Analogously to `assert!`, `ensure!` takes a condition and exits the function
 /// if the condition fails. Unlike `assert!`, `ensure!` returns an `Error`
@@ -123,11 +130,17 @@ macro_rules! ensure {
     };
 }
 
-/// Construct an ad-hoc error from a string.
+/// Construct an ad-hoc error from a string or existing non-`anyhow` error
+/// value.
 ///
-/// This evaluates to an `Error`. It can take either just a string, or a format
-/// string with arguments. It also can take any custom type which implements
-/// `Debug` and `Display`.
+/// This evaluates to an [`Error`][crate::Error]. It can take either just a
+/// string, or a format string with arguments. It also can take any custom type
+/// which implements `Debug` and `Display`.
+///
+/// If called with a single argument whose type implements `std::error::Error`
+/// (in addition to `Debug` and `Display`, which are always required), then that
+/// Error impl's `source` is preserved as the `source` of the resulting
+/// `anyhow::Error`.
 ///
 /// # Example
 ///
