@@ -130,6 +130,11 @@ macro_rules! ensure {
 /// string with arguments. It also can take any custom type which implements
 /// `Debug` and `Display`.
 ///
+/// If called with a single argument whose type implements `std::error::Error`
+/// (in addition to `Debug` and `Display`, which are always required), then that
+/// Error impl's `source` is preserved as the `source` of the resulting
+/// `anyhow::Error`.
+///
 /// # Example
 ///
 /// ```
