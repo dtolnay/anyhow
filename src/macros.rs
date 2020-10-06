@@ -1,6 +1,6 @@
 /// Return early with an error.
 ///
-/// This macro is equivalent to `return Err(From::from($err))`.
+/// This macro is equivalent to `return Err(anyhow!($args...))`.
 ///
 /// # Example
 ///
@@ -62,7 +62,7 @@ macro_rules! bail {
 
 /// Return early with an error if a condition is not satisfied.
 ///
-/// This macro is equivalent to `if !$cond { return Err(From::from($err)); }`.
+/// This macro is equivalent to `if !$cond { return Err(anyhow!($args...)); }`.
 ///
 /// Analogously to `assert!`, `ensure!` takes a condition and exits the function
 /// if the condition fails. Unlike `assert!`, `ensure!` returns an `Error`
