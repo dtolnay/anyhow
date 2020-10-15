@@ -193,7 +193,7 @@ impl Error {
             _object: error,
         });
         // Erase the concrete type of E from the compile-time type system. This
-        // is equivalent to the safe unsize coersion from Box<ErrorImpl<E>> to
+        // is equivalent to the safe unsize coercion from Box<ErrorImpl<E>> to
         // Box<ErrorImpl<dyn StdError + Send + Sync + 'static>> except that the
         // result is a thin pointer. The necessary behavior for manipulating the
         // underlying ErrorImpl<E> is preserved in the vtable provided by the
@@ -690,7 +690,7 @@ impl<E> ErrorImpl<E> {
     fn erase(&self) -> &ErrorImpl<()> {
         // Erase the concrete type of E but preserve the vtable in self.vtable
         // for manipulating the resulting thin pointer. This is analogous to an
-        // unsize coersion.
+        // unsize coercion.
         unsafe { &*(self as *const ErrorImpl<E> as *const ErrorImpl<()>) }
     }
 }
