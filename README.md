@@ -112,12 +112,15 @@ anyhow = "1.0"
   ```
 
 - One-off error messages can be constructed using the `anyhow!` macro, which
-  supports string interpolation and produces an `anyhow::Error`. Use `bail!` as
-  shorthand to return early with an error.
+  supports string interpolation and produces an `anyhow::Error`.
 
   ```rust
   return Err(anyhow!("Missing attribute: {}", missing));
-  // or
+  ```
+
+  A `bail!` macro is provided as a shorthand for the same early return.
+
+  ```rust
   bail!("Missing attribute: {}", missing);
   ```
 
