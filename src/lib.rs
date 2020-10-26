@@ -179,6 +179,18 @@
 //!   # }
 //!   ```
 //!
+//!   A `bail!` macro is provided as a shorthand for the same early return.
+//!
+//!   ```
+//!   # use anyhow::{bail, Result};
+//!   #
+//!   # fn demo() -> Result<()> {
+//!   #     let missing = "...";
+//!   bail!("Missing attribute: {}", missing);
+//!   #     Ok(())
+//!   # }
+//!   ```
+//!
 //! <br>
 //!
 //! # No-std support
