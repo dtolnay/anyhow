@@ -53,13 +53,13 @@
 #[macro_export]
 macro_rules! bail {
     ($msg:literal $(,)?) => {
-        return $crate::private::Err($crate::anyhow!($msg));
+        return $crate::private::Err($crate::anyhow!($msg))
     };
     ($err:expr $(,)?) => {
-        return $crate::private::Err($crate::anyhow!($err));
+        return $crate::private::Err($crate::anyhow!($err))
     };
     ($fmt:expr, $($arg:tt)*) => {
-        return $crate::private::Err($crate::anyhow!($fmt, $($arg)*));
+        return $crate::private::Err($crate::anyhow!($fmt, $($arg)*))
     };
 }
 
