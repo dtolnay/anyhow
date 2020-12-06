@@ -32,4 +32,13 @@ fn test_ensure() {
         Ok(())
     };
     assert!(f().is_err());
+
+    let f = || {
+        ensure!(v + v == 1);
+        Ok(())
+    };
+    assert_eq!(
+        f().unwrap_err().to_string(),
+        "Condition failed: `v + v == 1`",
+    );
 }
