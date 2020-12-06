@@ -622,4 +622,27 @@ pub mod private {
     {
         Error::from_adhoc(message, backtrace!())
     }
+
+    #[cfg(anyhow_no_macro_reexport)]
+    pub use crate::{__anyhow_concat as concat, __anyhow_stringify as stringify};
+    #[cfg(not(anyhow_no_macro_reexport))]
+    pub use core::{concat, stringify};
+
+    #[cfg(anyhow_no_macro_reexport)]
+    #[doc(hidden)]
+    #[macro_export]
+    macro_rules! __anyhow_concat {
+        ($($tt:tt)*) => {
+            concat!($($tt)*)
+        };
+    }
+
+    #[cfg(anyhow_no_macro_reexport)]
+    #[doc(hidden)]
+    #[macro_export]
+    macro_rules! __anyhow_stringify {
+        ($($tt:tt)*) => {
+            stringify!($($tt)*)
+        };
+    }
 }
