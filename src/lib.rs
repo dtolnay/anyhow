@@ -361,6 +361,7 @@ pub use anyhow as format_err;
 ///     # Ok(())
 /// }
 /// ```
+#[repr(transparent)]
 pub struct Error {
     inner: ManuallyDrop<Box<ErrorImpl<()>>>,
 }

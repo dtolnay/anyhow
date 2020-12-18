@@ -1,4 +1,4 @@
-#![warn(improper_ctypes, improper_ctypes_definitions)]
+#![deny(improper_ctypes, improper_ctypes_definitions)]
 
 use anyhow::anyhow;
 
