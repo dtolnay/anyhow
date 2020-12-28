@@ -173,8 +173,9 @@ macro_rules! anyhow {
     };
     ($err:expr $(,)?) => ({
         use $crate::private::kind::*;
-        let error = $err;
-        (&error).anyhow_kind().new(error)
+        match $err {
+            error => (&error).anyhow_kind().new(error),
+        }
     });
     ($fmt:expr, $($arg:tt)*) => {
         $crate::private::new_adhoc(format!($fmt, $($arg)*))
