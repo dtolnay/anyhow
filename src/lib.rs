@@ -214,8 +214,16 @@
 #![cfg_attr(doc_cfg, feature(doc_cfg))]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(
+    clippy::doc_markdown,
+    clippy::enum_glob_use,
+    clippy::missing_errors_doc,
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate,
     clippy::needless_doctest_main,
     clippy::new_ret_no_self,
+    clippy::unused_self,
+    clippy::used_underscore_binding,
+    clippy::wildcard_imports,
     clippy::wrong_self_convention
 )]
 
