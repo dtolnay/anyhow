@@ -1,3 +1,5 @@
+#![allow(clippy::wildcard_imports)]
+
 mod common;
 mod drop;
 

@@ -1,4 +1,4 @@
-#![allow(clippy::eq_op)]
+#![allow(clippy::eq_op, clippy::shadow_unrelated, clippy::wildcard_imports)]
 
 mod common;
 
