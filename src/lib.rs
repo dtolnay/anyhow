@@ -248,10 +248,9 @@ mod kind;
 mod macros;
 mod wrapper;
 
-use crate::alloc::Box;
 use crate::error::ErrorImpl;
 use core::fmt::Display;
-use core::mem::ManuallyDrop;
+use core::ptr::NonNull;
 
 #[cfg(not(feature = "std"))]
 use core::fmt::Debug;
@@ -371,8 +370,11 @@ pub use anyhow as format_err;
 /// ```
 #[repr(transparent)]
 pub struct Error {
-    inner: ManuallyDrop<Box<ErrorImpl<()>>>,
+    inner: NonNull<ErrorImpl<()>>,
 }
+
+unsafe impl Send for Error {}
+unsafe impl Sync for Error {}
 
 /// Iterator of a chain of source errors.
 ///
