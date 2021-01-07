@@ -386,12 +386,8 @@ impl Error {
             // Read E from where the vtable found it.
             let error = ptr::read(addr.cast::<E>().as_ptr());
 
-            // Read Bib<ErrorImpl<()>> from self. Can't move it out because
-            // Error has a Drop impl which we want to not run.
-            let inner = outer.inner;
-
             // Drop rest of the data structure outside of E.
-            (vtable(inner).object_drop_rest)(outer.inner, target);
+            (vtable(outer.inner).object_drop_rest)(outer.inner, target);
 
             Ok(error)
         }
@@ -586,8 +582,7 @@ where
     }
 }
 
-// Safety: requires layout of *e to match ErrorImpl<E> and for deriving a &mut
-// from `e` not to violate provenance
+// Safety: requires layout of *e to match ErrorImpl<E>.
 unsafe fn object_downcast_mut<E>(e: NonNull<ErrorImpl<()>>, target: TypeId) -> Option<NonNull<()>>
 where
     E: 'static,
@@ -740,7 +735,7 @@ pub(crate) struct ErrorImpl<E> {
     _object: E,
 }
 
-// Read the vtable out of `p`. This is the same as `p.as_ref().vtable`, but
+// Reads the vtable out of `p`. This is the same as `p.as_ref().vtable`, but
 // avoids converting `p` into a reference.
 #[inline]
 unsafe fn vtable<E>(p: NonNull<ErrorImpl<E>>) -> &'static ErrorVTable {
@@ -776,13 +771,12 @@ impl ErrorImpl<()> {
 
     #[cfg(backtrace)]
     pub(crate) unsafe fn backtrace<'a>(this: NonNull<Self>) -> &'a Backtrace {
-        // Ideally we would use a raw ref to access `backtrace`, but I
-        // don't think this matters given how we use
-        let backtrace = (*this.as_ptr()).backtrace.as_ref();
         // This unwrap can only panic if the underlying error's backtrace method
         // is nondeterministic, which would only happen in maliciously
         // constructed code.
-        backtrace
+        (*this.as_ptr())
+            .backtrace
+            .as_ref()
             .or_else(|| Self::error(this).backtrace())
             .expect("backtrace capture failed")
     }
