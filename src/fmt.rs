@@ -1,25 +1,42 @@
 use crate::chain::Chain;
 use crate::error::ErrorImpl;
-use core::fmt::{self, Debug, Write};
+use core::fmt::{self, Write};
 
 impl ErrorImpl<()> {
     pub(crate) fn display(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.error())?;
+        let error = self.error();
+        let handler = self.handler();
 
-        if f.alternate() {
-            for cause in self.chain().skip(1) {
-                write!(f, ": {}", cause)?;
-            }
-        }
-
-        Ok(())
+        handler.display(error, f)
     }
 
     pub(crate) fn debug(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let error = self.error();
+        let handler = self.handler();
 
+        handler.debug(error, f)
+    }
+}
+
+impl crate::ReportHandler for crate::DefaultHandler {
+    #[cfg(backtrace)]
+    fn backtrace<'a>(
+        &'a self,
+        error: &'a (dyn crate::StdError + 'static),
+    ) -> &'a std::backtrace::Backtrace {
+        error
+            .backtrace()
+            .or_else(|| self.backtrace.as_ref())
+            .expect("backtrace must have been captured")
+    }
+
+    fn debug(
+        &self,
+        error: &(dyn crate::StdError + 'static),
+        f: &mut core::fmt::Formatter<'_>,
+    ) -> core::fmt::Result {
         if f.alternate() {
-            return Debug::fmt(error, f);
+            return core::fmt::Debug::fmt(error, f);
         }
 
         write!(f, "{}", error)?;
@@ -42,7 +59,7 @@ impl ErrorImpl<()> {
         {
             use std::backtrace::BacktraceStatus;
 
-            let backtrace = self.backtrace();
+            let backtrace = self.backtrace(error);
             if let BacktraceStatus::Captured = backtrace.status() {
                 let mut backtrace = backtrace.to_string();
                 write!(f, "\n\n")?;
@@ -97,7 +114,7 @@ where
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "std"))]
 mod tests {
     use super::*;
 

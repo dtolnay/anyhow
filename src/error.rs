@@ -1,11 +1,12 @@
 use crate::alloc::Box;
-use crate::backtrace::Backtrace;
 use crate::chain::Chain;
 use crate::{Error, StdError};
 use core::any::TypeId;
 use core::fmt::{self, Debug, Display};
 use core::mem::{self, ManuallyDrop};
 use core::ptr::{self, NonNull};
+#[cfg(backtrace)]
+use std::backtrace::Backtrace;
 
 #[cfg(feature = "std")]
 use core::ops::{Deref, DerefMut};
@@ -24,8 +25,7 @@ impl Error {
     where
         E: StdError + Send + Sync + 'static,
     {
-        let backtrace = backtrace_if_absent!(error);
-        Error::from_std(error, backtrace)
+        Error::from_std(error)
     }
 
     /// Create a new error object from a printable error message.
@@ -69,11 +69,11 @@ impl Error {
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        Error::from_adhoc(message, backtrace!())
+        Error::from_adhoc(message)
     }
 
     #[cfg(feature = "std")]
-    pub(crate) fn from_std<E>(error: E, backtrace: Option<Backtrace>) -> Self
+    pub(crate) fn from_std<E>(error: E) -> Self
     where
         E: StdError + Send + Sync + 'static,
     {
@@ -87,10 +87,10 @@ impl Error {
         };
 
         // Safety: passing vtable that operates on the right type E.
-        unsafe { Error::construct(error, vtable, backtrace) }
+        unsafe { Error::construct(error, vtable) }
     }
 
-    pub(crate) fn from_adhoc<M>(message: M, backtrace: Option<Backtrace>) -> Self
+    pub(crate) fn from_adhoc<M>(message: M) -> Self
     where
         M: Display + Debug + Send + Sync + 'static,
     {
@@ -108,10 +108,10 @@ impl Error {
 
         // Safety: MessageError is repr(transparent) so it is okay for the
         // vtable to allow casting the MessageError<M> to M.
-        unsafe { Error::construct(error, vtable, backtrace) }
+        unsafe { Error::construct(error, vtable) }
     }
 
-    pub(crate) fn from_display<M>(message: M, backtrace: Option<Backtrace>) -> Self
+    pub(crate) fn from_display<M>(message: M) -> Self
     where
         M: Display + Send + Sync + 'static,
     {
@@ -129,11 +129,11 @@ impl Error {
 
         // Safety: DisplayError is repr(transparent) so it is okay for the
         // vtable to allow casting the DisplayError<M> to M.
-        unsafe { Error::construct(error, vtable, backtrace) }
+        unsafe { Error::construct(error, vtable) }
     }
 
     #[cfg(feature = "std")]
-    pub(crate) fn from_context<C, E>(context: C, error: E, backtrace: Option<Backtrace>) -> Self
+    pub(crate) fn from_context<C, E>(context: C, error: E) -> Self
     where
         C: Display + Send + Sync + 'static,
         E: StdError + Send + Sync + 'static,
@@ -150,14 +150,11 @@ impl Error {
         };
 
         // Safety: passing vtable that operates on the right type.
-        unsafe { Error::construct(error, vtable, backtrace) }
+        unsafe { Error::construct(error, vtable) }
     }
 
     #[cfg(feature = "std")]
-    pub(crate) fn from_boxed(
-        error: Box<dyn StdError + Send + Sync>,
-        backtrace: Option<Backtrace>,
-    ) -> Self {
+    pub(crate) fn from_boxed(error: Box<dyn StdError + Send + Sync>) -> Self {
         use crate::wrapper::BoxedError;
         let error = BoxedError(error);
         let vtable = &ErrorVTable {
@@ -171,7 +168,7 @@ impl Error {
 
         // Safety: BoxedError is repr(transparent) so it is okay for the vtable
         // to allow casting to Box<dyn StdError + Send + Sync>.
-        unsafe { Error::construct(error, vtable, backtrace) }
+        unsafe { Error::construct(error, vtable) }
     }
 
     // Takes backtrace as argument rather than capturing it here so that the
@@ -179,17 +176,18 @@ impl Error {
     //
     // Unsafe because the given vtable must have sensible behavior on the error
     // value of type E.
-    unsafe fn construct<E>(
-        error: E,
-        vtable: &'static ErrorVTable,
-        backtrace: Option<Backtrace>,
-    ) -> Self
+    unsafe fn construct<E>(error: E, vtable: &'static ErrorVTable) -> Self
     where
         E: StdError + Send + Sync + 'static,
     {
+        let handler = crate::HOOK
+            .get_or_init(|| Box::new(|error| Box::new(crate::DefaultHandler::new(error))))(
+            &error
+        );
+
         let inner = Box::new(ErrorImpl {
             vtable,
-            backtrace,
+            handler,
             _object: error,
         });
         // Erase the concrete type of E from the compile-time type system. This
@@ -276,11 +274,8 @@ impl Error {
             object_drop_rest: context_chain_drop_rest::<C>,
         };
 
-        // As the cause is anyhow::Error, we already have a backtrace for it.
-        let backtrace = None;
-
         // Safety: passing vtable that operates on the right type.
-        unsafe { Error::construct(error, vtable, backtrace) }
+        unsafe { Error::construct(error, vtable) }
     }
 
     /// Get the backtrace for this Error.
@@ -305,6 +300,16 @@ impl Error {
     #[cfg(backtrace)]
     pub fn backtrace(&self) -> &Backtrace {
         self.inner.backtrace()
+    }
+
+    #[cfg(feature = "std")]
+    pub fn handler(&self) -> &dyn crate::ReportHandler {
+        self.inner.handler()
+    }
+
+    #[cfg(feature = "std")]
+    pub fn handler_mut(&mut self) -> &mut dyn crate::ReportHandler {
+        self.inner.handler_mut()
     }
 
     /// An iterator of the chain of source errors contained by this Error.
@@ -464,8 +469,7 @@ where
     E: StdError + Send + Sync + 'static,
 {
     fn from(error: E) -> Self {
-        let backtrace = backtrace_if_absent!(error);
-        Error::from_std(error, backtrace)
+        Error::from_std(error)
     }
 }
 
@@ -677,7 +681,7 @@ where
 #[repr(C)]
 pub(crate) struct ErrorImpl<E> {
     vtable: &'static ErrorVTable,
-    backtrace: Option<Backtrace>,
+    handler: Box<dyn crate::ReportHandler>,
     // NOTE: Don't use directly. Use only through vtable. Erased type may have
     // different alignment.
     _object: E,
@@ -719,12 +723,19 @@ impl ErrorImpl<()> {
         // This unwrap can only panic if the underlying error's backtrace method
         // is nondeterministic, which would only happen in maliciously
         // constructed code.
-        self.backtrace
-            .as_ref()
-            .or_else(|| self.error().backtrace())
-            .expect("backtrace capture failed")
+        self.handler.backtrace(self.error())
     }
 
+    pub(crate) fn handler(&self) -> &dyn crate::ReportHandler {
+        self.handler.as_ref()
+    }
+
+    #[cfg(feature = "std")]
+    pub(crate) fn handler_mut(&mut self) -> &mut dyn crate::ReportHandler {
+        self.handler.as_mut()
+    }
+
+    #[cfg(feature = "std")]
     pub(crate) fn chain(&self) -> Chain {
         Chain::new(self.error())
     }

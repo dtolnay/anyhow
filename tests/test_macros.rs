@@ -13,6 +13,7 @@ fn test_messages() {
 }
 
 #[test]
+#[allow(clippy::eq_op)]
 fn test_ensure() {
     let f = || {
         ensure!(1 + 1 == 2, "This is correct");

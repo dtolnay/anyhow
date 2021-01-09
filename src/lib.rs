@@ -259,6 +259,9 @@ use core::fmt::Debug;
 #[cfg(feature = "std")]
 use std::error::Error as StdError;
 
+#[cfg(backtrace)]
+use std::backtrace::Backtrace;
+
 #[cfg(not(feature = "std"))]
 trait StdError: Debug + Display {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
@@ -267,6 +270,7 @@ trait StdError: Debug + Display {
 }
 
 pub use anyhow as format_err;
+use once_cell::sync::OnceCell;
 
 /// The `Error` type, a wrapper around a dynamic error type.
 ///
@@ -606,14 +610,146 @@ pub trait Context<T, E>: context::private::Sealed {
         F: FnOnce() -> C;
 }
 
+static HOOK: OnceCell<ErrorHook> = OnceCell::new();
+
+#[cfg(feature = "std")]
+pub trait ReportHandler: core::any::Any + Send + Sync {
+    fn debug(
+        &self,
+        error: &(dyn StdError + 'static),
+        f: &mut core::fmt::Formatter<'_>,
+    ) -> core::fmt::Result;
+
+    #[cfg(backtrace)]
+    fn backtrace<'a>(&'a self, error: &'a (dyn StdError + 'static)) -> &'a Backtrace;
+
+    /// Override for the `Display` format
+    fn display(
+        &self,
+        error: &(dyn StdError + 'static),
+        f: &mut core::fmt::Formatter<'_>,
+    ) -> core::fmt::Result {
+        write!(f, "{}", error)?;
+
+        if f.alternate() {
+            for cause in crate::chain::Chain::new(error).skip(1) {
+                write!(f, ": {}", cause)?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
+#[cfg(not(feature = "std"))]
+trait ReportHandler: core::any::Any + Send + Sync {
+    fn debug(
+        &self,
+        error: &(dyn StdError + 'static),
+        f: &mut core::fmt::Formatter<'_>,
+    ) -> core::fmt::Result;
+
+    #[cfg(backtrace)]
+    fn backtrace<'a>(&'a self, error: &'a (dyn StdError + 'static)) -> &'a Backtrace;
+
+    /// Override for the `Display` format
+    fn display(
+        &self,
+        error: &(dyn StdError + 'static),
+        f: &mut core::fmt::Formatter<'_>,
+    ) -> core::fmt::Result {
+        write!(f, "{}", error)?;
+
+        if f.alternate() {
+            for cause in crate::chain::Chain::new(error).skip(1) {
+                write!(f, ": {}", cause)?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
+type ErrorHook = Box<
+    dyn Fn(&(dyn StdError + 'static)) -> Box<dyn ReportHandler + Send + Sync + 'static>
+        + Sync
+        + Send
+        + 'static,
+>;
+
+#[derive(Debug)]
+#[cfg(feature = "std")]
+pub struct HookError;
+
+#[cfg(feature = "std")]
+impl core::fmt::Display for HookError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str("unable to set global hook")
+    }
+}
+
+#[cfg(feature = "std")]
+impl StdError for HookError {}
+
+#[cfg(feature = "std")]
+pub fn set_hook(hook: ErrorHook) -> Result<(), HookError> {
+    HOOK.set(hook).map_err(|_| HookError)
+}
+
+#[cfg(feature = "std")]
+impl dyn ReportHandler {
+    pub fn is<T: ReportHandler>(&self) -> bool {
+        // Get `TypeId` of the type this function is instantiated with.
+        let t = core::any::TypeId::of::<T>();
+
+        // Get `TypeId` of the type in the trait object (`self`).
+        let concrete = self.type_id();
+
+        // Compare both `TypeId`s on equality.
+        t == concrete
+    }
+
+    pub fn downcast_ref<T: ReportHandler>(&self) -> Option<&T> {
+        if self.is::<T>() {
+            unsafe { Some(&*(self as *const dyn ReportHandler as *const T)) }
+        } else {
+            None
+        }
+    }
+
+    pub fn downcast_mut<T: ReportHandler>(&mut self) -> Option<&mut T> {
+        if self.is::<T>() {
+            unsafe { Some(&mut *(self as *mut dyn ReportHandler as *mut T)) }
+        } else {
+            None
+        }
+    }
+}
+
+struct DefaultHandler {
+    #[cfg(backtrace)]
+    backtrace: Option<Backtrace>,
+}
+
+impl DefaultHandler {
+    #[cfg(backtrace)]
+    fn new(error: &(dyn StdError + 'static)) -> Self {
+        let backtrace = backtrace_if_absent!(error);
+
+        Self { backtrace }
+    }
+
+    #[cfg(not(backtrace))]
+    fn new(_error: &(dyn StdError + 'static)) -> Self {
+        Self {}
+    }
+}
+
 // Not public API. Referenced by macro-generated code.
 #[doc(hidden)]
 pub mod private {
     use crate::Error;
     use core::fmt::{Debug, Display};
-
-    #[cfg(backtrace)]
-    use std::backtrace::Backtrace;
 
     pub use core::result::Result::Err;
 
@@ -629,7 +765,7 @@ pub mod private {
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        Error::from_adhoc(message, backtrace!())
+        Error::from_adhoc(message)
     }
 
     #[cfg(anyhow_no_macro_reexport)]

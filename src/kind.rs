@@ -50,9 +50,6 @@ use core::fmt::{Debug, Display};
 #[cfg(feature = "std")]
 use crate::StdError;
 
-#[cfg(backtrace)]
-use std::backtrace::Backtrace;
-
 pub struct Adhoc;
 
 pub trait AdhocKind: Sized {
@@ -69,7 +66,7 @@ impl Adhoc {
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        Error::from_adhoc(message, backtrace!())
+        Error::from_adhoc(message)
     }
 }
 
@@ -110,7 +107,6 @@ impl BoxedKind for Box<dyn StdError + Send + Sync> {}
 #[cfg(feature = "std")]
 impl Boxed {
     pub fn new(self, error: Box<dyn StdError + Send + Sync>) -> Error {
-        let backtrace = backtrace_if_absent!(error);
-        Error::from_boxed(error, backtrace)
+        Error::from_boxed(error)
     }
 }
