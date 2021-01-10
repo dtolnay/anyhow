@@ -1,13 +1,14 @@
 use crate::chain::Chain;
 use crate::error::ErrorImpl;
 use core::fmt::{self, Debug, Write};
+use core::ptr::NonNull;
 
 impl ErrorImpl<()> {
-    pub(crate) fn display(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.error())?;
+    pub(crate) unsafe fn display(this: NonNull<Self>, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", Self::error(this))?;
 
         if f.alternate() {
-            for cause in self.chain().skip(1) {
+            for cause in Self::chain(this).skip(1) {
                 write!(f, ": {}", cause)?;
             }
         }
@@ -15,8 +16,8 @@ impl ErrorImpl<()> {
         Ok(())
     }
 
-    pub(crate) fn debug(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let error = self.error();
+    pub(crate) unsafe fn debug(this: NonNull<Self>, f: &mut fmt::Formatter) -> fmt::Result {
+        let error = Self::error(this);
 
         if f.alternate() {
             return Debug::fmt(error, f);
@@ -42,7 +43,7 @@ impl ErrorImpl<()> {
         {
             use std::backtrace::BacktraceStatus;
 
-            let backtrace = self.backtrace();
+            let backtrace = Self::backtrace(this);
             if let BacktraceStatus::Captured = backtrace.status() {
                 let mut backtrace = backtrace.to_string();
                 write!(f, "\n\n")?;
