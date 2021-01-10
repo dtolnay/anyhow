@@ -370,7 +370,7 @@ pub use anyhow as format_err;
 /// ```
 #[repr(transparent)]
 pub struct Error {
-    inner: NonNull<ErrorImpl<()>>,
+    inner: NonNull<ErrorImpl>,
 }
 
 unsafe impl Send for Error {}

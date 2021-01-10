@@ -203,7 +203,7 @@ impl Error {
         // result is a thin pointer. The necessary behavior for manipulating the
         // underlying ErrorImpl<E> is preserved in the vtable provided by the
         // caller rather than a builtin fat pointer vtable.
-        let inner = NonNull::new_unchecked(Box::into_raw(inner) as *mut ErrorImpl<()>);
+        let inner = NonNull::new_unchecked(Box::into_raw(inner) as *mut ErrorImpl);
         Error { inner }
     }
 
@@ -509,18 +509,18 @@ impl Drop for Error {
 }
 
 struct ErrorVTable {
-    object_drop: unsafe fn(NonNull<ErrorImpl<()>>),
-    object_ref: unsafe fn(NonNull<ErrorImpl<()>>) -> *const (dyn StdError + Send + Sync + 'static),
+    object_drop: unsafe fn(NonNull<ErrorImpl>),
+    object_ref: unsafe fn(NonNull<ErrorImpl>) -> *const (dyn StdError + Send + Sync + 'static),
     #[cfg(feature = "std")]
-    object_mut: unsafe fn(NonNull<ErrorImpl<()>>) -> *mut (dyn StdError + Send + Sync + 'static),
-    object_boxed: unsafe fn(NonNull<ErrorImpl<()>>) -> Box<dyn StdError + Send + Sync + 'static>,
-    object_downcast: unsafe fn(NonNull<ErrorImpl<()>>, TypeId) -> Option<NonNull<()>>,
-    object_downcast_mut: unsafe fn(NonNull<ErrorImpl<()>>, TypeId) -> Option<NonNull<()>>,
-    object_drop_rest: unsafe fn(NonNull<ErrorImpl<()>>, TypeId),
+    object_mut: unsafe fn(NonNull<ErrorImpl>) -> *mut (dyn StdError + Send + Sync + 'static),
+    object_boxed: unsafe fn(NonNull<ErrorImpl>) -> Box<dyn StdError + Send + Sync + 'static>,
+    object_downcast: unsafe fn(NonNull<ErrorImpl>, TypeId) -> Option<NonNull<()>>,
+    object_downcast_mut: unsafe fn(NonNull<ErrorImpl>, TypeId) -> Option<NonNull<()>>,
+    object_drop_rest: unsafe fn(NonNull<ErrorImpl>, TypeId),
 }
 
 // Safety: requires layout of *e to match ErrorImpl<E>.
-unsafe fn object_drop<E>(e: NonNull<ErrorImpl<()>>) {
+unsafe fn object_drop<E>(e: NonNull<ErrorImpl>) {
     // Cast back to ErrorImpl<E> so that the allocator receives the correct
     // Layout to deallocate the Box's memory.
     let unerased = Box::from_raw(e.as_ptr() as *mut ErrorImpl<E>);
@@ -528,7 +528,7 @@ unsafe fn object_drop<E>(e: NonNull<ErrorImpl<()>>) {
 }
 
 // Safety: requires layout of *e to match ErrorImpl<E>.
-unsafe fn object_drop_front<E>(e: NonNull<ErrorImpl<()>>, target: TypeId) {
+unsafe fn object_drop_front<E>(e: NonNull<ErrorImpl>, target: TypeId) {
     // Drop the fields of ErrorImpl other than E as well as the Box allocation,
     // without dropping E itself. This is used by downcast after doing a
     // ptr::read to take ownership of the E.
@@ -538,7 +538,7 @@ unsafe fn object_drop_front<E>(e: NonNull<ErrorImpl<()>>, target: TypeId) {
 }
 
 // Safety: requires layout of *e to match ErrorImpl<E>.
-unsafe fn object_ref<E>(e: NonNull<ErrorImpl<()>>) -> *const (dyn StdError + Send + Sync + 'static)
+unsafe fn object_ref<E>(e: NonNull<ErrorImpl>) -> *const (dyn StdError + Send + Sync + 'static)
 where
     E: StdError + Send + Sync + 'static,
 {
@@ -549,7 +549,7 @@ where
 // Safety: requires layout of *e to match ErrorImpl<E>, and for `e` to be derived
 // from a `&mut`
 #[cfg(feature = "std")]
-unsafe fn object_mut<E>(e: NonNull<ErrorImpl<()>>) -> *mut (dyn StdError + Send + Sync + 'static)
+unsafe fn object_mut<E>(e: NonNull<ErrorImpl>) -> *mut (dyn StdError + Send + Sync + 'static)
 where
     E: StdError + Send + Sync + 'static,
 {
@@ -558,7 +558,7 @@ where
 }
 
 // Safety: requires layout of *e to match ErrorImpl<E>.
-unsafe fn object_boxed<E>(e: NonNull<ErrorImpl<()>>) -> Box<dyn StdError + Send + Sync + 'static>
+unsafe fn object_boxed<E>(e: NonNull<ErrorImpl>) -> Box<dyn StdError + Send + Sync + 'static>
 where
     E: StdError + Send + Sync + 'static,
 {
@@ -567,7 +567,7 @@ where
 }
 
 // Safety: requires layout of *e to match ErrorImpl<E>.
-unsafe fn object_downcast<E>(e: NonNull<ErrorImpl<()>>, target: TypeId) -> Option<NonNull<()>>
+unsafe fn object_downcast<E>(e: NonNull<ErrorImpl>, target: TypeId) -> Option<NonNull<()>>
 where
     E: 'static,
 {
@@ -583,7 +583,7 @@ where
 }
 
 // Safety: requires layout of *e to match ErrorImpl<E>.
-unsafe fn object_downcast_mut<E>(e: NonNull<ErrorImpl<()>>, target: TypeId) -> Option<NonNull<()>>
+unsafe fn object_downcast_mut<E>(e: NonNull<ErrorImpl>, target: TypeId) -> Option<NonNull<()>>
 where
     E: 'static,
 {
@@ -600,7 +600,7 @@ where
 
 // Safety: requires layout of *e to match ErrorImpl<ContextError<C, E>>.
 #[cfg(feature = "std")]
-unsafe fn context_downcast<C, E>(e: NonNull<ErrorImpl<()>>, target: TypeId) -> Option<NonNull<()>>
+unsafe fn context_downcast<C, E>(e: NonNull<ErrorImpl>, target: TypeId) -> Option<NonNull<()>>
 where
     C: 'static,
     E: 'static,
@@ -620,10 +620,7 @@ where
 
 // Safety: requires layout of *e to match ErrorImpl<ContextError<C, E>>.
 #[cfg(feature = "std")]
-unsafe fn context_downcast_mut<C, E>(
-    e: NonNull<ErrorImpl<()>>,
-    target: TypeId,
-) -> Option<NonNull<()>>
+unsafe fn context_downcast_mut<C, E>(e: NonNull<ErrorImpl>, target: TypeId) -> Option<NonNull<()>>
 where
     C: 'static,
     E: 'static,
@@ -643,7 +640,7 @@ where
 
 // Safety: requires layout of *e to match ErrorImpl<ContextError<C, E>>.
 #[cfg(feature = "std")]
-unsafe fn context_drop_rest<C, E>(e: NonNull<ErrorImpl<()>>, target: TypeId)
+unsafe fn context_drop_rest<C, E>(e: NonNull<ErrorImpl>, target: TypeId)
 where
     C: 'static,
     E: 'static,
@@ -662,10 +659,7 @@ where
 }
 
 // Safety: requires layout of *e to match ErrorImpl<ContextError<C, Error>>.
-unsafe fn context_chain_downcast<C>(
-    e: NonNull<ErrorImpl<()>>,
-    target: TypeId,
-) -> Option<NonNull<()>>
+unsafe fn context_chain_downcast<C>(e: NonNull<ErrorImpl>, target: TypeId) -> Option<NonNull<()>>
 where
     C: 'static,
 {
@@ -683,7 +677,7 @@ where
 
 // Safety: requires layout of *e to match ErrorImpl<ContextError<C, Error>>.
 unsafe fn context_chain_downcast_mut<C>(
-    e: NonNull<ErrorImpl<()>>,
+    e: NonNull<ErrorImpl>,
     target: TypeId,
 ) -> Option<NonNull<()>>
 where
@@ -702,7 +696,7 @@ where
 }
 
 // Safety: requires layout of *e to match ErrorImpl<ContextError<C, Error>>.
-unsafe fn context_chain_drop_rest<C>(e: NonNull<ErrorImpl<()>>, target: TypeId)
+unsafe fn context_chain_drop_rest<C>(e: NonNull<ErrorImpl>, target: TypeId)
 where
     C: 'static,
 {
@@ -716,7 +710,7 @@ where
     } else {
         let unerased =
             Box::from_raw(e.as_ptr() as *mut ErrorImpl<ContextError<C, ManuallyDrop<Error>>>);
-        // Read the NonNull<ErrorImpl<()>> from the next error.
+        // Read the NonNull<ErrorImpl> from the next error.
         let inner = unerased._object.error.inner;
         drop(unerased);
         let vtable = inner.as_ref().vtable;
@@ -729,7 +723,7 @@ where
 // of raw pointers and `NonNull`.
 // repr C to ensure that E remains in the final position.
 #[repr(C)]
-pub(crate) struct ErrorImpl<E> {
+pub(crate) struct ErrorImpl<E = ()> {
     vtable: &'static ErrorVTable,
     backtrace: Option<Backtrace>,
     // NOTE: Don't use directly. Use only through vtable. Erased type may have
@@ -754,15 +748,15 @@ pub(crate) struct ContextError<C, E> {
 }
 
 impl<E> ErrorImpl<E> {
-    fn erase(&self) -> NonNull<ErrorImpl<()>> {
+    fn erase(&self) -> NonNull<ErrorImpl> {
         // Erase the concrete type of E but preserve the vtable in self.vtable
         // for manipulating the resulting thin pointer. This is analogous to an
         // unsize coercion.
-        NonNull::from(self).cast::<ErrorImpl<()>>()
+        NonNull::from(self).cast::<ErrorImpl>()
     }
 }
 
-impl ErrorImpl<()> {
+impl ErrorImpl {
     pub(crate) unsafe fn error<'a>(
         this: NonNull<Self>,
     ) -> &'a (dyn StdError + Send + Sync + 'static) {

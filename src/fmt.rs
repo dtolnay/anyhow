@@ -3,7 +3,7 @@ use crate::error::ErrorImpl;
 use core::fmt::{self, Debug, Write};
 use core::ptr::NonNull;
 
-impl ErrorImpl<()> {
+impl ErrorImpl {
     pub(crate) unsafe fn display(this: NonNull<Self>, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", Self::error(this))?;
 
