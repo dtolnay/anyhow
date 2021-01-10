@@ -246,11 +246,12 @@ mod error;
 mod fmt;
 mod kind;
 mod macros;
+mod ptr;
 mod wrapper;
 
 use crate::error::ErrorImpl;
+use crate::ptr::Own;
 use core::fmt::Display;
-use core::ptr::NonNull;
 
 #[cfg(not(feature = "std"))]
 use core::fmt::Debug;
@@ -370,11 +371,8 @@ pub use anyhow as format_err;
 /// ```
 #[repr(transparent)]
 pub struct Error {
-    inner: NonNull<ErrorImpl>,
+    inner: Own<ErrorImpl>,
 }
-
-unsafe impl Send for Error {}
-unsafe impl Sync for Error {}
 
 /// Iterator of a chain of source errors.
 ///

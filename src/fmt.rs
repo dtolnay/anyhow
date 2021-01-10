@@ -1,10 +1,10 @@
 use crate::chain::Chain;
 use crate::error::ErrorImpl;
+use crate::ptr::Ref;
 use core::fmt::{self, Debug, Write};
-use core::ptr::NonNull;
 
 impl ErrorImpl {
-    pub(crate) unsafe fn display(this: NonNull<Self>, f: &mut fmt::Formatter) -> fmt::Result {
+    pub(crate) unsafe fn display(this: Ref<Self>, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", Self::error(this))?;
 
         if f.alternate() {
@@ -16,7 +16,7 @@ impl ErrorImpl {
         Ok(())
     }
 
-    pub(crate) unsafe fn debug(this: NonNull<Self>, f: &mut fmt::Formatter) -> fmt::Result {
+    pub(crate) unsafe fn debug(this: Ref<Self>, f: &mut fmt::Formatter) -> fmt::Result {
         let error = Self::error(this);
 
         if f.alternate() {
