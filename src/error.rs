@@ -730,7 +730,7 @@ pub(crate) struct ErrorImpl<E = ()> {
 // avoids converting `p` into a reference.
 unsafe fn vtable(p: NonNull<ErrorImpl>) -> &'static ErrorVTable {
     // NOTE: This assumes that `ErrorVTable` is the first field of ErrorImpl.
-    *p.as_ptr().cast::<&'static ErrorVTable>()
+    *(p.as_ptr() as *const &'static ErrorVTable)
 }
 
 // repr C to ensure that ContextError<C, E> has the same layout as
