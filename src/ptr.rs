@@ -23,7 +23,7 @@ impl<T> Own<T> {
         }
     }
 
-    pub fn cast<U>(self) -> Own<U> {
+    pub fn cast<U: CastTo>(self) -> Own<U::Target> {
         Own {
             ptr: self.ptr.cast(),
         }
@@ -69,7 +69,7 @@ impl<'a, T> Ref<'a, T> {
         }
     }
 
-    pub fn cast<U>(self) -> Ref<'a, U> {
+    pub fn cast<U: CastTo>(self) -> Ref<'a, U::Target> {
         Ref {
             ptr: self.ptr.cast(),
             lifetime: PhantomData,
@@ -102,7 +102,7 @@ impl<'a, T> Mut<'a, T> {
         }
     }
 
-    pub fn cast<U>(self) -> Mut<'a, U> {
+    pub fn cast<U: CastTo>(self) -> Mut<'a, U::Target> {
         Mut {
             ptr: self.ptr.cast(),
             lifetime: PhantomData,
@@ -123,4 +123,13 @@ impl<'a, T> Mut<'a, T> {
     pub unsafe fn read(self) -> T {
         self.ptr.as_ptr().read()
     }
+}
+
+// Force turbofish on all calls of `.cast::<U>()`.
+pub trait CastTo {
+    type Target;
+}
+
+impl<T> CastTo for T {
+    type Target = T;
 }
