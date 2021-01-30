@@ -577,7 +577,7 @@ where
         // Caller is looking for an E pointer and e is ErrorImpl<E>, take a
         // pointer to its E field.
         let unerased = e.cast::<ErrorImpl<E>>().deref();
-        Some(Ref::new(&unerased._object).cast::<()>())
+        Some(Ref::new(&unerased._object).cast())
     } else {
         None
     }
