@@ -217,6 +217,7 @@
     clippy::doc_markdown,
     clippy::enum_glob_use,
     clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
     clippy::needless_doctest_main,
