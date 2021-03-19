@@ -14,6 +14,9 @@ categories = ["rust-patterns"]
 default = ["std"]
 std = []
 
+[dependencies]
+backtrace = { version = "0.3", optional = true }
+
 [dev-dependencies]
 futures = { version = "0.3", default-features = false }
 rustversion = "1.0"

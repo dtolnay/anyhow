@@ -4,6 +4,11 @@ use std::path::Path;
 use std::process::{Command, ExitStatus, Stdio};
 use std::str;
 
+#[cfg(all(feature = "backtrace", not(feature = "std")))]
+compile_error! {
+    "`backtrace` feature without `std` feature is not supported"
+}
+
 // This code exercises the surface area that we expect of the std Backtrace
 // type. If the current toolchain is able to compile it, we go ahead and use
 // backtrace in anyhow.

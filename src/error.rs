@@ -86,6 +86,8 @@ impl Error {
             object_downcast: object_downcast::<E>,
             object_downcast_mut: object_downcast_mut::<E>,
             object_drop_rest: object_drop_front::<E>,
+            #[cfg(all(not(backtrace), feature = "backtrace"))]
+            object_backtrace: no_backtrace,
         };
 
         // Safety: passing vtable that operates on the right type E.
@@ -107,6 +109,8 @@ impl Error {
             object_downcast: object_downcast::<M>,
             object_downcast_mut: object_downcast_mut::<M>,
             object_drop_rest: object_drop_front::<M>,
+            #[cfg(all(not(backtrace), feature = "backtrace"))]
+            object_backtrace: no_backtrace,
         };
 
         // Safety: MessageError is repr(transparent) so it is okay for the
@@ -129,6 +133,8 @@ impl Error {
             object_downcast: object_downcast::<M>,
             object_downcast_mut: object_downcast_mut::<M>,
             object_drop_rest: object_drop_front::<M>,
+            #[cfg(all(not(backtrace), feature = "backtrace"))]
+            object_backtrace: no_backtrace,
         };
 
         // Safety: DisplayError is repr(transparent) so it is okay for the
@@ -152,6 +158,8 @@ impl Error {
             object_downcast: context_downcast::<C, E>,
             object_downcast_mut: context_downcast_mut::<C, E>,
             object_drop_rest: context_drop_rest::<C, E>,
+            #[cfg(all(not(backtrace), feature = "backtrace"))]
+            object_backtrace: no_backtrace,
         };
 
         // Safety: passing vtable that operates on the right type.
@@ -173,6 +181,8 @@ impl Error {
             object_downcast: object_downcast::<Box<dyn StdError + Send + Sync>>,
             object_downcast_mut: object_downcast_mut::<Box<dyn StdError + Send + Sync>>,
             object_drop_rest: object_drop_front::<Box<dyn StdError + Send + Sync>>,
+            #[cfg(all(not(backtrace), feature = "backtrace"))]
+            object_backtrace: no_backtrace,
         };
 
         // Safety: BoxedError is repr(transparent) so it is okay for the vtable
@@ -280,6 +290,8 @@ impl Error {
             object_downcast: context_chain_downcast::<C>,
             object_downcast_mut: context_chain_downcast_mut::<C>,
             object_drop_rest: context_chain_drop_rest::<C>,
+            #[cfg(all(not(backtrace), feature = "backtrace"))]
+            object_backtrace: context_backtrace::<C>,
         };
 
         // As the cause is anyhow::Error, we already have a backtrace for it.
@@ -290,9 +302,6 @@ impl Error {
     }
 
     /// Get the backtrace for this Error.
-    ///
-    /// Backtraces are only available on the nightly channel. Tracking issue:
-    /// [rust-lang/rust#53487][tracking].
     ///
     /// In order for the backtrace to be meaningful, one of the two environment
     /// variables `RUST_LIB_BACKTRACE=1` or `RUST_BACKTRACE=1` must be defined
@@ -307,10 +316,24 @@ impl Error {
     /// - If you want only panics to have backtraces, set `RUST_BACKTRACE=1` and
     ///   `RUST_LIB_BACKTRACE=0`.
     ///
+    /// # Stability
+    ///
+    /// Standard library backtraces are only available on the nightly channel.
+    /// Tracking issue: [rust-lang/rust#53487][tracking].
+    ///
+    /// On stable compilers, this function is only available if the crate's
+    /// "backtrace" feature is enabled, and will use the `backtrace` crate as
+    /// the underlying backtrace implementation.
+    ///
+    /// ```toml
+    /// [dependencies]
+    /// anyhow = { version = "1.0", features = ["backtrace"] }
+    /// ```
+    ///
     /// [tracking]: https://github.com/rust-lang/rust/issues/53487
-    #[cfg(backtrace)]
-    #[cfg_attr(doc_cfg, doc(cfg(nightly)))]
-    pub fn backtrace(&self) -> &Backtrace {
+    #[cfg(any(backtrace, feature = "backtrace"))]
+    #[cfg_attr(doc_cfg, doc(cfg(any(nightly, feature = "backtrace"))))]
+    pub fn backtrace(&self) -> &impl_backtrace!() {
         unsafe { ErrorImpl::backtrace(self.inner.by_ref()) }
     }
 
@@ -520,6 +543,8 @@ struct ErrorVTable {
     object_downcast: unsafe fn(Ref<ErrorImpl>, TypeId) -> Option<Ref<()>>,
     object_downcast_mut: unsafe fn(Mut<ErrorImpl>, TypeId) -> Option<Mut<()>>,
     object_drop_rest: unsafe fn(Own<ErrorImpl>, TypeId),
+    #[cfg(all(not(backtrace), feature = "backtrace"))]
+    object_backtrace: unsafe fn(Ref<ErrorImpl>) -> Option<&Backtrace>,
 }
 
 // Safety: requires layout of *e to match ErrorImpl<E>.
@@ -597,6 +622,12 @@ where
     } else {
         None
     }
+}
+
+#[cfg(all(not(backtrace), feature = "backtrace"))]
+fn no_backtrace(e: Ref<ErrorImpl>) -> Option<&Backtrace> {
+    let _ = e;
+    None
 }
 
 // Safety: requires layout of *e to match ErrorImpl<ContextError<C, E>>.
@@ -715,6 +746,18 @@ where
     }
 }
 
+// Safety: requires layout of *e to match ErrorImpl<ContextError<C, Error>>.
+#[cfg(all(not(backtrace), feature = "backtrace"))]
+#[allow(clippy::unnecessary_wraps)]
+unsafe fn context_backtrace<C>(e: Ref<ErrorImpl>) -> Option<&Backtrace>
+where
+    C: 'static,
+{
+    let unerased = e.cast::<ErrorImpl<ContextError<C, Error>>>().deref();
+    let backtrace = ErrorImpl::backtrace(unerased._object.error.inner.by_ref());
+    Some(backtrace)
+}
+
 // NOTE: If working with `ErrorImpl<()>`, references should be avoided in favor
 // of raw pointers and `NonNull`.
 // repr C to ensure that E remains in the final position.
@@ -765,7 +808,7 @@ impl ErrorImpl {
         (vtable(this.ptr).object_mut)(this)
     }
 
-    #[cfg(backtrace)]
+    #[cfg(any(backtrace, feature = "backtrace"))]
     pub(crate) unsafe fn backtrace(this: Ref<Self>) -> &Backtrace {
         // This unwrap can only panic if the underlying error's backtrace method
         // is nondeterministic, which would only happen in maliciously
@@ -773,7 +816,12 @@ impl ErrorImpl {
         this.deref()
             .backtrace
             .as_ref()
-            .or_else(|| Self::error(this).backtrace())
+            .or_else(|| {
+                #[cfg(backtrace)]
+                return Self::error(this).backtrace();
+                #[cfg(all(not(backtrace), feature = "backtrace"))]
+                return (vtable(this.ptr).object_backtrace)(this);
+            })
             .expect("backtrace capture failed")
     }
 
