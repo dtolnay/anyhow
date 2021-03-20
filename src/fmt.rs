@@ -39,9 +39,9 @@ impl ErrorImpl {
             }
         }
 
-        #[cfg(backtrace)]
+        #[cfg(any(backtrace, feature = "backtrace"))]
         {
-            use std::backtrace::BacktraceStatus;
+            use crate::backtrace::BacktraceStatus;
 
             let backtrace = Self::backtrace(this);
             if let BacktraceStatus::Captured = backtrace.status() {
