@@ -613,9 +613,6 @@ pub mod private {
     use crate::Error;
     use core::fmt::{Debug, Display};
 
-    #[cfg(backtrace)]
-    use std::backtrace::Backtrace;
-
     pub use core::result::Result::Err;
 
     #[doc(hidden)]
