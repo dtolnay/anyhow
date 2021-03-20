@@ -309,6 +309,7 @@ impl Error {
     ///
     /// [tracking]: https://github.com/rust-lang/rust/issues/53487
     #[cfg(backtrace)]
+    #[cfg_attr(doc_cfg, doc(cfg(nightly)))]
     pub fn backtrace(&self) -> &Backtrace {
         unsafe { ErrorImpl::backtrace(self.inner.by_ref()) }
     }
