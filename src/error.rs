@@ -536,7 +536,7 @@ impl Drop for Error {
 
 struct ErrorVTable {
     object_drop: unsafe fn(Own<ErrorImpl>),
-    object_ref: unsafe fn(Ref<ErrorImpl>) -> &(dyn StdError + Send + Sync + 'static),
+    object_ref: unsafe fn(Ref<ErrorImpl>) -> Ref<dyn StdError + Send + Sync + 'static>,
     #[cfg(feature = "std")]
     object_mut: unsafe fn(Mut<ErrorImpl>) -> &mut (dyn StdError + Send + Sync + 'static),
     object_boxed: unsafe fn(Own<ErrorImpl>) -> Box<dyn StdError + Send + Sync + 'static>,
@@ -566,12 +566,12 @@ unsafe fn object_drop_front<E>(e: Own<ErrorImpl>, target: TypeId) {
 }
 
 // Safety: requires layout of *e to match ErrorImpl<E>.
-unsafe fn object_ref<E>(e: Ref<ErrorImpl>) -> &(dyn StdError + Send + Sync + 'static)
+unsafe fn object_ref<E>(e: Ref<ErrorImpl>) -> Ref<dyn StdError + Send + Sync + 'static>
 where
     E: StdError + Send + Sync + 'static,
 {
     // Attach E's native StdError vtable onto a pointer to self._object.
-    &e.cast::<ErrorImpl<E>>().deref()._object
+    Ref::new(&e.cast::<ErrorImpl<E>>().deref()._object)
 }
 
 // Safety: requires layout of *e to match ErrorImpl<E>, and for `e` to be derived
@@ -798,7 +798,7 @@ impl ErrorImpl {
     pub(crate) unsafe fn error(this: Ref<Self>) -> &(dyn StdError + Send + Sync + 'static) {
         // Use vtable to attach E's native StdError vtable for the right
         // original type E.
-        (vtable(this.ptr).object_ref)(this)
+        (vtable(this.ptr).object_ref)(this).deref()
     }
 
     #[cfg(feature = "std")]
