@@ -3,20 +3,32 @@ use core::marker::PhantomData;
 use core::ptr::NonNull;
 
 #[repr(transparent)]
-pub struct Own<T> {
+pub struct Own<T>
+where
+    T: ?Sized,
+{
     pub ptr: NonNull<T>,
 }
 
-unsafe impl<T> Send for Own<T> {}
-unsafe impl<T> Sync for Own<T> {}
-impl<T> Copy for Own<T> {}
-impl<T> Clone for Own<T> {
+unsafe impl<T> Send for Own<T> where T: ?Sized {}
+
+unsafe impl<T> Sync for Own<T> where T: ?Sized {}
+
+impl<T> Copy for Own<T> where T: ?Sized {}
+
+impl<T> Clone for Own<T>
+where
+    T: ?Sized,
+{
     fn clone(&self) -> Self {
         *self
     }
 }
 
-impl<T> Own<T> {
+impl<T> Own<T>
+where
+    T: ?Sized,
+{
     pub fn new(ptr: Box<T>) -> Self {
         Own {
             ptr: unsafe { NonNull::new_unchecked(Box::into_raw(ptr)) },
@@ -49,19 +61,29 @@ impl<T> Own<T> {
 }
 
 #[repr(transparent)]
-pub struct Ref<'a, T> {
+pub struct Ref<'a, T>
+where
+    T: ?Sized,
+{
     pub ptr: NonNull<T>,
     lifetime: PhantomData<&'a T>,
 }
 
-impl<'a, T> Copy for Ref<'a, T> {}
-impl<'a, T> Clone for Ref<'a, T> {
+impl<'a, T> Copy for Ref<'a, T> where T: ?Sized {}
+
+impl<'a, T> Clone for Ref<'a, T>
+where
+    T: ?Sized,
+{
     fn clone(&self) -> Self {
         *self
     }
 }
 
-impl<'a, T> Ref<'a, T> {
+impl<'a, T> Ref<'a, T>
+where
+    T: ?Sized,
+{
     pub fn new(ptr: &'a T) -> Self {
         Ref {
             ptr: NonNull::from(ptr),
@@ -82,19 +104,29 @@ impl<'a, T> Ref<'a, T> {
 }
 
 #[repr(transparent)]
-pub struct Mut<'a, T> {
+pub struct Mut<'a, T>
+where
+    T: ?Sized,
+{
     pub ptr: NonNull<T>,
     lifetime: PhantomData<&'a mut T>,
 }
 
-impl<'a, T> Copy for Mut<'a, T> {}
-impl<'a, T> Clone for Mut<'a, T> {
+impl<'a, T> Copy for Mut<'a, T> where T: ?Sized {}
+
+impl<'a, T> Clone for Mut<'a, T>
+where
+    T: ?Sized,
+{
     fn clone(&self) -> Self {
         *self
     }
 }
 
-impl<'a, T> Mut<'a, T> {
+impl<'a, T> Mut<'a, T>
+where
+    T: ?Sized,
+{
     pub fn new(ptr: &'a mut T) -> Self {
         Mut {
             ptr: NonNull::from(ptr),
@@ -119,7 +151,9 @@ impl<'a, T> Mut<'a, T> {
     pub unsafe fn deref_mut(self) -> &'a mut T {
         &mut *self.ptr.as_ptr()
     }
+}
 
+impl<'a, T> Mut<'a, T> {
     pub unsafe fn read(self) -> T {
         self.ptr.as_ptr().read()
     }
