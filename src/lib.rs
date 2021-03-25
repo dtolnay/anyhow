@@ -213,6 +213,7 @@
 #![cfg_attr(backtrace, feature(backtrace))]
 #![cfg_attr(doc_cfg, feature(doc_cfg))]
 #![cfg_attr(not(feature = "std"), no_std)]
+#![deny(dead_code, unused_imports, unused_mut)]
 #![allow(
     clippy::doc_markdown,
     clippy::enum_glob_use,
