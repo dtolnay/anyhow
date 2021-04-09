@@ -741,12 +741,11 @@ unsafe fn context_chain_downcast<C>(e: Ref<ErrorImpl>, target: TypeId) -> Option
 where
     C: 'static,
 {
+    let unerased = e.cast::<ErrorImpl<ContextError<C, Error>>>().deref();
     if TypeId::of::<C>() == target {
-        let unerased = e.cast::<ErrorImpl<ContextError<C, Error>>>().deref();
         Some(Ref::new(&unerased._object.context).cast::<()>())
     } else {
         // Recurse down the context chain per the inner error's vtable.
-        let unerased = e.cast::<ErrorImpl<ContextError<C, Error>>>().deref();
         let source = &unerased._object.error;
         (vtable(source.inner.ptr).object_downcast)(source.inner.by_ref(), target)
     }
@@ -758,12 +757,11 @@ unsafe fn context_chain_downcast_mut<C>(e: Mut<ErrorImpl>, target: TypeId) -> Op
 where
     C: 'static,
 {
+    let unerased = e.cast::<ErrorImpl<ContextError<C, Error>>>().deref_mut();
     if TypeId::of::<C>() == target {
-        let unerased = e.cast::<ErrorImpl<ContextError<C, Error>>>().deref_mut();
         Some(Mut::new(&mut unerased._object.context).cast::<()>())
     } else {
         // Recurse down the context chain per the inner error's vtable.
-        let unerased = e.cast::<ErrorImpl<ContextError<C, Error>>>().deref_mut();
         let source = &mut unerased._object.error;
         (vtable(source.inner.ptr).object_downcast_mut)(source.inner.by_mut(), target)
     }
