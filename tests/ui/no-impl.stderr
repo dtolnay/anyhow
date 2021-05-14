@@ -18,4 +18,4 @@ error[E0599]: the method `anyhow_kind` exists for reference `&Error`, but its tr
           which is required by `&Error: anyhow::private::kind::AdhocKind`
           `&Error: Into<anyhow::Error>`
           which is required by `&Error: anyhow::private::kind::TraitKind`
-  = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
+  = note: this error originates in the macro `anyhow` (in Nightly builds, run with -Z macro-backtrace for more info)
