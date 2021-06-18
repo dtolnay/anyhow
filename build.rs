@@ -67,17 +67,39 @@ fn compile_probe() -> Option<ExitStatus> {
     let out_dir = env::var_os("OUT_DIR")?;
     let probefile = Path::new(&out_dir).join("probe.rs");
     fs::write(&probefile, PROBE).ok()?;
-    Command::new(rustc)
-        .stderr(Stdio::null())
+
+    // Make sure to pick up Cargo rustc configuration.
+    let mut cmd = if let Some(wrapper) = env::var_os("CARGO_RUSTC_WRAPPER") {
+        let mut cmd = Command::new(wrapper);
+        // The wrapper's first argument should always be the path to rustc.
+        cmd.arg(rustc);
+        cmd
+    } else {
+        Command::new(rustc)
+    };
+
+    cmd.stderr(Stdio::null())
         .arg("--edition=2018")
         .arg("--crate-name=anyhow_build")
         .arg("--crate-type=lib")
         .arg("--emit=metadata")
         .arg("--out-dir")
         .arg(out_dir)
-        .arg(probefile)
-        .status()
-        .ok()
+        .arg(probefile);
+
+    // If Cargo wants to set RUSTFLAGS, use that.
+    if let Ok(rustflags) = env::var("CARGO_RUSTFLAGS") {
+        // NOTE: This is the same RUSTFLAGS splitting used in cargo.
+        for arg in rustflags
+            .split(' ')
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+        {
+            cmd.arg(arg);
+        }
+    }
+
+    cmd.status().ok()
 }
 
 fn rustc_minor_version() -> Option<u32> {
