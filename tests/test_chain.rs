@@ -51,7 +51,7 @@ fn test_len() {
 
 #[test]
 fn test_default() {
-    let mut c: Chain = Default::default();
+    let mut c = Chain::default();
     assert!(c.next().is_none());
 }
 
