@@ -162,3 +162,10 @@ fn test_unsuccessful_downcast() {
     drop(err);
     assert!(dropped.all());
 }
+
+#[test]
+fn test_root_cause() {
+    let (err, _) = make_chain();
+
+    assert_eq!(err.root_cause().to_string(), "no such file or directory");
+}
