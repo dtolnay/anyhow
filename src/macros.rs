@@ -136,6 +136,178 @@ macro_rules! ensure {
     };
 }
 
+///  Return early with an error if two expressions are not equal to each other.
+///
+/// The surrounding function's or closure's return value is required to be
+/// `Result<_,`[`anyhow::Error`][crate::Error]`>`.
+///
+/// Analogously to `assert_eq!`, `ensure_eq!` takes two expressions and exits
+/// the function if they are not equal to each other. Unlike `assert_eq!`,
+/// `ensure_eq!` returns an `Error` rather than panicking.
+///
+/// # Example
+///
+/// ```
+/// # use anyhow::{ensure_eq, Result};
+/// #
+/// # fn main() -> Result<()> {
+/// #     let user_id = 2;
+/// #     let allowed_id = 2;
+/// #
+/// ensure_eq!(user_id, allowed_id, "user is not allowed");
+/// #     Ok(())
+/// # }
+/// ```
+///
+/// ```
+/// # use anyhow::{ensure_eq, Result};
+/// # use thiserror::Error;
+/// #
+/// #[derive(Error, Debug)]
+/// enum SecurityError {
+///     #[error("permission is denied")]
+///     PermissionDenied,
+///     # #[error("...")]
+///     # More = (stringify! {
+///     ...
+///     # }, 1).1,
+/// }
+///
+/// # fn main() -> Result<()> {
+/// #     let username = "admin";
+/// #
+/// ensure_eq!(username, "admin", SecurityError::PermissionDenied);
+/// #     Ok(())
+/// # }
+/// ```
+#[macro_export]
+macro_rules! ensure_eq {
+    ($left:expr, $right:expr $(,)?) => {
+        match (&$left, &$right) {
+            (left_val, right_val) => {
+                if !(*left_val == *right_val) {
+                    return $crate::private::Err($crate::anyhow!(r#"Condition failed: `(left == right)`
+    left: `{:?}`,
+   right: `{:?}`"#, &*left_val, &*right_val));
+                }
+            }
+        }
+    };
+    ($left:expr, $right:expr, $msg:literal $(,)?) => {
+        match (&$left, &$right) {
+            (left_val, right_val) => {
+                if !(*left_val == *right_val) {
+                    return $crate::private::Err($crate::anyhow!($msg));
+                }
+            }
+        }
+    };
+    ($left:expr, $right:expr, $err:expr $(,)?) => {
+        match (&$left, &$right) {
+            (left_val, right_val) => {
+                if !(*left_val == *right_val) {
+                    return $crate::private::Err($crate::anyhow!($err));
+                }
+            }
+        }
+    };
+    ($left:expr, $right:expr, $fmt:expr, $($arg:tt)+) => {
+        match (&$left, &$right) {
+            (left_val, right_val) => {
+                if !(*left_val == *right_val) {
+                    return $crate::private::Err($crate::anyhow!($fmt, $($arg)+));
+                }
+            }
+        }
+    };
+}
+
+///  Return early with an error if two expressions are equal to each other.
+///
+/// The surrounding function's or closure's return value is required to be
+/// `Result<_,`[`anyhow::Error`][crate::Error]`>`.
+///
+/// Analogously to `assert_ne!`, `ensure_ne!` takes two expressions and exits
+/// the function if they are equal to each other. Unlike `assert_ne!`, `ensure_ne!`
+/// returns an `Error` rather than panicking.
+///
+/// # Example
+///
+/// ```
+/// # use anyhow::{ensure_ne, Result};
+/// #
+/// # fn main() -> Result<()> {
+/// #     let user_id = 3;
+/// #     let banned_id = 2;
+/// #
+/// ensure_ne!(user_id, banned_id, "user is not allowed");
+/// #     Ok(())
+/// # }
+/// ```
+///
+/// ```
+/// # use anyhow::{ensure_ne, Result};
+/// # use thiserror::Error;
+/// #
+/// #[derive(Error, Debug)]
+/// enum FileParseError {
+///     #[error("file is empty")]
+///     Empty,
+///     # #[error("...")]
+///     # More = (stringify! {
+///     ...
+///     # }, 1).1,
+/// }
+///
+/// # fn main() -> Result<()> {
+/// #     let size = 128;
+/// #
+/// ensure_ne!(size, 0, FileParseError::Empty);
+/// #     Ok(())
+/// # }
+/// ```
+#[macro_export]
+macro_rules! ensure_ne {
+    ($left:expr, $right:expr $(,)?) => {
+        match (&$left, &$right) {
+            (left_val, right_val) => {
+                if *left_val == *right_val {
+                    return $crate::private::Err($crate::anyhow!(r#"Condition failed: `(left != right)`
+    left: `{:?}`,
+   right: `{:?}`"#, &*left_val, &*right_val));
+                }
+            }
+        }
+    };
+    ($left:expr, $right:expr, $msg:literal $(,)?) => {
+        match (&$left, &$right) {
+            (left_val, right_val) => {
+                if *left_val == *right_val {
+                    return $crate::private::Err($crate::anyhow!($msg));
+                }
+            }
+        }
+    };
+    ($left:expr, $right:expr, $err:expr $(,)?) => {
+        match (&$left, &$right) {
+            (left_val, right_val) => {
+                if *left_val == *right_val {
+                    return $crate::private::Err($crate::anyhow!($err));
+                }
+            }
+        }
+    };
+    ($left:expr, $right:expr, $fmt:expr, $($arg:tt)+) => {
+        match (&$left, &$right) {
+            (left_val, right_val) => {
+                if *left_val == *right_val {
+                    return $crate::private::Err($crate::anyhow!($fmt, $($arg)+));
+                }
+            }
+        }
+    };
+}
+
 /// Construct an ad-hoc error from a string or existing non-`anyhow` error
 /// value.
 ///
