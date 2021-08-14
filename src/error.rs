@@ -507,6 +507,56 @@ impl Error {
             Some(addr.cast::<E>().deref_mut())
         }
     }
+
+    /// Convert this error object into an opaque struct that implements [`std::error::Error`].
+    ///
+    /// The returned struct behaves identically to the original error instance in all aspects.
+    /// Exception: converting the returned `impl Error` into a `dyn Error` and calling downcast will
+    /// not work. But to get `dyn Error`, you should use different methods anyways (see below).
+    ///
+    /// Useful for passing this error in contexts that expect an [`std::error::Error`] instance.
+    ///
+    /// If you want to convert this error object into a `Box<dyn Error>`, you can call `.into()`
+    /// instead. If you want to convert a reference to this error object to a `&Error`, use
+    /// `.as_ref()` or just take a reference: [`anyhow::Error`] implements
+    /// `Deref<Target = dyn Error>`.
+    ///
+    /// ```
+    /// pub fn uses_anyhow() -> anyhow::Result<()> {
+    ///     Err(anyhow::anyhow!("oh no"))?;
+    ///
+    ///     Ok(())
+    /// }
+    ///
+    /// pub fn uses_std_error() -> Result<(), Box<dyn std::error::Error>> {
+    ///     uses_anyhow().map_err(anyhow::Error::into_error)?;
+    ///     
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn into_error(self) -> impl StdError + Send + Sync + 'static {
+        struct Wrapper(Error);
+
+        impl Display for Wrapper {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                Display::fmt(&self.0, f)
+            }
+        }
+
+        impl Debug for Wrapper {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                Debug::fmt(&self.0, f)
+            }
+        }
+
+        impl StdError for Wrapper {
+            fn source(&self) -> Option<&(dyn StdError + 'static)> {
+                self.0.chain().next()
+            }
+        }
+
+        Wrapper(self)
+    }
 }
 
 #[cfg(feature = "std")]
