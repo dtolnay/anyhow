@@ -69,15 +69,14 @@ fn compile_probe() -> Option<ExitStatus> {
     fs::write(&probefile, PROBE).ok()?;
 
     // Make sure to pick up Cargo rustc configuration.
-    let mut cmd = env::var_os("CARGO_RUSTC_WRAPPER").map_or_else(
-        || Command::new(&rustc),
-        |wrapper| {
-            let mut cmd = Command::new(wrapper);
-            // The wrapper's first argument should always be the path to rustc.
-            cmd.arg(&rustc);
-            cmd
-        },
-    );
+    let mut cmd = if let Some(wrapper) = env::var_os("CARGO_RUSTC_WRAPPER") {
+        let mut cmd = Command::new(wrapper);
+        // The wrapper's first argument is supposed to be the path to rustc.
+        cmd.arg(rustc);
+        cmd
+    } else {
+        Command::new(rustc)
+    };
 
     cmd.stderr(Stdio::null())
         .arg("--edition=2018")
