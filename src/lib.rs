@@ -626,6 +626,7 @@ pub mod private {
         pub use crate::kind::BoxedKind;
     }
 
+    #[cold]
     pub fn new_adhoc<M>(message: M) -> Error
     where
         M: Display + Debug + Send + Sync + 'static,
