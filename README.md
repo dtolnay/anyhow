@@ -76,7 +76,7 @@ anyhow = "1.0"
   ```
 
 - If using the nightly channel, or stable with `features = ["backtrace"]`, a
-  a backtrace is captured and printed with the error if the underlying error
+  backtrace is captured and printed with the error if the underlying error
   type does not already provide its own. In order to see backtraces, they must
   be enabled through the environment variables described in [`std::backtrace`]:
 
