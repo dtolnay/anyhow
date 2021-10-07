@@ -24,6 +24,7 @@ macro_rules! context_type {
         #[derive(Debug)]
         struct $name {
             message: &'static str,
+            #[allow(dead_code)]
             drop: DetectDrop,
         }
 
