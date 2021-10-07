@@ -18,6 +18,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{matrix.rust}}
+          components: rust-src
       - run: cargo test
       - run: cargo check --no-default-features
       - run: cargo check --features backtrace
