@@ -73,3 +73,11 @@ jobs:
         with:
           components: miri
       - run: cargo miri test
+
+  outdated:
+    name: Outdated
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v2
+      - run: cargo outdated --exit-code 1
