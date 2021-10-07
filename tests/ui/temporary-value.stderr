@@ -1,5 +1,5 @@
 error[E0716]: temporary value dropped while borrowed
- --> $DIR/temporary-value.rs:4:22
+ --> $DIR/tests/ui/temporary-value.rs:4:22
   |
 4 |     let _ = anyhow!(&String::new());
   |             ---------^^^^^^^^^^^^^-- temporary value is freed at the end of this statement
