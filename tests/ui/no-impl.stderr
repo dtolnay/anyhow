@@ -1,5 +1,5 @@
 error[E0599]: the method `anyhow_kind` exists for reference `&Error`, but its trait bounds were not satisfied
-   --> $DIR/tests/ui/no-impl.rs:7:13
+   --> tests/ui/no-impl.rs:7:13
     |
 4   | struct Error;
     | -------------
