@@ -10,9 +10,9 @@ where
     pub ptr: NonNull<T>,
 }
 
-unsafe impl<T> Send for Own<T> where T: ?Sized {}
+unsafe impl<T> Send for Own<T> where T: ?Sized + Send + Sync {}
 
-unsafe impl<T> Sync for Own<T> where T: ?Sized {}
+unsafe impl<T> Sync for Own<T> where T: ?Sized + Send + Sync {}
 
 impl<T> Copy for Own<T> where T: ?Sized {}
 
