@@ -613,9 +613,6 @@ pub trait Context<T, E>: context::private::Sealed {
 // Not public API. Referenced by macro-generated code.
 #[doc(hidden)]
 pub mod private {
-    use crate::Error;
-    use core::fmt::{Debug, Display};
-
     pub use core::result::Result::Err;
 
     #[doc(hidden)]
@@ -624,14 +621,6 @@ pub mod private {
 
         #[cfg(feature = "std")]
         pub use crate::kind::BoxedKind;
-    }
-
-    #[cold]
-    pub fn new_adhoc<M>(message: M) -> Error
-    where
-        M: Display + Debug + Send + Sync + 'static,
-    {
-        Error::from_adhoc(message, backtrace!())
     }
 
     #[cfg(anyhow_no_macro_reexport)]
