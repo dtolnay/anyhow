@@ -115,7 +115,7 @@ macro_rules! bail {
 macro_rules! ensure {
     ($cond:expr $(,)?) => {
         if !$cond {
-            return $crate::private::Err($crate::private::new_adhoc(
+            return $crate::private::Err($crate::Error::msg(
                 $crate::private::concat!("Condition failed: `", $crate::private::stringify!($cond), "`")
             ));
         }
@@ -170,7 +170,7 @@ macro_rules! anyhow {
     ($msg:literal $(,)?) => {
         // Handle $:literal as a special case to make cargo-expanded code more
         // concise in the common case.
-        $crate::private::new_adhoc($msg)
+        $crate::Error::msg($msg)
     };
     ($err:expr $(,)?) => ({
         use $crate::private::kind::*;
@@ -179,6 +179,6 @@ macro_rules! anyhow {
         }
     });
     ($fmt:expr, $($arg:tt)*) => {
-        $crate::private::new_adhoc(format!($fmt, $($arg)*))
+        $crate::Error::msg(format!($fmt, $($arg)*))
     };
 }
