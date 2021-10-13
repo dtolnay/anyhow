@@ -23,6 +23,7 @@ note: the following traits must be implemented
     |
     | / pub trait Into<T>: Sized {
     | |     /// Performs the conversion.
+    | |     #[must_use]
     | |     #[stable(feature = "rust1", since = "1.0.0")]
     | |     fn into(self) -> T;
     | | }
