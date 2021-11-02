@@ -604,10 +604,11 @@ pub trait Context<T, E>: context::private::Sealed {
 // Not public API. Referenced by macro-generated code.
 #[doc(hidden)]
 pub mod private {
-    pub use alloc::fmt::format; // the function
-    pub use alloc::format; // the macro
-    pub use core::fmt::Arguments;
-    pub use core::option::Option::Some;
+    use crate::Error;
+    use alloc::fmt;
+    use core::fmt::Arguments;
+
+    pub use alloc::format;
     pub use core::result::Result::Err;
     pub use core::{concat, format_args, stringify};
 
@@ -617,5 +618,18 @@ pub mod private {
 
         #[cfg(feature = "std")]
         pub use crate::kind::BoxedKind;
+    }
+
+    #[doc(hidden)]
+    #[inline]
+    #[cold]
+    pub fn format_err(args: Arguments) -> Error {
+        if let Some(msg) = args.as_str() {
+            // anyhow!("literal"), can downcast to &'static str
+            Error::msg(msg)
+        } else {
+            // anyhow!("interpolate {var}"), can downcast to String
+            Error::msg(fmt::format(args))
+        }
     }
 }
