@@ -231,16 +231,7 @@
     clippy::wrong_self_convention
 )]
 
-mod alloc {
-    #[cfg(not(feature = "std"))]
-    pub extern crate alloc;
-
-    #[cfg(not(feature = "std"))]
-    pub use alloc::boxed::Box;
-
-    #[cfg(feature = "std")]
-    pub use std::boxed::Box;
-}
+extern crate alloc;
 
 #[macro_use]
 mod backtrace;
@@ -628,12 +619,9 @@ pub mod private {
         __anyhow_concat as concat, __anyhow_format as format, __anyhow_stringify as stringify,
     };
     #[cfg(not(anyhow_no_macro_reexport))]
+    pub use alloc::format;
+    #[cfg(not(anyhow_no_macro_reexport))]
     pub use core::{concat, stringify};
-
-    #[cfg(all(not(anyhow_no_macro_reexport), not(feature = "std")))]
-    pub use crate::alloc::alloc::format;
-    #[cfg(all(not(anyhow_no_macro_reexport), feature = "std"))]
-    pub use std::format;
 
     #[cfg(anyhow_no_macro_reexport)]
     #[doc(hidden)]
