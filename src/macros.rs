@@ -179,6 +179,6 @@ macro_rules! anyhow {
         }
     });
     ($fmt:expr, $($arg:tt)*) => {
-        $crate::Error::msg(format!($fmt, $($arg)*))
+        $crate::Error::msg($crate::private::format!($fmt, $($arg)*))
     };
 }
