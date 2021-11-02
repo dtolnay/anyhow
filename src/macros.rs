@@ -168,7 +168,7 @@ macro_rules! ensure {
 #[macro_export]
 macro_rules! anyhow {
     ($msg:literal $(,)?) => {
-        $crate::private::format_err($crate::private::format_args!($crate::private::concat!($msg)))
+        $crate::private::format_err($msg, $crate::private::format_args!($crate::private::concat!($msg)))
     };
     ($err:expr $(,)?) => ({
         use $crate::private::kind::*;

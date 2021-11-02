@@ -606,7 +606,7 @@ pub trait Context<T, E>: context::private::Sealed {
 pub mod private {
     use crate::Error;
     use alloc::fmt;
-    use core::fmt::Arguments;
+    use core::fmt::{Arguments, Debug, Display};
 
     pub use alloc::format;
     pub use core::result::Result::Err;
@@ -621,12 +621,14 @@ pub mod private {
     }
 
     #[doc(hidden)]
-    #[inline]
     #[cold]
-    pub fn format_err(args: Arguments) -> Error {
-        if let Some(msg) = args.as_str() {
+    pub fn format_err<M>(message: M, args: Arguments) -> Error
+    where
+        M: Display + Debug + Send + Sync + 'static,
+    {
+        if args.as_str().is_some() {
             // anyhow!("literal"), can downcast to &'static str
-            Error::msg(msg)
+            Error::msg(message)
         } else {
             // anyhow!("interpolate {var}"), can downcast to String
             Error::msg(fmt::format(args))
