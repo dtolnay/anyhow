@@ -168,9 +168,17 @@ macro_rules! ensure {
 #[macro_export]
 macro_rules! anyhow {
     ($msg:literal $(,)?) => {
-        // Handle $:literal as a special case to make cargo-expanded code more
-        // concise in the common case.
-        $crate::Error::msg($msg)
+        match $crate::private::format_args!($crate::private::concat!($msg)) {
+            arguments => {
+                if let $crate::private::Some(msg) = $crate::private::Arguments::as_str(&arguments) {
+                    // anyhow!("literal"), can downcast to &'static str
+                    $crate::Error::msg(msg)
+                } else {
+                    // anyhow!("interpolate {var}"), can downcast to String
+                    $crate::Error::msg($crate::private::format(arguments))
+                }
+            }
+        }
     };
     ($err:expr $(,)?) => ({
         use $crate::private::kind::*;

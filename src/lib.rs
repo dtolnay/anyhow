@@ -604,9 +604,12 @@ pub trait Context<T, E>: context::private::Sealed {
 // Not public API. Referenced by macro-generated code.
 #[doc(hidden)]
 pub mod private {
-    pub use alloc::format;
+    pub use alloc::fmt::format; // the function
+    pub use alloc::format; // the macro
+    pub use core::fmt::Arguments;
+    pub use core::option::Option::Some;
     pub use core::result::Result::Err;
-    pub use core::{concat, stringify};
+    pub use core::{concat, format_args, stringify};
 
     #[doc(hidden)]
     pub mod kind {
