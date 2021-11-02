@@ -32,21 +32,14 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.42.0
       - run: cargo check --features backtrace
 
-  nostd:
+  msrv:
     name: Rust 1.36.0
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: dtolnay/rust-toolchain@1.36.0
-      - run: cargo check --no-default-features
-
-  msrv:
-    name: Rust 1.34.0
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: dtolnay/rust-toolchain@1.34.0
       - run: cargo check
+      - run: cargo check --no-default-features
 
   windows:
     name: Windows
