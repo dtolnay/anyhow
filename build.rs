@@ -55,10 +55,6 @@ fn main() {
         None => return,
     };
 
-    if rustc < 38 {
-        println!("cargo:rustc-cfg=anyhow_no_macro_reexport");
-    }
-
     if rustc < 51 {
         println!("cargo:rustc-cfg=anyhow_no_ptr_addr_of");
     }

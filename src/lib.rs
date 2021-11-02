@@ -604,7 +604,9 @@ pub trait Context<T, E>: context::private::Sealed {
 // Not public API. Referenced by macro-generated code.
 #[doc(hidden)]
 pub mod private {
+    pub use alloc::format;
     pub use core::result::Result::Err;
+    pub use core::{concat, stringify};
 
     #[doc(hidden)]
     pub mod kind {
@@ -612,41 +614,5 @@ pub mod private {
 
         #[cfg(feature = "std")]
         pub use crate::kind::BoxedKind;
-    }
-
-    #[cfg(anyhow_no_macro_reexport)]
-    pub use crate::{
-        __anyhow_concat as concat, __anyhow_format as format, __anyhow_stringify as stringify,
-    };
-    #[cfg(not(anyhow_no_macro_reexport))]
-    pub use alloc::format;
-    #[cfg(not(anyhow_no_macro_reexport))]
-    pub use core::{concat, stringify};
-
-    #[cfg(anyhow_no_macro_reexport)]
-    #[doc(hidden)]
-    #[macro_export]
-    macro_rules! __anyhow_concat {
-        ($($tt:tt)*) => {
-            concat!($($tt)*)
-        };
-    }
-
-    #[cfg(anyhow_no_macro_reexport)]
-    #[doc(hidden)]
-    #[macro_export]
-    macro_rules! __anyhow_format {
-        ($($tt:tt)*) => {
-            format!($($tt)*)
-        };
-    }
-
-    #[cfg(anyhow_no_macro_reexport)]
-    #[doc(hidden)]
-    #[macro_export]
-    macro_rules! __anyhow_stringify {
-        ($($tt:tt)*) => {
-            stringify!($($tt)*)
-        };
     }
 }
