@@ -626,12 +626,17 @@ pub mod private {
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        if args.as_str().is_some() {
-            // anyhow!("literal"), can downcast to &'static str
-            Error::msg(message)
-        } else {
+        #[cfg(anyhow_no_fmt_arguments_as_str)]
+        let has_interpolated_format_args = false;
+        #[cfg(not(anyhow_no_fmt_arguments_as_str))]
+        let has_interpolated_format_args = args.as_str().is_none();
+
+        if has_interpolated_format_args {
             // anyhow!("interpolate {var}"), can downcast to String
             Error::msg(fmt::format(args))
+        } else {
+            // anyhow!("literal"), can downcast to &'static str
+            Error::msg(message)
         }
     }
 }

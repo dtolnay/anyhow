@@ -58,6 +58,10 @@ fn main() {
     if rustc < 51 {
         println!("cargo:rustc-cfg=anyhow_no_ptr_addr_of");
     }
+
+    if rustc < 52 {
+        println!("cargo:rustc-cfg=anyhow_no_fmt_arguments_as_str");
+    }
 }
 
 fn compile_probe() -> Option<ExitStatus> {
