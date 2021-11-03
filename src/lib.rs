@@ -604,9 +604,13 @@ pub trait Context<T, E>: context::private::Sealed {
 // Not public API. Referenced by macro-generated code.
 #[doc(hidden)]
 pub mod private {
+    use crate::Error;
+    use alloc::fmt;
+    use core::fmt::{Arguments, Debug, Display};
+
     pub use alloc::format;
     pub use core::result::Result::Err;
-    pub use core::{concat, stringify};
+    pub use core::{concat, format_args, stringify};
 
     #[doc(hidden)]
     pub mod kind {
@@ -614,5 +618,25 @@ pub mod private {
 
         #[cfg(feature = "std")]
         pub use crate::kind::BoxedKind;
+    }
+
+    #[doc(hidden)]
+    #[cold]
+    pub fn format_err<M>(message: M, args: Arguments) -> Error
+    where
+        M: Display + Debug + Send + Sync + 'static,
+    {
+        #[cfg(anyhow_no_fmt_arguments_as_str)]
+        let has_interpolated_format_args = false;
+        #[cfg(not(anyhow_no_fmt_arguments_as_str))]
+        let has_interpolated_format_args = args.as_str().is_none();
+
+        if has_interpolated_format_args {
+            // anyhow!("interpolate {var}"), can downcast to String
+            Error::msg(fmt::format(args))
+        } else {
+            // anyhow!("literal"), can downcast to &'static str
+            Error::msg(message)
+        }
     }
 }

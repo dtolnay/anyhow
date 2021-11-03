@@ -168,9 +168,7 @@ macro_rules! ensure {
 #[macro_export]
 macro_rules! anyhow {
     ($msg:literal $(,)?) => {
-        // Handle $:literal as a special case to make cargo-expanded code more
-        // concise in the common case.
-        $crate::Error::msg($msg)
+        $crate::private::format_err($msg, $crate::private::format_args!($msg))
     };
     ($err:expr $(,)?) => ({
         use $crate::private::kind::*;
