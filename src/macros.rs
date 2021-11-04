@@ -168,7 +168,7 @@ macro_rules! ensure {
 #[macro_export]
 macro_rules! anyhow {
     ($msg:literal $(,)?) => ({
-        let error = $crate::private::format_err($msg, $crate::private::format_args!($msg));
+        let error = $crate::private::format_err($crate::private::format_args!($msg));
         error
     });
     ($err:expr $(,)?) => ({
