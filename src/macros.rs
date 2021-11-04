@@ -173,9 +173,10 @@ macro_rules! anyhow {
     });
     ($err:expr $(,)?) => ({
         use $crate::private::kind::*;
-        match $err {
+        let error = match $err {
             error => (&error).anyhow_kind().new(error),
-        }
+        };
+        error
     });
     ($fmt:expr, $($arg:tt)*) => {
         $crate::Error::msg($crate::private::format!($fmt, $($arg)*))
