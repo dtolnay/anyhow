@@ -37,7 +37,6 @@ jobs:
           toolchain: ${{matrix.rust}}
       - run: cargo check --no-default-features
       - run: cargo check --features backtrace
-        if: matrix.rust != '1.50.0'
 
   backtrace:
     name: Rust 1.42.0
