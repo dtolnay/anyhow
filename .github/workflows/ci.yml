@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rust: [nightly, beta, stable, 1.51.0, 1.50.0]
+        rust: [nightly, beta, stable, 1.52.0]
     steps:
       - uses: actions/checkout@v2
       - uses: dtolnay/rust-toolchain@master
@@ -20,6 +20,21 @@ jobs:
           toolchain: ${{matrix.rust}}
           components: rust-src
       - run: cargo test
+      - run: cargo check --no-default-features
+      - run: cargo check --features backtrace
+
+  build:
+    name: Rust ${{matrix.rust}}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rust: [1.51.0, 1.50.0]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{matrix.rust}}
       - run: cargo check --no-default-features
       - run: cargo check --features backtrace
         if: matrix.rust != '1.50.0'
