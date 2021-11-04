@@ -606,7 +606,7 @@ pub trait Context<T, E>: context::private::Sealed {
 pub mod private {
     use crate::Error;
     use alloc::fmt;
-    use core::fmt::{Arguments, Debug, Display};
+    use core::fmt::Arguments;
 
     pub use alloc::format;
     pub use core::result::Result::Err;
@@ -621,13 +621,11 @@ pub mod private {
     }
 
     #[doc(hidden)]
+    #[inline]
     #[cold]
-    pub fn format_err<M>(_message: M, args: Arguments) -> Error
-    where
-        M: Display + Debug + Send + Sync + 'static,
-    {
+    pub fn format_err(args: Arguments) -> Error {
         #[cfg(anyhow_no_fmt_arguments_as_str)]
-        let fmt_arguments_as_str = Some(_message);
+        let fmt_arguments_as_str = None::<&str>;
         #[cfg(not(anyhow_no_fmt_arguments_as_str))]
         let fmt_arguments_as_str = args.as_str();
 
