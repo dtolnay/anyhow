@@ -622,21 +622,21 @@ pub mod private {
 
     #[doc(hidden)]
     #[cold]
-    pub fn format_err<M>(message: M, args: Arguments) -> Error
+    pub fn format_err<M>(_message: M, args: Arguments) -> Error
     where
         M: Display + Debug + Send + Sync + 'static,
     {
         #[cfg(anyhow_no_fmt_arguments_as_str)]
-        let has_interpolated_format_args = false;
+        let fmt_arguments_as_str = Some(_message);
         #[cfg(not(anyhow_no_fmt_arguments_as_str))]
-        let has_interpolated_format_args = args.as_str().is_none();
+        let fmt_arguments_as_str = args.as_str();
 
-        if has_interpolated_format_args {
-            // anyhow!("interpolate {var}"), can downcast to String
-            Error::msg(fmt::format(args))
-        } else {
+        if let Some(message) = fmt_arguments_as_str {
             // anyhow!("literal"), can downcast to &'static str
             Error::msg(message)
+        } else {
+            // anyhow!("interpolate {var}"), can downcast to String
+            Error::msg(fmt::format(args))
         }
     }
 }
