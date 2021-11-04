@@ -56,3 +56,9 @@ fn test_temporaries() {
         future::ready(anyhow!("...")).await;
     });
 }
+
+#[test]
+fn test_brace_escape() {
+    let err = anyhow!("unterminated ${{..}} expression");
+    assert_eq!("unterminated ${..} expression", err.to_string());
+}
