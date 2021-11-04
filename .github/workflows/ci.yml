@@ -29,23 +29,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rust: [1.51.0, 1.50.0, 1.42.0]
+        rust: [1.51.0, 1.50.0, 1.42.0, 1.38.0]
     steps:
       - uses: actions/checkout@v2
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{matrix.rust}}
-      - run: cargo check --no-default-features
-      - run: cargo check --features backtrace
-
-  msrv:
-    name: Rust 1.38.0
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: dtolnay/rust-toolchain@1.38.0
       - run: cargo check
       - run: cargo check --no-default-features
+      - run: cargo check --features backtrace
+        if: matrix.rust != '1.38.0'
 
   windows:
     name: Windows
