@@ -10,6 +10,7 @@ mod common;
 
 use self::common::*;
 use anyhow::{anyhow, ensure};
+use std::cell::Cell;
 use std::future;
 
 #[test]
@@ -60,6 +61,14 @@ fn test_temporaries() {
         // semicolon, which is on the other side of the await point, making the
         // enclosing future non-Send.
         future::ready(anyhow!("...")).await;
+    });
+
+    fn message(cell: Cell<&str>) -> &str {
+        cell.get()
+    }
+
+    require_send_sync(async {
+        future::ready(anyhow!(message(Cell::new("...")))).await;
     });
 }
 
