@@ -3,7 +3,8 @@
 mod common;
 
 use self::common::*;
-use anyhow::ensure;
+use anyhow::{anyhow, ensure};
+use std::future;
 
 #[test]
 fn test_messages() {
@@ -41,4 +42,17 @@ fn test_ensure() {
         f().unwrap_err().to_string(),
         "Condition failed: `v + v == 1`",
     );
+}
+
+#[test]
+fn test_temporaries() {
+    fn require_send_sync(_: impl Send + Sync) {}
+
+    require_send_sync(async {
+        // If anyhow hasn't dropped any temporary format_args it creates by the
+        // time it's done evaluating, those will stick around until the
+        // semicolon, which is on the other side of the await point, making the
+        // enclosing future non-Send.
+        future::ready(anyhow!("...")).await;
+    });
 }
