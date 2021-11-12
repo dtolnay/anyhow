@@ -4,10 +4,20 @@ use crate::ptr::Ref;
 use core::fmt::{self, Debug, Write};
 
 impl ErrorImpl {
+    #[cfg(feature = "always_print_causes")]
+    fn alternate(_f: &mut fmt::Formatter) -> bool {
+        true
+    }
+
+    #[cfg(not(feature = "always_print_causes"))]
+    fn alternate(f: &mut fmt::Formatter) -> bool {
+        f.alternate()
+    }
+
     pub(crate) unsafe fn display(this: Ref<Self>, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", Self::error(this))?;
 
-        if f.alternate() {
+        if Self::alternate(f) {
             for cause in Self::chain(this).skip(1) {
                 write!(f, ": {}", cause)?;
             }

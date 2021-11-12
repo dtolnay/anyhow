@@ -66,9 +66,16 @@ Error {
 }\
 ";
 
+#[cfg(not(feature = "always_print_causes"))]
 #[test]
 fn test_display() {
     assert_eq!("g failed", h().unwrap_err().to_string());
+}
+
+#[cfg(feature = "always_print_causes")]
+#[test]
+fn test_display() {
+    assert_eq!("g failed: f failed: oh no!", h().unwrap_err().to_string());
 }
 
 #[test]
