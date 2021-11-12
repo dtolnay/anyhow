@@ -7,7 +7,7 @@ impl ErrorImpl {
     pub(crate) unsafe fn display(this: Ref<Self>, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", Self::error(this))?;
 
-        if f.alternate() {
+        if cfg!(feature = "always_print_causes") || f.alternate() {
             for cause in Self::chain(this).skip(1) {
                 write!(f, ": {}", cause)?;
             }

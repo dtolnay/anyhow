@@ -20,8 +20,10 @@ jobs:
           toolchain: ${{matrix.rust}}
           components: rust-src
       - run: cargo test
+      - run: cargo test --features always_print_causes
       - run: cargo check --no-default-features
       - run: cargo check --features backtrace
+      - run: cargo check --features always_print_causes
 
   build:
     name: Rust ${{matrix.rust}}
