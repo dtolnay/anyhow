@@ -36,24 +36,24 @@ macro_rules! __parse_ensure {
 
     // low precedence control flow constructs
 
-    (0 $stack:tt $bail:tt $parse:tt return $($rest:tt)*) => {
-        $crate::__fallback_ensure!($bail)
+    (0 $stack:tt ($($bail:tt)*) $parse:tt return $($rest:tt)*) => {
+        $crate::__fallback_ensure!($($bail)*)
     };
 
-    (0 $stack:tt $bail:tt $parse:tt break $($rest:tt)*) => {
-        $crate::__fallback_ensure!($bail)
+    (0 $stack:tt ($($bail:tt)*) $parse:tt break $($rest:tt)*) => {
+        $crate::__fallback_ensure!($($bail)*)
     };
 
-    (0 $stack:tt $bail:tt $parse:tt continue $($rest:tt)*) => {
-        $crate::__fallback_ensure!($bail)
+    (0 $stack:tt ($($bail:tt)*) $parse:tt continue $($rest:tt)*) => {
+        $crate::__fallback_ensure!($($bail)*)
     };
 
-    (0 $stack:tt $bail:tt $parse:tt yield $($rest:tt)*) => {
-        $crate::__fallback_ensure!($bail)
+    (0 $stack:tt ($($bail:tt)*) $parse:tt yield $($rest:tt)*) => {
+        $crate::__fallback_ensure!($($bail)*)
     };
 
-    (0 $stack:tt $bail:tt $parse:tt move $($rest:tt)*) => {
-        $crate::__fallback_ensure!($bail)
+    (0 $stack:tt ($($bail:tt)*) $parse:tt move $($rest:tt)*) => {
+        $crate::__fallback_ensure!($($bail)*)
     };
 
     // unary operators
@@ -422,8 +422,8 @@ macro_rules! __parse_ensure {
 
     // unrecognized expression
 
-    ($state:tt $stack:tt $bail:tt $($rest:tt)*) => {
-        $crate::__fallback_ensure!($bail)
+    ($state:tt $stack:tt ($($bail:tt)*) $($rest:tt)*) => {
+        $crate::__fallback_ensure!($($bail)*)
     };
 }
 
@@ -446,24 +446,24 @@ macro_rules! __fancy_ensure {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __fallback_ensure {
-    (($cond:expr $(,)?)) => {
+    ($cond:expr $(,)?) => {
         if !$cond {
             return $crate::private::Err($crate::Error::msg(
                 $crate::private::concat!("Condition failed: `", $crate::private::stringify!($cond), "`")
             ));
         }
     };
-    (($cond:expr, $msg:literal $(,)?)) => {
+    ($cond:expr, $msg:literal $(,)?) => {
         if !$cond {
             return $crate::private::Err($crate::anyhow!($msg));
         }
     };
-    (($cond:expr, $err:expr $(,)?)) => {
+    ($cond:expr, $err:expr $(,)?) => {
         if !$cond {
             return $crate::private::Err($crate::anyhow!($err));
         }
     };
-    (($cond:expr, $fmt:expr, $($arg:tt)*)) => {
+    ($cond:expr, $fmt:expr, $($arg:tt)*) => {
         if !$cond {
             return $crate::private::Err($crate::anyhow!($fmt, $($arg)*));
         }

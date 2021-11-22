@@ -1,7 +1,7 @@
-error: no rules expected the token `)`
+error: unexpected end of macro invocation
  --> tests/ui/empty-ensure.rs:4:5
   |
 4 |     ensure!();
-  |     ^^^^^^^^^ no rules expected this token in macro call
+  |     ^^^^^^^^^ missing tokens in macro arguments
   |
-  = note: this error originates in the macro `ensure` (in Nightly builds, run with -Z macro-backtrace for more info)
+  = note: this error originates in the macro `$crate::__parse_ensure` (in Nightly builds, run with -Z macro-backtrace for more info)
