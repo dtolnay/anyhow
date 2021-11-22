@@ -365,3 +365,15 @@ fn test_trailer() {
         "Condition failed: `err.is::<<str as ToOwned>::Owned>() == true` (false vs true)",
     );
 }
+
+#[test]
+fn test_too_long() {
+    let test = || Ok(ensure!("" == "x".repeat(10)));
+    assert_err(
+        test,
+        "Condition failed: `\"\" == \"x\".repeat(10)` (\"\" vs \"xxxxxxxxxx\")",
+    );
+
+    let test = || Ok(ensure!("" == "x".repeat(80)));
+    assert_err(test, "Condition failed: `\"\" == \"x\".repeat(80)`");
+}
