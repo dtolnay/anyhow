@@ -376,7 +376,10 @@ fn test_whitespace() {
 
     let point = Point { x: 0, y: 0 };
     let test = || Ok(ensure!("" == format!("{:#?}", point)));
-    assert_err(test, "Condition failed: `\"\" == format!(\"{:#?}\", point)`");
+    assert_err(
+        test,
+        "Condition failed: `\"\" == format!(\"{:#?}\", point)`",
+    );
 }
 
 #[test]
