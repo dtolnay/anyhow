@@ -1,5 +1,5 @@
-use crate::{anyhow, Error};
-use core::fmt::{self, Debug, Display, Write};
+use crate::Error;
+use core::fmt::{self, Debug, Write};
 use core::mem::MaybeUninit;
 use core::ptr;
 use core::slice;
@@ -43,6 +43,15 @@ impl Buf {
             written: 0,
         }
     }
+
+    fn as_str(&self) -> &str {
+        unsafe {
+            str::from_utf8_unchecked(slice::from_raw_parts(
+                self.bytes.as_ptr().cast::<u8>(),
+                self.written,
+            ))
+        }
+    }
 }
 
 impl Write for Buf {
@@ -68,23 +77,23 @@ impl Write for Buf {
     }
 }
 
-impl Display for Buf {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str(unsafe {
-            str::from_utf8_unchecked(slice::from_raw_parts(
-                self.bytes.as_ptr().cast::<u8>(),
-                self.written,
-            ))
-        })
-    }
-}
-
 fn render(msg: &'static str, lhs: &dyn Debug, rhs: &dyn Debug) -> Error {
     let mut lhs_buf = Buf::new();
     if fmt::write(&mut lhs_buf, format_args!("{:?}", lhs)).is_ok() {
         let mut rhs_buf = Buf::new();
         if fmt::write(&mut rhs_buf, format_args!("{:?}", rhs)).is_ok() {
-            return anyhow!("{} ({} vs {})", msg, lhs_buf, rhs_buf);
+            let lhs_str = lhs_buf.as_str();
+            let rhs_str = rhs_buf.as_str();
+            // "{msg} ({lhs} vs {rhs})"
+            let len = msg.len() + 2 + lhs_str.len() + 4 + rhs_str.len() + 1;
+            let mut string = String::with_capacity(len);
+            string.push_str(msg);
+            string.push_str(" (");
+            string.push_str(lhs_str);
+            string.push_str(" vs ");
+            string.push_str(rhs_str);
+            string.push(')');
+            return Error::msg(string);
         }
     }
     Error::msg(msg)
