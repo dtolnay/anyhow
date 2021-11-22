@@ -11,6 +11,7 @@ use std::fmt::Debug;
 use std::iter;
 use std::marker::PhantomData;
 use std::ops::Add;
+use std::ptr;
 
 struct S;
 
@@ -262,10 +263,11 @@ fn test_atom() {
         "Condition failed: `S + async move  { 1 } == true` (false vs true)",
     );
 
-    let test = || Ok(ensure!(S + unsafe { 1 } == true));
+    let x = &1;
+    let test = || Ok(ensure!(S + unsafe { ptr::read(x) } == true));
     assert_err(
         test,
-        "Condition failed: `S + unsafe { 1 } == true` (false vs true)",
+        "Condition failed: `S + unsafe { ptr::read(x) } == true` (false vs true)",
     );
 }
 
