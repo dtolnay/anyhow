@@ -1,4 +1,5 @@
 use crate::Error;
+use alloc::string::String;
 use core::fmt::{self, Debug, Write};
 use core::mem::MaybeUninit;
 use core::ptr;
