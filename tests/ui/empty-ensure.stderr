@@ -1,5 +1,7 @@
-error: unexpected end of macro invocation
+error: no rules expected the token `)`
  --> tests/ui/empty-ensure.rs:4:5
   |
 4 |     ensure!();
-  |     ^^^^^^^^^ missing tokens in macro arguments
+  |     ^^^^^^^^^ no rules expected this token in macro call
+  |
+  = note: this error originates in the macro `ensure` (in Nightly builds, run with -Z macro-backtrace for more info)

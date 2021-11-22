@@ -133,6 +133,7 @@ macro_rules! bail {
 /// #     Ok(())
 /// # }
 /// ```
+#[cfg(doc)]
 #[macro_export]
 macro_rules! ensure {
     ($cond:expr $(,)?) => {
@@ -156,6 +157,14 @@ macro_rules! ensure {
         if !$cond {
             return $crate::private::Err($crate::anyhow!($fmt, $($arg)*));
         }
+    };
+}
+
+#[cfg(not(doc))]
+#[macro_export]
+macro_rules! ensure {
+    ($($tt:tt)*) => {
+        $crate::__parse_ensure!(0 () ($($tt)*) {()} $($tt)*)
     };
 }
 
