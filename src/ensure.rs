@@ -47,20 +47,24 @@ impl Buf {
 
 impl Write for Buf {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        let remaining = self.bytes.len() - self.written;
-        if s.len() <= remaining {
-            unsafe {
-                ptr::copy_nonoverlapping(
-                    s.as_ptr(),
-                    self.bytes.as_mut_ptr().add(self.written).cast::<u8>(),
-                    s.len(),
-                );
-            }
-            self.written += s.len();
-            Ok(())
-        } else {
-            Err(fmt::Error)
+        if s.bytes().any(|b| b == b' ' || b == b'\n') {
+            return Err(fmt::Error);
         }
+
+        let remaining = self.bytes.len() - self.written;
+        if s.len() > remaining {
+            return Err(fmt::Error);
+        }
+
+        unsafe {
+            ptr::copy_nonoverlapping(
+                s.as_ptr(),
+                self.bytes.as_mut_ptr().add(self.written).cast::<u8>(),
+                s.len(),
+            );
+        }
+        self.written += s.len();
+        Ok(())
     }
 }
 

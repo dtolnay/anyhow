@@ -367,6 +367,19 @@ fn test_trailer() {
 }
 
 #[test]
+fn test_whitespace() {
+    #[derive(Debug)]
+    pub struct Point {
+        pub x: i32,
+        pub y: i32,
+    }
+
+    let point = Point { x: 0, y: 0 };
+    let test = || Ok(ensure!("" == format!("{:#?}", point)));
+    assert_err(test, "Condition failed: `\"\" == format!(\"{:#?}\", point)`");
+}
+
+#[test]
 fn test_too_long() {
     let test = || Ok(ensure!("" == "x".repeat(10)));
     assert_err(
