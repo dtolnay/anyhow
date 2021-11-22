@@ -164,7 +164,14 @@ macro_rules! ensure {
 #[macro_export]
 macro_rules! ensure {
     ($($tt:tt)*) => {
-        $crate::__parse_ensure!(0 () ($($tt)*) {()} $($tt)*)
+        $crate::__parse_ensure!(
+            /* state */ 0
+            /* stack */ ()
+            /* bail */ ($($tt)*)
+            /* fuel */ (~~~~~~~~~~ ~~~~~~~~~~ ~~~~~~~~~~ ~~~~~~~~~~ ~~~~~~~~~~ ~~~~~~~~~~ ~~~~~~~~~~ ~~~~~~~~~~ ~~~~~~~~~~ ~~~~~~~~~~ ~~~~~~~~~~ ~~~~~~~~~~)
+            /* parse */ {()}
+            /* rest */ $($tt)*
+        )
     };
 }
 
