@@ -32,7 +32,15 @@ impl<T> Trait for T {}
 
 #[track_caller]
 fn assert_err<T: Debug>(result: impl FnOnce() -> Result<T>, expected: &'static str) {
-    assert_eq!(result().unwrap_err().to_string(), expected);
+    let actual = result().unwrap_err().to_string();
+
+    let mut accepted_alternatives = expected.split('\n');
+    let expected = accepted_alternatives.next_back().unwrap();
+    if accepted_alternatives.any(|alternative| actual == alternative) {
+        return;
+    }
+
+    assert_eq!(actual, expected);
 }
 
 #[test]
@@ -153,14 +161,18 @@ fn test_loop() {
     let test = || Ok(ensure!(1 + loop { break 1 } == 1));
     assert_err(
         test,
-        "Condition failed: `1 + loop { break 1  } == 1` (2 vs 1)",
+        // 1.54 puts a double space after loop
+        "Condition failed: `1 + loop  { break 1  } == 1` (2 vs 1)\n\
+         Condition failed: `1 + loop { break 1  } == 1` (2 vs 1)",
     );
 
     #[rustfmt::skip]
     let test = || Ok(ensure!(1 + 'a: loop { break 'a 1 } == 1));
     assert_err(
         test,
-        "Condition failed: `1 + 'a: loop { break 'a 1  } == 1` (2 vs 1)",
+        // 1.54 puts a double space after loop
+        "Condition failed: `1 + 'a: loop  { break 'a 1  } == 1` (2 vs 1)\n\
+         Condition failed: `1 + 'a: loop { break 'a 1  } == 1` (2 vs 1)",
     );
 
     #[rustfmt::skip]
