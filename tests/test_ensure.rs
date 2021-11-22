@@ -1,9 +1,15 @@
 #![allow(
     clippy::diverging_sub_expression,
+    clippy::if_same_then_else,
+    clippy::ifs_same_cond,
     clippy::let_and_return,
     clippy::let_underscore_drop,
+    clippy::match_bool,
     clippy::never_loop,
-    clippy::unit_arg
+    clippy::redundant_closure_call,
+    clippy::redundant_pattern_matching,
+    clippy::unit_arg,
+    clippy::while_immutable_condition
 )]
 
 use anyhow::{anyhow, ensure, Chain, Error, Result};
