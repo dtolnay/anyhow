@@ -237,6 +237,7 @@ extern crate alloc;
 mod backtrace;
 mod chain;
 mod context;
+mod ensure;
 mod error;
 mod fmt;
 mod kind;
@@ -608,6 +609,7 @@ pub mod private {
     use alloc::fmt;
     use core::fmt::Arguments;
 
+    pub use crate::ensure::{BothDebug, NotBothDebug};
     pub use alloc::format;
     pub use core::result::Result::Err;
     pub use core::{concat, format_args, stringify};

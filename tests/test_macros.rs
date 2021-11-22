@@ -47,7 +47,7 @@ fn test_ensure() {
     };
     assert_eq!(
         f().unwrap_err().to_string(),
-        "Condition failed: `v + v == 1`",
+        "Condition failed: `v + v == 1` (2 vs 1)",
     );
 }
 
