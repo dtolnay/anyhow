@@ -44,6 +44,23 @@ fn assert_err<T: Debug>(result: impl FnOnce() -> Result<T>, expected: &'static s
 }
 
 #[test]
+fn test_recursion() {
+    // Must not blow the default #[recursion_limit], which is 128.
+    #[rustfmt::skip]
+    let test = || Ok(ensure!(
+        false | false | false | false | false | false | false | false | false |
+        false | false | false | false | false | false | false | false | false |
+        false | false | false | false | false | false | false | false | false |
+        false | false | false | false | false | false | false | false | false |
+        false | false | false | false | false | false | false | false | false |
+        false | false | false | false | false | false | false | false | false |
+        false | false | false | false | false | false | false | false | false
+    ));
+
+    test().unwrap_err();
+}
+
+#[test]
 fn test_low_precedence_control_flow() {
     #[allow(unreachable_code)]
     let test = || {
