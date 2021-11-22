@@ -1,5 +1,9 @@
 use crate::{anyhow, Error};
-use core::fmt::Debug;
+use core::fmt::{self, Debug, Display, Write};
+use core::mem::MaybeUninit;
+use core::ptr;
+use core::slice;
+use core::str;
 
 #[doc(hidden)]
 pub trait BothDebug {
@@ -12,7 +16,7 @@ where
     B: Debug,
 {
     fn __dispatch_ensure(self, msg: &'static str) -> Error {
-        anyhow!("{} ({:?} vs {:?})", msg, self.0, self.1)
+        render(msg, &self.0, &self.1)
     }
 }
 
@@ -25,6 +29,61 @@ impl<A, B> NotBothDebug for &(A, B) {
     fn __dispatch_ensure(self, msg: &'static str) -> Error {
         Error::msg(msg)
     }
+}
+
+struct Buf {
+    bytes: [MaybeUninit<u8>; 40],
+    written: usize,
+}
+
+impl Buf {
+    fn new() -> Self {
+        Buf {
+            bytes: [MaybeUninit::uninit(); 40],
+            written: 0,
+        }
+    }
+}
+
+impl Write for Buf {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        let remaining = self.bytes.len() - self.written;
+        if s.len() <= remaining {
+            unsafe {
+                ptr::copy_nonoverlapping(
+                    s.as_ptr(),
+                    self.bytes.as_mut_ptr().add(self.written).cast::<u8>(),
+                    s.len(),
+                );
+            }
+            self.written += s.len();
+            Ok(())
+        } else {
+            Err(fmt::Error)
+        }
+    }
+}
+
+impl Display for Buf {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_str(unsafe {
+            str::from_utf8_unchecked(slice::from_raw_parts(
+                self.bytes.as_ptr().cast::<u8>(),
+                self.written,
+            ))
+        })
+    }
+}
+
+fn render(msg: &'static str, lhs: &dyn Debug, rhs: &dyn Debug) -> Error {
+    let mut lhs_buf = Buf::new();
+    if fmt::write(&mut lhs_buf, format_args!("{:?}", lhs)).is_ok() {
+        let mut rhs_buf = Buf::new();
+        if fmt::write(&mut rhs_buf, format_args!("{:?}", rhs)).is_ok() {
+            return anyhow!("{} ({} vs {})", msg, lhs_buf, rhs_buf);
+        }
+    }
+    Error::msg(msg)
 }
 
 #[doc(hidden)]
