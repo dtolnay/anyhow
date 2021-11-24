@@ -305,7 +305,11 @@ macro_rules! __parse_ensure {
         $crate::__parse_ensure!(generic (atom $stack) $bail ($($fuel)*) {($($buf)* $dot $ident $colons <) $($parse)*} (< $($rest)*) < $($rest)*)
     };
 
-    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($dot:tt $($dup:tt)*) . $index:tt $($rest:tt)*) => {
+    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($dot:tt $($dup:tt)*) . $field:ident $($rest:tt)*) => {
+        $crate::__parse_ensure!(atom $stack $bail ($($fuel)*) {($($buf)* $dot $field) $($parse)*} ($($rest)*) $($rest)*)
+    };
+
+    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($dot:tt $index:tt $($dup:tt)*) . $lit:literal $($rest:tt)*) => {
         $crate::__parse_ensure!(atom $stack $bail ($($fuel)*) {($($buf)* $dot $index) $($parse)*} ($($rest)*) $($rest)*)
     };
 
