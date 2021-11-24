@@ -360,6 +360,7 @@ fn test_trailer() {
     let test = || Ok(ensure!((2, 3).1 == 2));
     assert_err(test, "Condition failed: `(2, 3).1 == 2` (3 vs 2)");
 
+    #[rustfmt::skip]
     let test = || Ok(ensure!((2, (3, 4)). 1.1 == 2));
     assert_err(test, "Condition failed: `(2, (3, 4)).1.1 == 2` (4 vs 2)");
 
