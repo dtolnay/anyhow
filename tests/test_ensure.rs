@@ -360,6 +360,9 @@ fn test_trailer() {
     let test = || Ok(ensure!((2, 3).1 == 2));
     assert_err(test, "Condition failed: `(2, 3).1 == 2` (3 vs 2)");
 
+    let test = || Ok(ensure!((2, (3, 4)). 1.1 == 2));
+    assert_err(test, "Condition failed: `(2, (3, 4)).1.1 == 2` (4 vs 2)");
+
     let err = anyhow!("");
     let test = || Ok(ensure!(err.is::<&str>() == false));
     assert_err(
