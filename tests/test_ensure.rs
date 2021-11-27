@@ -2,6 +2,7 @@
     clippy::diverging_sub_expression,
     clippy::if_same_then_else,
     clippy::ifs_same_cond,
+    clippy::items_after_statements,
     clippy::let_and_return,
     clippy::let_underscore_drop,
     clippy::match_bool,
@@ -319,6 +320,25 @@ fn test_path() {
         test,
         "Condition failed: `Chain::<'static>::new.t(1) == 2` (1 vs 2)",
     );
+
+    #[derive(PartialOrd, PartialEq, Debug)]
+    enum E<'a, T> {
+        #[allow(dead_code)]
+        T(&'a T),
+        U,
+    }
+
+    #[rustfmt::skip]
+    let test = || Ok(ensure!(E::U::<>>E::U::<u8>));
+    assert_err(test, "Condition failed: `E::U::<> > E::U::<u8>` (U vs U)");
+
+    #[rustfmt::skip]
+    let test = || Ok(ensure!(E::U::<u8>>E::U));
+    assert_err(test, "Condition failed: `E::U::<u8> > E::U` (U vs U)");
+
+    #[rustfmt::skip]
+    let test = || Ok(ensure!(E::U::<u8,>>E::U));
+    assert_err(test, "Condition failed: `E::U::<u8> > E::U` (U vs U)");
 }
 
 #[test]
