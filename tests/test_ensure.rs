@@ -9,6 +9,7 @@
     clippy::never_loop,
     clippy::redundant_closure_call,
     clippy::redundant_pattern_matching,
+    clippy::too_many_lines,
     clippy::unit_arg,
     clippy::while_immutable_condition,
     clippy::zero_ptr
