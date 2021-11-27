@@ -425,3 +425,125 @@ fn test_too_long() {
     let test = || Ok(ensure!("" == "x".repeat(80)));
     assert_err(test, "Condition failed: `\"\" == \"x\".repeat(80)`");
 }
+
+#[test]
+fn test_as() {
+    let test = || Ok(ensure!('\0' as u8 > 1));
+    assert_err(test, "Condition failed: `'\\0' as u8 > 1` (0 vs 1)");
+
+    let test = || Ok(ensure!('\0' as ::std::primitive::u8 > 1));
+    assert_err(
+        test,
+        "Condition failed: `'\\0' as ::std::primitive::u8 > 1` (0 vs 1)",
+    );
+
+    let test = || Ok(ensure!(&[0] as &[i32] == [1]));
+    assert_err(
+        test,
+        "Condition failed: `&[0] as &[i32] == [1]` ([0] vs [1])",
+    );
+
+    let test = || Ok(ensure!(0 as *const () as *mut _ == 1 as *mut ()));
+    assert_err(
+        test,
+        "Condition failed: `0 as *const () as *mut _ == 1 as *mut ()` (0x0 vs 0x1)",
+    );
+
+    let s = "";
+    let test = || Ok(ensure!(s as &str != s));
+    assert_err(test, "Condition failed: `s as &str != s` (\"\" vs \"\")");
+
+    let test = || Ok(ensure!(&s as &&str != &s));
+    assert_err(test, "Condition failed: `&s as &&str != &s` (\"\" vs \"\")");
+
+    let test = || Ok(ensure!(s as &'static str != s));
+    assert_err(
+        test,
+        "Condition failed: `s as &'static str != s` (\"\" vs \"\")",
+    );
+
+    let test = || Ok(ensure!(&s as &&'static str != &s));
+    assert_err(
+        test,
+        "Condition failed: `&s as &&'static str != &s` (\"\" vs \"\")",
+    );
+
+    let m: &mut str = Default::default();
+    let test = || Ok(ensure!(m as &mut str != s));
+    assert_err(
+        test,
+        "Condition failed: `m as &mut str != s` (\"\" vs \"\")",
+    );
+
+    let test = || Ok(ensure!(&m as &&mut str != &s));
+    assert_err(
+        test,
+        "Condition failed: `&m as &&mut str != &s` (\"\" vs \"\")",
+    );
+
+    let test = || Ok(ensure!(&m as &&'static mut str != &s));
+    assert_err(
+        test,
+        "Condition failed: `&m as &&'static mut str != &s` (\"\" vs \"\")",
+    );
+
+    let f = || {};
+    let test = || Ok(ensure!(f as fn() as usize * 0 != 0));
+    assert_err(
+        test,
+        "Condition failed: `f as fn() as usize * 0 != 0` (0 vs 0)",
+    );
+
+    let test = || Ok(ensure!(f as fn() -> () as usize * 0 != 0));
+    assert_err(
+        test,
+        "Condition failed: `f as fn() -> () as usize * 0 != 0` (0 vs 0)",
+    );
+
+    let test = || Ok(ensure!(f as for<'a> fn() as usize * 0 != 0));
+    assert_err(
+        test,
+        "Condition failed: `f as for<'a>fn() as usize * 0 != 0` (0 vs 0)",
+    );
+
+    let f = || -> ! { panic!() };
+    let test = || Ok(ensure!(f as fn() -> ! as usize * 0 != 0));
+    assert_err(
+        test,
+        "Condition failed: `f as fn() -> ! as usize * 0 != 0` (0 vs 0)",
+    );
+
+    trait EqDebug<T>: PartialEq<T> + Debug {}
+    impl<S, T> EqDebug<T> for S where S: PartialEq<T> + Debug {}
+
+    let test = || Ok(ensure!(&0 as &dyn EqDebug<i32> != &0));
+    assert_err(
+        test,
+        "Condition failed: `&0 as &dyn EqDebug<i32> != &0` (0 vs 0)",
+    );
+
+    let test = || {
+        Ok(ensure!(
+            PhantomData as PhantomData<<i32 as ToOwned>::Owned> != PhantomData
+        ))
+    };
+    assert_err(
+        test,
+        "Condition failed: `PhantomData as PhantomData<<i32 as ToOwned>::Owned> != PhantomData` (PhantomData vs PhantomData)",
+    );
+
+    macro_rules! int {
+        (...) => {
+            u8
+        };
+    }
+
+    let test = || Ok(ensure!(0 as int!(...) != 0));
+    assert_err(test, "Condition failed: `0 as int!(...) != 0` (0 vs 0)");
+
+    let test = || Ok(ensure!(0 as int![...] != 0));
+    assert_err(test, "Condition failed: `0 as int![...] != 0` (0 vs 0)");
+
+    let test = || Ok(ensure!(0 as int! {...} != 0));
+    assert_err(test, "Condition failed: `0 as int! { ... } != 0` (0 vs 0)");
+}
