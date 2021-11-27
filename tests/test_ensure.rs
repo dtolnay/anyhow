@@ -2,6 +2,7 @@
     clippy::diverging_sub_expression,
     clippy::if_same_then_else,
     clippy::ifs_same_cond,
+    clippy::items_after_statements,
     clippy::let_and_return,
     clippy::let_underscore_drop,
     clippy::match_bool,
