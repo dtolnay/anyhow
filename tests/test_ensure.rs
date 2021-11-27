@@ -507,6 +507,27 @@ fn test_as() {
         "Condition failed: `f as for<'a>fn() as usize * 0 != 0` (0 vs 0)",
     );
 
+    let test = || Ok(ensure!(f as unsafe fn() as usize * 0 != 0));
+    assert_err(
+        test,
+        "Condition failed: `f as unsafe fn() as usize * 0 != 0` (0 vs 0)",
+    );
+
+    #[rustfmt::skip]
+    let test = || Ok(ensure!(f as extern "Rust" fn() as usize * 0 != 0));
+    assert_err(
+        test,
+        "Condition failed: `f as extern \"Rust\" fn() as usize * 0 != 0` (0 vs 0)",
+    );
+
+    extern "C" fn extern_fn() {}
+    #[rustfmt::skip]
+    let test = || Ok(ensure!(extern_fn as extern fn() as usize * 0 != 0));
+    assert_err(
+        test,
+        "Condition failed: `extern_fn as extern fn() as usize * 0 != 0` (0 vs 0)",
+    );
+
     let f = || -> ! { panic!() };
     let test = || Ok(ensure!(f as fn() -> ! as usize * 0 != 0));
     assert_err(

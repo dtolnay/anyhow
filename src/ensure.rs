@@ -365,6 +365,18 @@ macro_rules! __parse_ensure {
         $crate::__parse_ensure!(type $stack $bail ($($fuel)*) {($($buf)* $and) $($parse)*} ($($rest)*) $($rest)*)
     };
 
+    (type $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($unsafe:tt $(extern $($abi:literal)?)? fn $($dup:tt)*) unsafe $($rest:tt)*) => {
+        $crate::__parse_ensure!(type $stack $bail ($($fuel)*) {($($buf)* $unsafe) $($parse)*} ($($rest)*) $($rest)*)
+    };
+
+    (type $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($extern:tt $abi:literal fn $($dup:tt)*) extern $lit:literal $($rest:tt)*) => {
+        $crate::__parse_ensure!(type $stack $bail ($($fuel)*) {($($buf)* $extern $abi) $($parse)*} ($($rest)*) $($rest)*)
+    };
+
+    (type $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($extern:tt fn $($dup:tt)*) extern $($rest:tt)*) => {
+        $crate::__parse_ensure!(type $stack $bail ($($fuel)*) {($($buf)* $extern) $($parse)*} ($($rest)*) $($rest)*)
+    };
+
     (type $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($fn:tt $paren:tt $arrow:tt $($dup:tt)*) fn ($($args:tt)*) -> $($rest:tt)*) => {
         $crate::__parse_ensure!(type $stack $bail ($($fuel)*) {($($buf)* $fn $paren $arrow) $($parse)*} ($($rest)*) $($rest)*)
     };
