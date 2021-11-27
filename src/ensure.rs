@@ -503,6 +503,10 @@ macro_rules! __parse_ensure {
         $crate::__parse_ensure!(arglist $stack $bail ($($fuel)*) {($($buf)* $life) $($parse)*} ($($rest)*) $($rest)*)
     };
 
+    (generic $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($assoc:ident $eq:tt $($dup:tt)*) $ident:ident = $($rest:tt)*) => {
+        $crate::__parse_ensure!(type (arglist $stack) $bail ($($fuel)*) {($($buf)* $assoc $eq) $($parse)*} ($($rest)*) $($rest)*)
+    };
+
     (generic $stack:tt $bail:tt (~$($fuel:tt)*) $parse:tt $dup:tt $($rest:tt)*) => {
         $crate::__parse_ensure!(type (arglist $stack) $bail ($($fuel)*) $parse $dup $($rest)*)
     };
