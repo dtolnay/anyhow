@@ -536,13 +536,21 @@ fn test_as() {
         "Condition failed: `f as fn() -> ! as usize * 0 != 0` (0 vs 0)",
     );
 
-    trait EqDebug<T>: PartialEq<T> + Debug {}
-    impl<S, T> EqDebug<T> for S where S: PartialEq<T> + Debug {}
+    trait EqDebug<T>: PartialEq<T> + Debug {
+        type Assoc;
+    }
 
-    let test = || Ok(ensure!(&0 as &dyn EqDebug<i32> != &0));
+    impl<S, T> EqDebug<T> for S
+    where
+        S: PartialEq<T> + Debug,
+    {
+        type Assoc = bool;
+    }
+
+    let test = || Ok(ensure!(&0 as &dyn EqDebug<i32, Assoc = bool> != &0));
     assert_err(
         test,
-        "Condition failed: `&0 as &dyn EqDebug<i32> != &0` (0 vs 0)",
+        "Condition failed: `&0 as &dyn EqDebug<i32, Assoc = bool> != &0` (0 vs 0)",
     );
 
     let test = || {
