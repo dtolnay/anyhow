@@ -319,6 +319,10 @@ macro_rules! __parse_ensure {
         $crate::__parse_ensure!($pop $stack $bail ($($fuel)*) {($($buf)* $rangle) $($parse)*} ($($rest)*) $($rest)*)
     };
 
+    (generic ($pop:ident $stack:tt) $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} $dup:tt >> $($rest:tt)*) => {
+        $crate::__parse_ensure!($pop $stack $bail ($($fuel)*) {($($buf)* >) $($parse)*} (> $($rest)*) > $($rest)*)
+    };
+
     (generic $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} $dup:tt $lit:literal $($rest:tt)*) => {
         $crate::__parse_ensure!(arglist $stack $bail ($($fuel)*) {($($buf)* $lit) $($parse)*} ($($rest)*) $($rest)*)
     };
@@ -339,12 +343,20 @@ macro_rules! __parse_ensure {
         $crate::__parse_ensure!($pop $stack $bail ($($fuel)*) {($($buf)* $ty >) $($parse)*} ($($rest)*) $($rest)*)
     };
 
+    (generic ($pop:ident $stack:tt) $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} $dup:tt $ty:ty >> $($rest:tt)*) => {
+        $crate::__parse_ensure!($pop $stack $bail ($($fuel)*) {($($buf)* $ty >) $($parse)*} (> $($rest)*) > $($rest)*)
+    };
+
     (arglist $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($comma:tt $($dup:tt)*) , $($rest:tt)*) => {
         $crate::__parse_ensure!(generic $stack $bail ($($fuel)*) {($($buf)* $comma) $($parse)*} ($($rest)*) $($rest)*)
     };
 
     (arglist ($pop:ident $stack:tt) $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($rangle:tt $($dup:tt)*) > $($rest:tt)*) => {
         $crate::__parse_ensure!($pop $stack $bail ($($fuel)*) {($($buf)* $rangle) $($parse)*} ($($rest)*) $($rest)*)
+    };
+
+    (arglist ($pop:ident $stack:tt) $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} $dup:tt >> $($rest:tt)*) => {
+        $crate::__parse_ensure!($pop $stack $bail ($($fuel)*) {($($buf)* >) $($parse)*} (> $($rest)*) > $($rest)*)
     };
 
     // high precedence binary operators
