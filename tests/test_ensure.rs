@@ -10,7 +10,8 @@
     clippy::redundant_closure_call,
     clippy::redundant_pattern_matching,
     clippy::unit_arg,
-    clippy::while_immutable_condition
+    clippy::while_immutable_condition,
+    clippy::zero_ptr
 )]
 
 use anyhow::{anyhow, ensure, Chain, Error, Result};
