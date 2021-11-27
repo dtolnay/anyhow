@@ -341,6 +341,29 @@ fn test_path() {
     #[rustfmt::skip]
     let test = || Ok(ensure!(E::U::<u8,>>E::U));
     assert_err(test, "Condition failed: `E::U::<u8> > E::U` (U vs U)");
+
+    let test = || Ok(ensure!(PhantomData::<dyn Debug + Sync> != PhantomData));
+    assert_err(
+        test,
+        "Condition failed: `PhantomData::<dyn Debug + Sync> != PhantomData` (PhantomData vs PhantomData)",
+    );
+
+    let test = || Ok(ensure!(PhantomData::<dyn Fn() + Sync> != PhantomData));
+    assert_err(
+        test,
+        "Condition failed: `PhantomData::<dyn Fn() + Sync> != PhantomData` (PhantomData vs PhantomData)",
+    );
+
+    #[rustfmt::skip]
+    let test = || {
+        Ok(ensure!(
+            PhantomData::<dyn Fn::() + ::std::marker::Sync> != PhantomData
+        ))
+    };
+    assert_err(
+        test,
+        "Condition failed: `PhantomData::<dyn Fn() + ::std::marker::Sync> != PhantomData` (PhantomData vs PhantomData)",
+    );
 }
 
 #[test]
