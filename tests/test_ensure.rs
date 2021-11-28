@@ -18,7 +18,7 @@
 use anyhow::{anyhow, ensure, Chain, Error, Result};
 use std::fmt::Debug;
 use std::iter;
-use std::marker::PhantomData;
+use std::marker::{PhantomData, PhantomData as P};
 use std::ops::Add;
 use std::ptr;
 
@@ -33,6 +33,7 @@ impl<T> Add<T> for S {
 }
 
 trait Trait: Sized {
+    const V: usize = 0;
     fn t(self, i: i32) -> i32 {
         i
     }
@@ -600,4 +601,86 @@ fn test_as() {
 
     let test = || Ok(ensure!(0 as int! {...} != 0));
     assert_err(test, "Condition failed: `0 as int! { ... } != 0` (0 vs 0)");
+}
+
+#[test]
+fn test_pat() {
+    let test = || Ok(ensure!(if let ref mut _x @ 0 = 0 { 0 } else { 1 } == 1));
+    assert_err(
+        test,
+        "Condition failed: `if let ref mut _x @ 0 = 0 { 0 } else { 1 } == 1` (0 vs 1)",
+    );
+
+    let test = || Ok(ensure!(if let -1..=1 = 0 { 0 } else { 1 } == 1));
+    assert_err(
+        test,
+        "Condition failed: `if let -1 ..=1 = 0 { 0 } else { 1 } == 1` (0 vs 1)",
+    );
+
+    let test = || Ok(ensure!(if let &0 = &0 { 0 } else { 1 } == 1));
+    assert_err(
+        test,
+        "Condition failed: `if let &0 = &0 { 0 } else { 1 } == 1` (0 vs 1)",
+    );
+
+    let test = || Ok(ensure!(if let &&0 = &&0 { 0 } else { 1 } == 1));
+    assert_err(
+        test,
+        "Condition failed: `if let &&0 = &&0 { 0 } else { 1 } == 1` (0 vs 1)",
+    );
+
+    let test = || Ok(ensure!(if let &mut 0 = &mut 0 { 0 } else { 1 } == 1));
+    assert_err(
+        test,
+        "Condition failed: `if let &mut 0 = &mut 0 { 0 } else { 1 } == 1` (0 vs 1)",
+    );
+
+    let test = || Ok(ensure!(if let &&mut 0 = &&mut 0 { 0 } else { 1 } == 1));
+    assert_err(
+        test,
+        "Condition failed: `if let &&mut 0 = &&mut 0 { 0 } else { 1 } == 1` (0 vs 1)",
+    );
+
+    let test = || Ok(ensure!(if let (0, 1) = (0, 1) { 0 } else { 1 } == 1));
+    assert_err(
+        test,
+        "Condition failed: `if let (0, 1) = (0, 1) { 0 } else { 1 } == 1` (0 vs 1)",
+    );
+
+    let test = || Ok(ensure!(if let [0] = b"\0" { 0 } else { 1 } == 1));
+    assert_err(
+        test,
+        "Condition failed: `if let [0] = b\"\\0\" { 0 } else { 1 } == 1` (0 vs 1)",
+    );
+
+    let p = PhantomData::<u8>;
+    let test = || Ok(ensure!(if let P::<u8> {} = p { 0 } else { 1 } == 1));
+    assert_err(
+        test,
+        "Condition failed: `if let P::<u8> {  } = p { 0 } else { 1 } == 1` (0 vs 1)",
+    );
+
+    let test = || Ok(ensure!(if let ::std::marker::PhantomData = p {} != ()));
+    assert_err(
+        test,
+        "Condition failed: `if let ::std::marker::PhantomData = p { } != ()` (() vs ())",
+    );
+
+    let test = || Ok(ensure!(if let <S as Trait>::V = 0 { 0 } else { 1 } == 1));
+    assert_err(
+        test,
+        "Condition failed: `if let <S as Trait>::V = 0 { 0 } else { 1 } == 1` (0 vs 1)",
+    );
+
+    let test = || Ok(ensure!(for _ in iter::once(()) {} != ()));
+    assert_err(
+        test,
+        "Condition failed: `for _ in iter::once(()) { } != ()` (() vs ())",
+    );
+
+    let test = || Ok(ensure!(if let stringify!(x) = "x" { 0 } else { 1 } == 1));
+    assert_err(
+        test,
+        "Condition failed: `if let stringify!(x) = \"x\" { 0 } else { 1 } == 1` (0 vs 1)",
+    );
 }
