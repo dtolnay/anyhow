@@ -49,7 +49,7 @@ fn assert_err<T: Debug>(result: impl FnOnce() -> Result<T>, expected: &'static s
     // rhs $:expr fragment with insignificant differences in whitespace or
     // punctuation, so we check the message in full against nightly and do just
     // a cursory test on older toolchains.
-    if rustversion::cfg!(nightly) {
+    if rustversion::cfg!(nightly) && !cfg!(miri) {
         assert_eq!(actual, expected);
     } else {
         assert_eq!(actual.contains(" vs "), expected.contains(" vs "));
