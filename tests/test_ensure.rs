@@ -45,13 +45,15 @@ impl<T> Trait for T {}
 fn assert_err<T: Debug>(result: impl FnOnce() -> Result<T>, expected: &'static str) {
     let actual = result().unwrap_err().to_string();
 
-    let mut accepted_alternatives = expected.split('\n');
-    let expected = accepted_alternatives.next_back().unwrap();
-    if accepted_alternatives.any(|alternative| actual == alternative) {
-        return;
+    // In general different rustc versions will format the interpolated lhs and
+    // rhs $:expr fragment with insignificant differences in whitespace or
+    // punctuation, so we check the message in full against nightly and do just
+    // a cursory test on older toolchains.
+    if rustversion::cfg!(nightly) {
+        assert_eq!(actual, expected);
+    } else {
+        assert_eq!(actual.contains(" vs "), expected.contains(" vs "));
     }
-
-    assert_eq!(actual, expected);
 }
 
 #[test]
@@ -98,7 +100,7 @@ fn test_low_precedence_binary_operator() {
     let test = || Ok(ensure!(while false == true && false {} < ()));
     assert_err(
         test,
-        "Condition failed: `while false == true && false { } < ()` (() vs ())",
+        "Condition failed: `while false == true && false {} < ()` (() vs ())",
     );
 }
 
@@ -145,41 +147,41 @@ fn test_unary() {
 fn test_if() {
     #[rustfmt::skip]
     let test = || Ok(ensure!(if false {}.t(1) == 2));
-    assert_err(test, "Condition failed: `if false { }.t(1) == 2` (1 vs 2)");
+    assert_err(test, "Condition failed: `if false {}.t(1) == 2` (1 vs 2)");
 
     #[rustfmt::skip]
     let test = || Ok(ensure!(if false {} else {}.t(1) == 2));
     assert_err(
         test,
-        "Condition failed: `if false { } else { }.t(1) == 2` (1 vs 2)",
+        "Condition failed: `if false {} else {}.t(1) == 2` (1 vs 2)",
     );
 
     #[rustfmt::skip]
     let test = || Ok(ensure!(if false {} else if false {}.t(1) == 2));
     assert_err(
         test,
-        "Condition failed: `if false { } else if false { }.t(1) == 2` (1 vs 2)",
+        "Condition failed: `if false {} else if false {}.t(1) == 2` (1 vs 2)",
     );
 
     #[rustfmt::skip]
     let test = || Ok(ensure!(if let 1 = 2 {}.t(1) == 2));
     assert_err(
         test,
-        "Condition failed: `if let 1 = 2 { }.t(1) == 2` (1 vs 2)",
+        "Condition failed: `if let 1 = 2 {}.t(1) == 2` (1 vs 2)",
     );
 
     #[rustfmt::skip]
     let test = || Ok(ensure!(if let 1 | 2 = 2 {}.t(1) == 2));
     assert_err(
         test,
-        "Condition failed: `if let 1 | 2 = 2 { }.t(1) == 2` (1 vs 2)",
+        "Condition failed: `if let 1 | 2 = 2 {}.t(1) == 2` (1 vs 2)",
     );
 
     #[rustfmt::skip]
     let test = || Ok(ensure!(if let | 1 | 2 = 2 {}.t(1) == 2));
     assert_err(
         test,
-        "Condition failed: `if let 1 | 2 = 2 { }.t(1) == 2` (1 vs 2)",
+        "Condition failed: `if let 1 | 2 = 2 {}.t(1) == 2` (1 vs 2)",
     );
 }
 
@@ -189,53 +191,49 @@ fn test_loop() {
     let test = || Ok(ensure!(1 + loop { break 1 } == 1));
     assert_err(
         test,
-        // 1.54 puts a double space after loop
-        "Condition failed: `1 + loop  { break 1  } == 1` (2 vs 1)\n\
-         Condition failed: `1 + loop { break 1  } == 1` (2 vs 1)",
+        "Condition failed: `1 + loop { break 1  } == 1` (2 vs 1)",
     );
 
     #[rustfmt::skip]
     let test = || Ok(ensure!(1 + 'a: loop { break 'a 1 } == 1));
     assert_err(
         test,
-        // 1.54 puts a double space after loop
-        "Condition failed: `1 + 'a: loop  { break 'a 1  } == 1` (2 vs 1)\n\
-         Condition failed: `1 + 'a: loop { break 'a 1  } == 1` (2 vs 1)",
+        "Condition failed: `1 + 'a: loop { break 'a 1  } == 1` (2 vs 1)",
     );
 
     #[rustfmt::skip]
     let test = || Ok(ensure!(while false {}.t(1) == 2));
     assert_err(
         test,
-        "Condition failed: `while false { }.t(1) == 2` (1 vs 2)",
+        "Condition failed: `while false {}.t(1) == 2` (1 vs 2)",
     );
 
     #[rustfmt::skip]
     let test = || Ok(ensure!(while let None = Some(1) {}.t(1) == 2));
     assert_err(
         test,
-        "Condition failed: `while let None = Some(1) { }.t(1) == 2` (1 vs 2)",
+        "Condition failed: `while let None = Some(1) {}.t(1) == 2` (1 vs 2)",
     );
 
     #[rustfmt::skip]
     let test = || Ok(ensure!(for _x in iter::once(0) {}.t(1) == 2));
     assert_err(
         test,
-        "Condition failed: `for _x in iter::once(0) { }.t(1) == 2` (1 vs 2)",
+        "Condition failed: `for _x in iter::once(0) {}.t(1) == 2` (1 vs 2)",
     );
 
     #[rustfmt::skip]
     let test = || Ok(ensure!(for | _x in iter::once(0) {}.t(1) == 2));
     assert_err(
         test,
-        "Condition failed: `for _x in iter::once(0) { }.t(1) == 2` (1 vs 2)",
+        "Condition failed: `for _x in iter::once(0) {}.t(1) == 2` (1 vs 2)",
     );
 
     #[rustfmt::skip]
     let test = || Ok(ensure!(for true | false in iter::empty() {}.t(1) == 2));
     assert_err(
         test,
-        "Condition failed: `for true | false in iter::empty() { }.t(1) == 2` (1 vs 2)",
+        "Condition failed: `for true | false in iter::empty() {}.t(1) == 2` (1 vs 2)",
     );
 }
 
@@ -381,7 +379,7 @@ fn test_macro() {
     let test = || Ok(ensure!(stringify! {} != ""));
     assert_err(
         test,
-        "Condition failed: `stringify! { } != \"\"` (\"\" vs \"\")",
+        "Condition failed: `stringify! {} != \"\"` (\"\" vs \"\")",
     );
 }
 
@@ -663,7 +661,7 @@ fn test_pat() {
     let test = || Ok(ensure!(if let ::std::marker::PhantomData = p {} != ()));
     assert_err(
         test,
-        "Condition failed: `if let ::std::marker::PhantomData = p { } != ()` (() vs ())",
+        "Condition failed: `if let ::std::marker::PhantomData = p {} != ()` (() vs ())",
     );
 
     let test = || Ok(ensure!(if let <S as Trait>::V = 0 { 0 } else { 1 } == 1));
@@ -675,7 +673,7 @@ fn test_pat() {
     let test = || Ok(ensure!(for _ in iter::once(()) {} != ()));
     assert_err(
         test,
-        "Condition failed: `for _ in iter::once(()) { } != ()` (() vs ())",
+        "Condition failed: `for _ in iter::once(()) {} != ()` (() vs ())",
     );
 
     let test = || Ok(ensure!(if let stringify!(x) = "x" { 0 } else { 1 } == 1));
