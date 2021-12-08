@@ -263,13 +263,13 @@ fn test_atom() {
     let test = || Ok(ensure!(S + async { 1 } == true));
     assert_err(
         test,
-        "Condition failed: `S + async  { 1 } == true` (false vs true)",
+        "Condition failed: `S + async { 1 } == true` (false vs true)",
     );
 
     let test = || Ok(ensure!(S + async move { 1 } == true));
     assert_err(
         test,
-        "Condition failed: `S + async move  { 1 } == true` (false vs true)",
+        "Condition failed: `S + async move { 1 } == true` (false vs true)",
     );
 
     let x = &1;
