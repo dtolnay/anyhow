@@ -5,6 +5,7 @@
     clippy::items_after_statements,
     clippy::let_and_return,
     clippy::let_underscore_drop,
+    clippy::logic_bug,
     clippy::match_bool,
     clippy::never_loop,
     clippy::redundant_closure_call,
