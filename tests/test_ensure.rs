@@ -192,14 +192,14 @@ fn test_loop() {
     let test = || Ok(ensure!(1 + loop { break 1 } == 1));
     assert_err(
         test,
-        "Condition failed: `1 + loop { break 1  } == 1` (2 vs 1)",
+        "Condition failed: `1 + loop { break 1 } == 1` (2 vs 1)",
     );
 
     #[rustfmt::skip]
     let test = || Ok(ensure!(1 + 'a: loop { break 'a 1 } == 1));
     assert_err(
         test,
-        "Condition failed: `1 + 'a: loop { break 'a 1  } == 1` (2 vs 1)",
+        "Condition failed: `1 + 'a: loop { break 'a 1 } == 1` (2 vs 1)",
     );
 
     #[rustfmt::skip]
