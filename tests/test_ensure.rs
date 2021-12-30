@@ -528,7 +528,7 @@ fn test_as() {
     let test = || Ok(ensure!(f as for<'a> fn() as usize * 0 != 0));
     assert_err(
         test,
-        "Condition failed: `f as for<'a>fn() as usize * 0 != 0` (0 vs 0)", // FIXME
+        "Condition failed: `f as for<'a> fn() as usize * 0 != 0` (0 vs 0)",
     );
 
     let test = || Ok(ensure!(f as unsafe fn() as usize * 0 != 0));
