@@ -13,7 +13,8 @@
     clippy::too_many_lines,
     clippy::unit_arg,
     clippy::while_immutable_condition,
-    clippy::zero_ptr
+    clippy::zero_ptr,
+    irrefutable_let_patterns
 )]
 
 use anyhow::{anyhow, ensure, Chain, Error, Result};
