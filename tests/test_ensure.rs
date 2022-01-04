@@ -657,7 +657,7 @@ fn test_pat() {
     let test = || Ok(ensure!(if let P::<u8> {} = p { 0 } else { 1 } == 1));
     assert_err(
         test,
-        "Condition failed: `if let P::<u8> {  } = p { 0 } else { 1 } == 1` (0 vs 1)", // FIXME
+        "Condition failed: `if let P::<u8> {} = p { 0 } else { 1 } == 1` (0 vs 1)",
     );
 
     let test = || Ok(ensure!(if let ::std::marker::PhantomData = p {} != ()));
