@@ -396,7 +396,7 @@ fn test_trailer() {
     let test = || Ok(ensure!(PhantomData::<u8> {} != PhantomData));
     assert_err(
         test,
-        "Condition failed: `PhantomData::<u8>{} != PhantomData` (PhantomData vs PhantomData)",
+        "Condition failed: `PhantomData::<u8> {} != PhantomData` (PhantomData vs PhantomData)",
     );
 
     let result = Ok::<_, Error>(1);
