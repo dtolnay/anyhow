@@ -327,10 +327,14 @@ fn test_path() {
     fn f<const I: isize>() {}
     let test = || Ok(ensure!(f::<1>() != ()));
     assert_err(test, "Condition failed: `f::<1>() != ()` (() vs ())");
+    let test = || Ok(ensure!(f::<-1>() != ()));
+    assert_err(test, "Condition failed: `f::<-1>() != ()`"); // FIXME
 
     fn g<T, const I: isize>() {}
     let test = || Ok(ensure!(g::<u8, 1>() != ()));
     assert_err(test, "Condition failed: `g::<u8, 1>() != ()` (() vs ())");
+    let test = || Ok(ensure!(g::<u8, -1>() != ()));
+    assert_err(test, "Condition failed: `g::<u8, -1>() != ()` (() vs ())");
 
     #[derive(PartialOrd, PartialEq, Debug)]
     enum E<'a, T> {
