@@ -328,7 +328,7 @@ fn test_path() {
     let test = || Ok(ensure!(f::<1>() != ()));
     assert_err(test, "Condition failed: `f::<1>() != ()` (() vs ())");
     let test = || Ok(ensure!(f::<-1>() != ()));
-    assert_err(test, "Condition failed: `f::<-1>() != ()`"); // FIXME
+    assert_err(test, "Condition failed: `f::<-1>() != ()` (() vs ())");
 
     fn g<T, const I: isize>() {}
     let test = || Ok(ensure!(g::<u8, 1>() != ()));
