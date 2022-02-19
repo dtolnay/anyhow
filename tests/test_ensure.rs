@@ -324,6 +324,14 @@ fn test_path() {
         "Condition failed: `Chain::<'static>::new.t(1) == 2` (1 vs 2)",
     );
 
+    fn f<const I: isize>() {}
+    let test = || Ok(ensure!(f::<1>() != ()));
+    assert_err(test, "Condition failed: `f::<1>() != ()` (() vs ())");
+
+    fn g<T, const I: isize>() {}
+    let test = || Ok(ensure!(g::<u8, 1>() != ()));
+    assert_err(test, "Condition failed: `g::<u8, 1>() != ()` (() vs ())");
+
     #[derive(PartialOrd, PartialEq, Debug)]
     enum E<'a, T> {
         #[allow(dead_code)]
