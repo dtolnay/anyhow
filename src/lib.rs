@@ -496,6 +496,11 @@ pub type Result<T, E = Error> = core::result::Result<T, E>;
 ///     No such file or directory (os error 2)
 /// ```
 ///
+/// Refer to the [Display representations] documentation for other forms in
+/// which this context chain can be rendered.
+///
+/// [Display representations]: Error#display-representations
+///
 /// <br>
 ///
 /// # Effect on downcasting
