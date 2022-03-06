@@ -367,6 +367,7 @@ pub use anyhow as format_err;
 /// }
 /// ```
 #[repr(transparent)]
+#[must_use]
 pub struct Error {
     inner: Own<ErrorImpl>,
 }
