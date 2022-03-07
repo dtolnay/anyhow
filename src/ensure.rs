@@ -818,17 +818,17 @@ macro_rules! __fallback_ensure {
     };
     ($cond:expr, $msg:literal $(,)?) => {
         if !$cond {
-            return $crate::private::Err($crate::anyhow!($msg));
+            return $crate::private::Err($crate::__anyhow!($msg));
         }
     };
     ($cond:expr, $err:expr $(,)?) => {
         if !$cond {
-            return $crate::private::Err($crate::anyhow!($err));
+            return $crate::private::Err($crate::__anyhow!($err));
         }
     };
     ($cond:expr, $fmt:expr, $($arg:tt)*) => {
         if !$cond {
-            return $crate::private::Err($crate::anyhow!($fmt, $($arg)*));
+            return $crate::private::Err($crate::__anyhow!($fmt, $($arg)*));
         }
     };
 }

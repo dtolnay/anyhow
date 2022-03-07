@@ -668,4 +668,12 @@ pub mod private {
             Error::msg(fmt::format(args))
         }
     }
+
+    #[doc(hidden)]
+    #[inline]
+    #[cold]
+    #[must_use]
+    pub fn must_use(error: Error) -> Error {
+        error
+    }
 }
