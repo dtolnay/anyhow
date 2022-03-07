@@ -206,17 +206,21 @@ macro_rules! ensure {
 /// ```
 #[macro_export]
 macro_rules! anyhow {
-    ($msg:literal $(,)?) => ({
-        let error = $crate::private::format_err($crate::private::format_args!($msg));
-        error
-    });
-    ($err:expr $(,)?) => ({
-        use $crate::private::kind::*;
-        let error = match $err {
-            error => (&error).anyhow_kind().new(error),
-        };
-        error
-    });
+    ($msg:literal $(,)?) => {
+        $crate::private::must_use({
+            let error = $crate::private::format_err($crate::private::format_args!($msg));
+            error
+        })
+    };
+    ($err:expr $(,)?) => {
+        $crate::private::must_use({
+            use $crate::private::kind::*;
+            let error = match $err {
+                error => (&error).anyhow_kind().new(error),
+            };
+            error
+        })
+    };
     ($fmt:expr, $($arg:tt)*) => {
         $crate::Error::msg($crate::private::format!($fmt, $($arg)*))
     };
