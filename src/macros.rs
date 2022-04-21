@@ -50,30 +50,8 @@
 /// #     Ok(())
 /// # }
 /// ```
-#[cfg(doc)]
 #[macro_export]
 macro_rules! bail {
-    ($msg:literal $(,)?) => {
-        return $crate::private::Err($crate::__anyhow!($msg))
-    };
-    ($err:expr $(,)?) => {
-        return $crate::private::Err($crate::__anyhow!($err))
-    };
-    ($fmt:expr, $($arg:tt)*) => {
-        return $crate::private::Err($crate::__anyhow!($fmt, $($arg)*))
-    };
-}
-
-// Workaround for crates that intentionally contained `{}` in an error message
-// prior to https://github.com/dtolnay/anyhow/issues/55 catching the missing
-// format args.
-#[cfg(not(doc))]
-#[macro_export]
-macro_rules! bail {
-    // https://github.com/estk/log4rs/blob/afa0351af56b3bfd1780389700051d7e4d8bbdc9/src/append/rolling_file/policy/compound/roll/fixed_window.rs#L261
-    ("pattern does not contain `{}`") => {
-        return $crate::private::Err($crate::Error::msg("pattern does not contain `{}`"))
-    };
     ($msg:literal $(,)?) => {
         return $crate::private::Err($crate::__anyhow!($msg))
     };
