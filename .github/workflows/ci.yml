@@ -6,7 +6,7 @@ on:
   schedule: [cron: "40 1 * * *"]
 
 env:
-  RUSTFLAGS: '-Dwarnings'
+  RUSTFLAGS: -Dwarnings
 
 jobs:
   test:
@@ -70,7 +70,7 @@ jobs:
           components: miri, rust-src
       - run: cargo miri test
         env:
-          MIRIFLAGS: '-Zmiri-tag-raw-pointers'
+          MIRIFLAGS: -Zmiri-tag-raw-pointers
 
   outdated:
     name: Outdated
