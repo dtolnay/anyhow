@@ -70,9 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly
-        with:
-          components: miri, rust-src
+      - uses: dtolnay/rust-toolchain@miri
       - run: cargo miri test
         env:
           MIRIFLAGS: -Zmiri-strict-provenance
