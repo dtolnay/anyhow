@@ -218,6 +218,7 @@
 #![allow(
     clippy::doc_markdown,
     clippy::enum_glob_use,
+    clippy::explicit_auto_deref,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
     clippy::module_name_repetitions,
