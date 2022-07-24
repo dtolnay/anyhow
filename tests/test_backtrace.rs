@@ -1,3 +1,5 @@
+#![cfg(not(miri))]
+
 #[rustversion::not(nightly)]
 #[ignore]
 #[test]
