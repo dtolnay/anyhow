@@ -5,7 +5,7 @@ error[E0599]: the method `anyhow_kind` exists for reference `&Error`, but its tr
     | ------------
     | |
     | doesn't satisfy `Error: Into<anyhow::Error>`
-    | doesn't satisfy `Error: anyhow::private::kind::TraitKind`
+    | doesn't satisfy `Error: anyhow::kind::TraitKind`
     | doesn't satisfy `Error: std::fmt::Display`
 ...
 7   |     let _ = anyhow!(Error);
@@ -13,11 +13,11 @@ error[E0599]: the method `anyhow_kind` exists for reference `&Error`, but its tr
     |
     = note: the following trait bounds were not satisfied:
             `Error: Into<anyhow::Error>`
-            which is required by `Error: anyhow::private::kind::TraitKind`
+            which is required by `Error: anyhow::kind::TraitKind`
             `Error: std::fmt::Display`
-            which is required by `&Error: anyhow::private::kind::AdhocKind`
+            which is required by `&Error: anyhow::kind::AdhocKind`
             `&Error: Into<anyhow::Error>`
-            which is required by `&Error: anyhow::private::kind::TraitKind`
+            which is required by `&Error: anyhow::kind::TraitKind`
 note: the following traits must be implemented
    --> $RUST/core/src/convert/mod.rs
     |
