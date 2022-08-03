@@ -89,6 +89,10 @@ fn compile_probe() -> Option<ExitStatus> {
         .arg(out_dir)
         .arg(probefile);
 
+    if let Some(target) = env::var_os("TARGET") {
+        cmd.arg("--target").arg(target);
+    }
+
     // If Cargo wants to set RUSTFLAGS, use that.
     if let Ok(rustflags) = env::var("CARGO_ENCODED_RUSTFLAGS") {
         if !rustflags.is_empty() {
