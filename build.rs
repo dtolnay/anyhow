@@ -71,7 +71,7 @@ fn compile_probe() -> Option<ExitStatus> {
     fs::write(&probefile, PROBE).ok()?;
 
     // Make sure to pick up Cargo rustc configuration.
-    let mut cmd = if let Some(wrapper) = env::var_os("CARGO_RUSTC_WRAPPER") {
+    let mut cmd = if let Some(wrapper) = env::var_os("RUSTC_WRAPPER") {
         let mut cmd = Command::new(wrapper);
         // The wrapper's first argument is supposed to be the path to rustc.
         cmd.arg(rustc);
