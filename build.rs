@@ -70,8 +70,14 @@ fn compile_probe() -> Option<ExitStatus> {
     let probefile = Path::new(&out_dir).join("probe.rs");
     fs::write(&probefile, PROBE).ok()?;
 
-    // Make sure to pick up Cargo rustc configuration.
-    let mut cmd = if let Some(wrapper) = env::var_os("RUSTC_WRAPPER") {
+    // Make sure to pick up Cargo rustc configuration, while working around
+    // <https://github.com/rust-lang/rust-analyzer/issues/12973>.
+    let wrapper = env::var_os("RUSTC_WRAPPER").filter(|w| {
+        let wrapper_filename = Path::new(w).file_name().unwrap_or_default();
+        // Ignore wrappers with these filenames.
+        wrapper_filename != "rust-analyzer" && wrapper_filename != "rust-analyzer.exe"
+    });
+    let mut cmd = if let Some(wrapper) = wrapper {
         let mut cmd = Command::new(wrapper);
         // The wrapper's first argument is supposed to be the path to rustc.
         cmd.arg(rustc);
