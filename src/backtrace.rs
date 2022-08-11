@@ -1,41 +1,41 @@
-#[cfg(backtrace)]
+#[cfg(all(backtrace,not(feature="prohibit_backtrace")))]
 pub(crate) use std::backtrace::{Backtrace, BacktraceStatus};
 
-#[cfg(all(not(backtrace), feature = "backtrace"))]
+#[cfg(all(not(backtrace), not(feature = "prohibit_backtrace"), feature = "backtrace"))]
 pub(crate) use self::capture::{Backtrace, BacktraceStatus};
 
-#[cfg(not(any(backtrace, feature = "backtrace")))]
+#[cfg(any(not(any(backtrace, feature = "backtrace")), feature = "prohibit_backtrace"))]
 pub(crate) enum Backtrace {}
 
-#[cfg(backtrace)]
+#[cfg(all(backtrace, not(feature="prohibit_backtrace")))]
 macro_rules! impl_backtrace {
     () => {
         std::backtrace::Backtrace
     };
 }
 
-#[cfg(all(not(backtrace), feature = "backtrace"))]
+#[cfg(all(not(backtrace), feature = "backtrace", not(feature = "prohibit_backtrace")))]
 macro_rules! impl_backtrace {
     () => {
         impl core::fmt::Debug + core::fmt::Display
     };
 }
 
-#[cfg(any(backtrace, feature = "backtrace"))]
+#[cfg(all(any(backtrace, feature = "backtrace"), not(feature = "prohibit_backtrace")))]
 macro_rules! backtrace {
     () => {
         Some(crate::backtrace::Backtrace::capture())
     };
 }
 
-#[cfg(not(any(backtrace, feature = "backtrace")))]
+#[cfg(any(not(any(backtrace, feature = "backtrace")), feature="prohibit_backtrace"))]
 macro_rules! backtrace {
     () => {
         None
     };
 }
 
-#[cfg(backtrace)]
+#[cfg(all(backtrace, not(feature = "prohibit_backtrace")))]
 macro_rules! backtrace_if_absent {
     ($err:expr) => {
         match $err.backtrace() {
@@ -45,21 +45,21 @@ macro_rules! backtrace_if_absent {
     };
 }
 
-#[cfg(all(feature = "std", not(backtrace), feature = "backtrace"))]
+#[cfg(all(feature = "std", not(backtrace), feature = "backtrace", not(feature = "prohibit_backtrace")))]
 macro_rules! backtrace_if_absent {
     ($err:expr) => {
         backtrace!()
     };
 }
 
-#[cfg(all(feature = "std", not(backtrace), not(feature = "backtrace")))]
+#[cfg(any(all(feature = "std", not(backtrace), not(feature = "backtrace")), feature="prohibit_backtrace"))]
 macro_rules! backtrace_if_absent {
     ($err:expr) => {
         None
     };
 }
 
-#[cfg(all(not(backtrace), feature = "backtrace"))]
+#[cfg(all(not(backtrace), feature = "backtrace", not(feature = "prohibit_backtrace")))]
 mod capture {
     use backtrace::{BacktraceFmt, BytesOrWideString, Frame, PrintFmt, SymbolName};
     use core::cell::UnsafeCell;

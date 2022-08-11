@@ -141,6 +141,8 @@
 //!     `RUST_LIB_BACKTRACE=0`.
 //!
 //!   The tracking issue for this feature is [rust-lang/rust#53487].
+//! 
+//!   Backtrace support may be explicitly disabled by activating `prohibit_backtrace` Cargo feature.
 //!
 //!   [`std::backtrace`]: https://doc.rust-lang.org/std/backtrace/index.html#environment-variables
 //!   [rust-lang/rust#53487]: https://github.com/rust-lang/rust/issues/53487

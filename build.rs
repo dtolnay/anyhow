@@ -43,7 +43,7 @@ const PROBE: &str = r#"
 "#;
 
 fn main() {
-    if cfg!(feature = "std") {
+    if cfg!(feature = "std") && !cfg!(feature = "prohibit_backtrace") {
         match compile_probe() {
             Some(status) if status.success() => println!("cargo:rustc-cfg=backtrace"),
             _ => {}

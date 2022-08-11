@@ -39,7 +39,7 @@ impl ErrorImpl {
             }
         }
 
-        #[cfg(any(backtrace, feature = "backtrace"))]
+        #[cfg(all(any(backtrace, feature = "backtrace"), not(feature = "prohibit_backtrace")))]
         {
             use crate::backtrace::BacktraceStatus;
 
