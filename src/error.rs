@@ -5,6 +5,8 @@ use crate::ptr::Mut;
 use crate::ptr::{Own, Ref};
 use crate::{Error, StdError};
 use alloc::boxed::Box;
+#[cfg(backtrace)]
+use core::any::Demand;
 use core::any::TypeId;
 use core::fmt::{self, Debug, Display};
 use core::mem::ManuallyDrop;
@@ -31,7 +33,7 @@ impl Error {
     where
         E: StdError + Send + Sync + 'static,
     {
-        let backtrace = backtrace_if_absent!(error);
+        let backtrace = backtrace_if_absent!(&error);
         Error::from_std(error, backtrace)
     }
 
@@ -530,7 +532,7 @@ where
 {
     #[cold]
     fn from(error: E) -> Self {
-        let backtrace = backtrace_if_absent!(error);
+        let backtrace = backtrace_if_absent!(&error);
         Error::from_std(error, backtrace)
     }
 }
@@ -886,11 +888,19 @@ impl ErrorImpl {
             .as_ref()
             .or_else(|| {
                 #[cfg(backtrace)]
-                return Self::error(this).backtrace();
-                #[cfg(all(not(backtrace), feature = "backtrace"))]
+                return Self::error(this).request_ref::<Backtrace>();
+                #[cfg(not(backtrace))]
                 return (vtable(this.ptr).object_backtrace)(this);
             })
             .expect("backtrace capture failed")
+    }
+
+    #[cfg(backtrace)]
+    unsafe fn provide<'a>(this: Ref<'a, Self>, req: &mut Demand<'a>) {
+        if let Some(backtrace) = &this.deref().backtrace {
+            req.provide_ref(backtrace);
+        }
+        Self::error(this).provide(req);
     }
 
     #[cold]
@@ -903,13 +913,13 @@ impl<E> StdError for ErrorImpl<E>
 where
     E: StdError,
 {
-    #[cfg(backtrace)]
-    fn backtrace(&self) -> Option<&Backtrace> {
-        Some(unsafe { ErrorImpl::backtrace(self.erase()) })
-    }
-
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         unsafe { ErrorImpl::error(self.erase()).source() }
+    }
+
+    #[cfg(backtrace)]
+    fn provide<'a>(&'a self, req: &mut Demand<'a>) {
+        unsafe { ErrorImpl::provide(self.erase(), req) }
     }
 }
 
