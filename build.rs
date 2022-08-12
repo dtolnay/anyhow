@@ -65,6 +65,7 @@ fn main() {
 }
 
 fn compile_probe() -> Option<ExitStatus> {
+    // FIXME: obsoleted by https://github.com/rust-lang/cargo/pull/10973
     println!("cargo:rerun-if-env-changed=RUSTC_WRAPPER");
 
     let rustc = env::var_os("RUSTC")?;
