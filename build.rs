@@ -87,7 +87,6 @@ fn compile_probe() -> Option<ExitStatus> {
         .arg("--edition=2018")
         .arg("--crate-name=anyhow_build")
         .arg("--crate-type=lib")
-        .arg("--emit=metadata")
         .arg("--out-dir")
         .arg(out_dir)
         .arg(probefile);
