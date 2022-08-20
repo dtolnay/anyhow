@@ -19,13 +19,13 @@ error[E0599]: the method `anyhow_kind` exists for reference `&Error`, but its tr
             `&Error: Into<anyhow::Error>`
             which is required by `&Error: anyhow::kind::TraitKind`
 note: the following traits must be implemented
-   --> $RUST/core/src/convert/mod.rs
-    |
-    | pub trait Into<T>: Sized {
-    | ^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-   ::: $RUST/core/src/fmt/mod.rs
+   --> $RUST/core/src/fmt/mod.rs
     |
     | pub trait Display {
     | ^^^^^^^^^^^^^^^^^
+    |
+   ::: $RUST/core/src/convert/mod.rs
+    |
+    | pub trait Into<T>: Sized {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^
     = note: this error originates in the macro `anyhow` (in Nightly builds, run with -Z macro-backtrace for more info)
