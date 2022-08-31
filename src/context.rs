@@ -4,7 +4,7 @@ use core::convert::Infallible;
 use core::fmt::{self, Debug, Display, Write};
 
 #[cfg(backtrace)]
-use std::backtrace::Backtrace;
+use std::any::Demand;
 
 mod ext {
     use super::*;
@@ -24,7 +24,7 @@ mod ext {
         where
             C: Display + Send + Sync + 'static,
         {
-            let backtrace = backtrace_if_absent!(self);
+            let backtrace = backtrace_if_absent!(&self);
             Error::from_context(context, self, backtrace)
         }
     }
@@ -123,13 +123,13 @@ where
     C: Display,
     E: StdError + 'static,
 {
-    #[cfg(backtrace)]
-    fn backtrace(&self) -> Option<&Backtrace> {
-        self.error.backtrace()
-    }
-
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         Some(&self.error)
+    }
+
+    #[cfg(backtrace)]
+    fn provide<'a>(&'a self, req: &mut Demand<'a>) {
+        self.error.provide(req);
     }
 }
 
@@ -137,13 +137,14 @@ impl<C> StdError for ContextError<C, Error>
 where
     C: Display,
 {
-    #[cfg(backtrace)]
-    fn backtrace(&self) -> Option<&Backtrace> {
-        Some(self.error.backtrace())
-    }
-
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         Some(unsafe { crate::ErrorImpl::error(self.error.inner.by_ref()) })
+    }
+
+    #[cfg(backtrace)]
+    fn provide<'a>(&'a self, req: &mut Demand<'a>) {
+        req.provide_ref(self.error.backtrace());
+        self.error.provide(req);
     }
 }
 
