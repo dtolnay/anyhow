@@ -128,8 +128,8 @@ where
     }
 
     #[cfg(backtrace)]
-    fn provide<'a>(&'a self, req: &mut Demand<'a>) {
-        self.error.provide(req);
+    fn provide<'a>(&'a self, demand: &mut Demand<'a>) {
+        self.error.provide(demand);
     }
 }
 
@@ -142,9 +142,9 @@ where
     }
 
     #[cfg(backtrace)]
-    fn provide<'a>(&'a self, req: &mut Demand<'a>) {
-        req.provide_ref(self.error.backtrace());
-        self.error.provide(req);
+    fn provide<'a>(&'a self, demand: &mut Demand<'a>) {
+        demand.provide_ref(self.error.backtrace());
+        self.error.provide(demand);
     }
 }
 

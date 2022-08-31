@@ -75,7 +75,7 @@ impl StdError for BoxedError {
     }
 
     #[cfg(backtrace)]
-    fn provide<'a>(&'a self, req: &mut Demand<'a>) {
-        self.0.provide(req);
+    fn provide<'a>(&'a self, demand: &mut Demand<'a>) {
+        self.0.provide(demand);
     }
 }

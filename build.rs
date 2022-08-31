@@ -34,8 +34,8 @@ const PROBE: &str = r#"
     }
 
     impl Error for E {
-        fn provide<'a>(&'a self, req: &mut Demand<'a>) {
-            req.provide_ref(&self.backtrace);
+        fn provide<'a>(&'a self, demand: &mut Demand<'a>) {
+            demand.provide_ref(&self.backtrace);
         }
     }
 

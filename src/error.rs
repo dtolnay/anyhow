@@ -896,11 +896,11 @@ impl ErrorImpl {
     }
 
     #[cfg(backtrace)]
-    unsafe fn provide<'a>(this: Ref<'a, Self>, req: &mut Demand<'a>) {
+    unsafe fn provide<'a>(this: Ref<'a, Self>, demand: &mut Demand<'a>) {
         if let Some(backtrace) = &this.deref().backtrace {
-            req.provide_ref(backtrace);
+            demand.provide_ref(backtrace);
         }
-        Self::error(this).provide(req);
+        Self::error(this).provide(demand);
     }
 
     #[cold]
@@ -918,8 +918,8 @@ where
     }
 
     #[cfg(backtrace)]
-    fn provide<'a>(&'a self, req: &mut Demand<'a>) {
-        unsafe { ErrorImpl::provide(self.erase(), req) }
+    fn provide<'a>(&'a self, demand: &mut Demand<'a>) {
+        unsafe { ErrorImpl::provide(self.erase(), demand) }
     }
 }
 
