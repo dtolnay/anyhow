@@ -522,6 +522,17 @@ impl Error {
             Some(addr.cast::<E>().deref_mut())
         }
     }
+
+    // Called by thiserror when you have `#[source] anyhow::Error`. This provide
+    // implementation includes the anyhow::Error's Backtrace if any, unlike
+    // deref'ing to dyn Error where the provide implementation would include
+    // only the original error's Backtrace from before it got wrapped into an
+    // anyhow::Error.
+    #[cfg(backtrace)]
+    #[doc(hidden)]
+    pub fn provide<'a>(&'a self, demand: &mut Demand<'a>) {
+        unsafe { ErrorImpl::provide(self.inner.by_ref(), demand) }
+    }
 }
 
 #[cfg(feature = "std")]
