@@ -17,7 +17,7 @@ compile_error! {
 const PROBE: &str = r#"
     #![feature(error_generic_member_access, provide_any)]
 
-    use std::any::Demand;
+    use std::any::{Demand, Provider};
     use std::backtrace::{Backtrace, BacktraceStatus};
     use std::error::Error;
     use std::fmt::{self, Display};
@@ -37,6 +37,12 @@ const PROBE: &str = r#"
         fn provide<'a>(&'a self, demand: &mut Demand<'a>) {
             demand.provide_ref(&self.backtrace);
         }
+    }
+
+    struct P;
+
+    impl Provider for P {
+        fn provide<'a>(&'a self, _demand: &mut Demand<'a>) {}
     }
 
     const _: fn() = || {
