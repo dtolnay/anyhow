@@ -1,4 +1,5 @@
 #![allow(
+    clippy::bool_to_int_with_if,
     clippy::diverging_sub_expression,
     clippy::if_same_then_else,
     clippy::ifs_same_cond,
