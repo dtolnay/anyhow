@@ -18,10 +18,12 @@
     irrefutable_let_patterns
 )]
 
+use self::Enum::Generic;
 use anyhow::{anyhow, ensure, Chain, Error, Result};
-use std::fmt::Debug;
+use std::fmt::{self, Debug};
 use std::iter;
 use std::marker::{PhantomData, PhantomData as P};
+use std::mem;
 use std::ops::Add;
 use std::ptr;
 
@@ -43,6 +45,24 @@ trait Trait: Sized {
 }
 
 impl<T> Trait for T {}
+
+enum Enum<T: ?Sized> {
+    #[allow(dead_code)]
+    Thing(PhantomData<T>),
+    Generic,
+}
+
+impl<T: ?Sized> PartialEq for Enum<T> {
+    fn eq(&self, rhs: &Self) -> bool {
+        mem::discriminant(self) == mem::discriminant(rhs)
+    }
+}
+
+impl<T: ?Sized> Debug for Enum<T> {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_str("Generic")
+    }
+}
 
 #[track_caller]
 fn assert_err<T: Debug>(result: impl FnOnce() -> Result<T>, expected: &'static str) {
@@ -356,27 +376,27 @@ fn test_path() {
     let test = || Ok(ensure!(E::U::<u8,>>E::U));
     assert_err(test, "Condition failed: `E::U::<u8> > E::U` (U vs U)");
 
-    let test = || Ok(ensure!(PhantomData::<dyn Debug + Sync> != PhantomData));
+    let test = || Ok(ensure!(Generic::<dyn Debug + Sync> != Generic));
     assert_err(
         test,
-        "Condition failed: `PhantomData::<dyn Debug + Sync> != PhantomData`",
+        "Condition failed: `Generic::<dyn Debug + Sync> != Generic` (Generic vs Generic)",
     );
 
-    let test = || Ok(ensure!(PhantomData::<dyn Fn() + Sync> != PhantomData));
+    let test = || Ok(ensure!(Generic::<dyn Fn() + Sync> != Generic));
     assert_err(
         test,
-        "Condition failed: `PhantomData::<dyn Fn() + Sync> != PhantomData`",
+        "Condition failed: `Generic::<dyn Fn() + Sync> != Generic` (Generic vs Generic)",
     );
 
     #[rustfmt::skip]
     let test = || {
         Ok(ensure!(
-            PhantomData::<dyn Fn::() + ::std::marker::Sync> != PhantomData
+            Generic::<dyn Fn::() + ::std::marker::Sync> != Generic
         ))
     };
     assert_err(
         test,
-        "Condition failed: `PhantomData::<dyn Fn() + ::std::marker::Sync> != PhantomData`",
+        "Condition failed: `Generic::<dyn Fn() + ::std::marker::Sync> != Generic` (Generic vs Generic)",
     );
 }
 
