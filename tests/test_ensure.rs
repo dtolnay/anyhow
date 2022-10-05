@@ -359,13 +359,13 @@ fn test_path() {
     let test = || Ok(ensure!(PhantomData::<dyn Debug + Sync> != PhantomData));
     assert_err(
         test,
-        "Condition failed: `PhantomData::<dyn Debug + Sync> != PhantomData` (PhantomData vs PhantomData)",
+        "Condition failed: `PhantomData::<dyn Debug + Sync> != PhantomData`",
     );
 
     let test = || Ok(ensure!(PhantomData::<dyn Fn() + Sync> != PhantomData));
     assert_err(
         test,
-        "Condition failed: `PhantomData::<dyn Fn() + Sync> != PhantomData` (PhantomData vs PhantomData)",
+        "Condition failed: `PhantomData::<dyn Fn() + Sync> != PhantomData`",
     );
 
     #[rustfmt::skip]
@@ -376,7 +376,7 @@ fn test_path() {
     };
     assert_err(
         test,
-        "Condition failed: `PhantomData::<dyn Fn() + ::std::marker::Sync> != PhantomData` (PhantomData vs PhantomData)",
+        "Condition failed: `PhantomData::<dyn Fn() + ::std::marker::Sync> != PhantomData`",
     );
 }
 
@@ -409,7 +409,7 @@ fn test_trailer() {
     let test = || Ok(ensure!(PhantomData::<u8> {} != PhantomData));
     assert_err(
         test,
-        "Condition failed: `PhantomData::<u8> {} != PhantomData` (PhantomData vs PhantomData)",
+        "Condition failed: `PhantomData::<u8> {} != PhantomData` (PhantomData<u8> vs PhantomData<u8>)",
     );
 
     let result = Ok::<_, Error>(1);
@@ -597,7 +597,7 @@ fn test_as() {
     };
     assert_err(
         test,
-        "Condition failed: `PhantomData as PhantomData<<i32 as ToOwned>::Owned> != PhantomData` (PhantomData vs PhantomData)",
+        "Condition failed: `PhantomData as PhantomData<<i32 as ToOwned>::Owned> != PhantomData` (PhantomData<i32> vs PhantomData<i32>)",
     );
 
     macro_rules! int {
