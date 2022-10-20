@@ -159,7 +159,6 @@ where
 
     #[cfg(backtrace)]
     fn provide<'a>(&'a self, demand: &mut Demand<'a>) {
-        demand.provide_ref(self.error.backtrace());
         self.error.provide(demand);
     }
 }
