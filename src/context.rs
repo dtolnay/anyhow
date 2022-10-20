@@ -47,7 +47,12 @@ where
     where
         C: Display + Send + Sync + 'static,
     {
-        self.map_err(|error| error.ext_context(context))
+        // Not using map_err to save 2 useless frames off the captured backtrace
+        // in ext_context.
+        match self {
+            Ok(ok) => Ok(ok),
+            Err(error) => Err(error.ext_context(context)),
+        }
     }
 
     fn with_context<C, F>(self, context: F) -> Result<T, Error>
@@ -55,7 +60,10 @@ where
         C: Display + Send + Sync + 'static,
         F: FnOnce() -> C,
     {
-        self.map_err(|error| error.ext_context(context()))
+        match self {
+            Ok(ok) => Ok(ok),
+            Err(error) => Err(error.ext_context(context())),
+        }
     }
 }
 
