@@ -35,7 +35,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rust: [1.52.0, 1.51.0, 1.50.0, 1.42.0, 1.38.0]
+        rust: [1.52.0, 1.51.0, 1.50.0, 1.42.0, 1.39.0]
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@master
@@ -45,7 +45,7 @@ jobs:
       - run: cargo check
       - run: cargo check --no-default-features
       - run: cargo check --features backtrace
-        if: matrix.rust != '1.38.0'
+        if: matrix.rust != '1.39.0'
 
   windows:
     name: Windows
