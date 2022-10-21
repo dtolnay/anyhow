@@ -145,7 +145,7 @@ where
 
     #[cfg(backtrace)]
     fn provide<'a>(&'a self, demand: &mut Demand<'a>) {
-        self.error.provide(demand);
+        StdError::provide(&self.error, demand);
     }
 }
 
