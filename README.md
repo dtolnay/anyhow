@@ -75,7 +75,7 @@ anyhow = "1.0"
   }
   ```
 
-- If using the nightly channel, or stable with `features = ["backtrace"]`, a
+- If using the nightly channel, or stable with `features = ["backtrace"]` (backtrace is now stable since rustc version [1.65.0](https://blog.rust-lang.org/2022/11/03/Rust-1.65.0.html#stabilized-apis), therefore you don't need to), a
   backtrace is captured and printed with the error if the underlying error type
   does not already provide its own. In order to see backtraces, they must be
   enabled through the environment variables described in [`std::backtrace`]:
