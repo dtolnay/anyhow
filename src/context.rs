@@ -25,11 +25,12 @@ mod ext {
             C: Display + Send + Sync + 'static,
         {
             let backtrace = backtrace_if_absent!(&self);
-            Error::from_context(context, self, backtrace)
+            Error::from_context(context, self, backtrace, caller!())
         }
     }
 
     impl StdError for Error {
+        #[cfg_attr(feature = "track_caller", track_caller)]
         fn ext_context<C>(self, context: C) -> Error
         where
             C: Display + Send + Sync + 'static,
@@ -43,6 +44,7 @@ impl<T, E> Context<T, E> for Result<T, E>
 where
     E: ext::StdError + Send + Sync + 'static,
 {
+    #[cfg_attr(feature = "track_caller", track_caller)]
     fn context<C>(self, context: C) -> Result<T, Error>
     where
         C: Display + Send + Sync + 'static,
@@ -55,6 +57,7 @@ where
         }
     }
 
+    #[cfg_attr(feature = "track_caller", track_caller)]
     fn with_context<C, F>(self, context: F) -> Result<T, Error>
     where
         C: Display + Send + Sync + 'static,
@@ -88,6 +91,7 @@ where
 /// }
 /// ```
 impl<T> Context<T, Infallible> for Option<T> {
+    #[cfg_attr(feature = "track_caller", track_caller)]
     fn context<C>(self, context: C) -> Result<T, Error>
     where
         C: Display + Send + Sync + 'static,
@@ -96,10 +100,11 @@ impl<T> Context<T, Infallible> for Option<T> {
         // backtrace.
         match self {
             Some(ok) => Ok(ok),
-            None => Err(Error::from_display(context, backtrace!())),
+            None => Err(Error::from_display(context, backtrace!(), caller!())),
         }
     }
 
+    #[cfg_attr(feature = "track_caller", track_caller)]
     fn with_context<C, F>(self, context: F) -> Result<T, Error>
     where
         C: Display + Send + Sync + 'static,
@@ -107,7 +112,7 @@ impl<T> Context<T, Infallible> for Option<T> {
     {
         match self {
             Some(ok) => Ok(ok),
-            None => Err(Error::from_display(context(), backtrace!())),
+            None => Err(Error::from_display(context(), backtrace!(), caller!())),
         }
     }
 }

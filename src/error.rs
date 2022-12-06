@@ -13,6 +13,7 @@ use core::mem::ManuallyDrop;
 #[cfg(not(anyhow_no_ptr_addr_of))]
 use core::ptr;
 use core::ptr::NonNull;
+use core::panic::Location;
 
 #[cfg(feature = "std")]
 use core::ops::{Deref, DerefMut};
@@ -34,7 +35,7 @@ impl Error {
         E: StdError + Send + Sync + 'static,
     {
         let backtrace = backtrace_if_absent!(&error);
-        Error::from_std(error, backtrace)
+        Error::from_std(error, backtrace, caller!())
     }
 
     /// Create a new error object from a printable error message.
@@ -80,12 +81,12 @@ impl Error {
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        Error::from_adhoc(message, backtrace!())
+        Error::from_adhoc(message, backtrace!(), caller!())
     }
 
     #[cfg(feature = "std")]
     #[cold]
-    pub(crate) fn from_std<E>(error: E, backtrace: Option<Backtrace>) -> Self
+    pub(crate) fn from_std<E>(error: E, backtrace: Option<Backtrace>, caller: Option<&'static Location<'static>>) -> Self
     where
         E: StdError + Send + Sync + 'static,
     {
@@ -104,11 +105,11 @@ impl Error {
         };
 
         // Safety: passing vtable that operates on the right type E.
-        unsafe { Error::construct(error, vtable, backtrace) }
+        unsafe { Error::construct(error, vtable, backtrace, caller) }
     }
 
     #[cold]
-    pub(crate) fn from_adhoc<M>(message: M, backtrace: Option<Backtrace>) -> Self
+    pub(crate) fn from_adhoc<M>(message: M, backtrace: Option<Backtrace>, caller: Option<&'static Location<'static>>) -> Self
     where
         M: Display + Debug + Send + Sync + 'static,
     {
@@ -130,11 +131,11 @@ impl Error {
 
         // Safety: MessageError is repr(transparent) so it is okay for the
         // vtable to allow casting the MessageError<M> to M.
-        unsafe { Error::construct(error, vtable, backtrace) }
+        unsafe { Error::construct(error, vtable, backtrace, caller) }
     }
 
     #[cold]
-    pub(crate) fn from_display<M>(message: M, backtrace: Option<Backtrace>) -> Self
+    pub(crate) fn from_display<M>(message: M, backtrace: Option<Backtrace>, caller: Option<&'static Location<'static>>) -> Self
     where
         M: Display + Send + Sync + 'static,
     {
@@ -156,12 +157,12 @@ impl Error {
 
         // Safety: DisplayError is repr(transparent) so it is okay for the
         // vtable to allow casting the DisplayError<M> to M.
-        unsafe { Error::construct(error, vtable, backtrace) }
+        unsafe { Error::construct(error, vtable, backtrace, caller) }
     }
 
     #[cfg(feature = "std")]
     #[cold]
-    pub(crate) fn from_context<C, E>(context: C, error: E, backtrace: Option<Backtrace>) -> Self
+    pub(crate) fn from_context<C, E>(context: C, error: E, backtrace: Option<Backtrace>, caller: Option<&'static Location<'static>>) -> Self
     where
         C: Display + Send + Sync + 'static,
         E: StdError + Send + Sync + 'static,
@@ -183,7 +184,7 @@ impl Error {
         };
 
         // Safety: passing vtable that operates on the right type.
-        unsafe { Error::construct(error, vtable, backtrace) }
+        unsafe { Error::construct(error, vtable, backtrace, caller) }
     }
 
     #[cfg(feature = "std")]
@@ -191,6 +192,7 @@ impl Error {
     pub(crate) fn from_boxed(
         error: Box<dyn StdError + Send + Sync>,
         backtrace: Option<Backtrace>,
+        caller: Option<&'static Location<'static>>
     ) -> Self {
         use crate::wrapper::BoxedError;
         let error = BoxedError(error);
@@ -210,7 +212,7 @@ impl Error {
 
         // Safety: BoxedError is repr(transparent) so it is okay for the vtable
         // to allow casting to Box<dyn StdError + Send + Sync>.
-        unsafe { Error::construct(error, vtable, backtrace) }
+        unsafe { Error::construct(error, vtable, backtrace, caller) }
     }
 
     // Takes backtrace as argument rather than capturing it here so that the
@@ -223,6 +225,7 @@ impl Error {
         error: E,
         vtable: &'static ErrorVTable,
         backtrace: Option<Backtrace>,
+        caller: Option<&'static Location<'static>>,
     ) -> Self
     where
         E: StdError + Send + Sync + 'static,
@@ -230,6 +233,7 @@ impl Error {
         let inner: Box<ErrorImpl<E>> = Box::new(ErrorImpl {
             vtable,
             backtrace,
+            caller,
             _object: error,
         });
         // Erase the concrete type of E from the compile-time type system. This
@@ -298,6 +302,7 @@ impl Error {
     /// ```
     #[cold]
     #[must_use]
+    #[cfg_attr(feature = "track_caller", track_caller)]
     pub fn context<C>(self, context: C) -> Self
     where
         C: Display + Send + Sync + 'static,
@@ -325,7 +330,7 @@ impl Error {
         let backtrace = None;
 
         // Safety: passing vtable that operates on the right type.
-        unsafe { Error::construct(error, vtable, backtrace) }
+        unsafe { Error::construct(error, vtable, backtrace, caller!()) }
     }
 
     /// Get the backtrace for this Error.
@@ -545,7 +550,7 @@ where
     #[cold]
     fn from(error: E) -> Self {
         let backtrace = backtrace_if_absent!(&error);
-        Error::from_std(error, backtrace)
+        Error::from_std(error, backtrace, caller!())
     }
 }
 
@@ -840,6 +845,7 @@ where
 pub(crate) struct ErrorImpl<E = ()> {
     vtable: &'static ErrorVTable,
     backtrace: Option<Backtrace>,
+    caller: Option<&'static Location<'static>>,
     // NOTE: Don't use directly. Use only through vtable. Erased type may have
     // different alignment.
     _object: E,
@@ -874,6 +880,10 @@ impl ErrorImpl {
         // Use vtable to attach E's native StdError vtable for the right
         // original type E.
         (vtable(this.ptr).object_ref)(this).deref()
+    }
+
+    pub(crate) unsafe fn caller(this: Ref<Self>) -> Option<&Location<'static>> {
+        this.deref().caller
     }
 
     #[cfg(feature = "std")]

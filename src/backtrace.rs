@@ -35,6 +35,20 @@ macro_rules! backtrace {
     };
 }
 
+#[cfg(feature = "track_caller")]
+macro_rules! caller {
+    () => {
+        Some(core::panic::Location::caller())
+    }
+}
+
+#[cfg(not(feature = "track_caller"))]
+macro_rules! caller {
+    () => {
+        None
+    }
+}
+
 #[cfg(backtrace)]
 macro_rules! backtrace_if_absent {
     ($err:expr) => {
