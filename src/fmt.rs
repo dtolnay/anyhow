@@ -24,6 +24,9 @@ impl ErrorImpl {
         }
 
         write!(f, "{}", error)?;
+        if let Some(location) = Self::caller(this) {
+            writeln!(f, "\n  at {}:{}", location.file(), location.line())?;
+        }
 
         if let Some(cause) = error.source() {
             write!(f, "\n\nCaused by:")?;
