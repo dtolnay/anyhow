@@ -3,7 +3,7 @@ use crate::{Context, Error, StdError};
 use core::convert::Infallible;
 use core::fmt::{self, Debug, Display, Write};
 
-#[cfg(backtrace)]
+#[cfg(provide_api)]
 use std::any::{Demand, Provider};
 
 mod ext {
@@ -143,7 +143,7 @@ where
         Some(&self.error)
     }
 
-    #[cfg(backtrace)]
+    #[cfg(provide_api)]
     fn provide<'a>(&'a self, demand: &mut Demand<'a>) {
         StdError::provide(&self.error, demand);
     }
@@ -157,7 +157,7 @@ where
         Some(unsafe { crate::ErrorImpl::error(self.error.inner.by_ref()) })
     }
 
-    #[cfg(backtrace)]
+    #[cfg(provide_api)]
     fn provide<'a>(&'a self, demand: &mut Demand<'a>) {
         Provider::provide(&self.error, demand);
     }
