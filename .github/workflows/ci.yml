@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rust: [nightly, beta, stable, 1.56.0]
+        rust: [nightly, beta, stable, 1.60.0]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v3
@@ -53,8 +53,6 @@ jobs:
           components: rust-src
       - run: cargo check
       - run: cargo check --no-default-features
-      - run: cargo check --features backtrace
-        if: matrix.rust != '1.39.0' && matrix.rust != '1.50.0'
 
   windows:
     name: Windows
