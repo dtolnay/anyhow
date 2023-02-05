@@ -1,6 +1,6 @@
 [package]
 name = "anyhow"
-version = "1.0.68" # remember to update html_root_url
+version = "1.0.69" # remember to update html_root_url
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 categories = ["rust-patterns", "no-std"]
 description = "Flexible concrete Error type built on std::error::Error"
