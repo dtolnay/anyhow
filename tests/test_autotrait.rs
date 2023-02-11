@@ -1,3 +1,5 @@
+#![allow(clippy::extra_unused_type_parameters)]
+
 use anyhow::Error;
 
 #[test]

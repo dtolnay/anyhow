@@ -1,3 +1,5 @@
+#![allow(clippy::extra_unused_type_parameters)]
+
 mod drop;
 
 use self::drop::{DetectDrop, Flag};
