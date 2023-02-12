@@ -31,6 +31,8 @@ jobs:
         with:
           toolchain: ${{matrix.rust}}
           components: rust-src
+      - run: echo RUSTFLAGS=${RUSTFLAGS}\ -Zrandomize-layout >> $GITHUB_ENV
+        if: matrix.rust == 'nightly'
       - run: cargo test
       - run: cargo check --no-default-features
       - run: cargo check --features backtrace
