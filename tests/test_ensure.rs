@@ -6,6 +6,7 @@
     clippy::ifs_same_cond,
     clippy::items_after_statements,
     clippy::let_and_return,
+    clippy::let_underscore_untyped,
     clippy::match_bool,
     clippy::never_loop,
     clippy::overly_complex_bool_expr,
