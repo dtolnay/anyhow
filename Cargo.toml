@@ -14,9 +14,11 @@ rust-version = "1.39"
 [features]
 default = ["std"]
 std = []
+wasm_bindgen = ["std", "wasm-bindgen"]
 
 [dependencies]
 backtrace = { version = "0.3.51", optional = true }
+wasm-bindgen = {version = "0.2.84", optional = true, features = ["std"], default-features = false}
 
 [dev-dependencies]
 futures = { version = "0.3", default-features = false }

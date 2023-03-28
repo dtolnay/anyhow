@@ -209,6 +209,12 @@
 //! `std::error::Error` trait which is only available through std, no_std mode
 //! will require an explicit `.map_err(Error::msg)` when working with a
 //! non-Anyhow error type inside a function that returns Anyhow's error type.
+//!
+//! <br>
+//!
+//! ## wasm_bindgen support
+//!
+//! To use `anyhow::Error` in functions exported to JavaScript, you need to enable the `wasm_bindgen` feature.
 
 #![doc(html_root_url = "https://docs.rs/anyhow/1.0.70")]
 #![cfg_attr(backtrace, feature(error_generic_member_access, provide_any))]

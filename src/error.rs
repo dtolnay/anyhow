@@ -13,6 +13,8 @@ use core::mem::ManuallyDrop;
 #[cfg(not(anyhow_no_ptr_addr_of))]
 use core::ptr;
 use core::ptr::NonNull;
+#[cfg(feature = "wasm_bindgen")]
+use wasm_bindgen::JsValue;
 
 #[cfg(feature = "std")]
 use core::ops::{Deref, DerefMut};
@@ -988,5 +990,12 @@ impl AsRef<dyn StdError + Send + Sync> for Error {
 impl AsRef<dyn StdError> for Error {
     fn as_ref(&self) -> &(dyn StdError + 'static) {
         &**self
+    }
+}
+
+#[cfg(feature = "wasm_bindgen")]
+impl Into<JsValue> for Error {
+    fn into(self) -> JsValue {
+        JsValue::from_str(self.to_string().as_str())
     }
 }
