@@ -266,6 +266,7 @@ trait StdError: Debug + Display {
     }
 }
 
+#[doc(no_inline)]
 pub use anyhow as format_err;
 
 /// The `Error` type, a wrapper around a dynamic error type.
