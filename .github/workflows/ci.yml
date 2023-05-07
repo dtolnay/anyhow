@@ -93,7 +93,6 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@miri
       - run: cargo miri test
-        continue-on-error: true # https://github.com/rust-lang/miri/issues/2874
         env:
           MIRIFLAGS: -Zmiri-strict-provenance
 
