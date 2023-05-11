@@ -244,6 +244,7 @@ mod context;
 mod ensure;
 mod error;
 mod fmt;
+mod into_error;
 mod kind;
 mod macros;
 mod ptr;
@@ -268,6 +269,8 @@ trait StdError: Debug + Display {
 
 #[doc(no_inline)]
 pub use anyhow as format_err;
+
+pub use into_error::IntoError;
 
 /// The `Error` type, a wrapper around a dynamic error type.
 ///
