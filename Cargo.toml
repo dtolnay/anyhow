@@ -14,7 +14,6 @@ rust-version = "1.39"
 [features]
 default = ["std"]
 std = ["backtrace/std"]
-backtrace = ["std"]
 
 [dependencies]
 backtrace = { version = "0.3.51", optional = true }
