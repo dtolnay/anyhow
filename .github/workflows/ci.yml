@@ -34,7 +34,7 @@ jobs:
           components: rust-src
       - name: Enable type layout randomization
         run: echo RUSTFLAGS=${RUSTFLAGS}\ -Zrandomize-layout >> $GITHUB_ENV
-        if: matrix.rust == 'nightly'
+        if: matrix.rust == 'nightly' && false # FIXME https://github.com/rust-lang/rust/issues/113941
       - run: cargo test
       - run: cargo check --no-default-features
       - run: cargo check --features backtrace
