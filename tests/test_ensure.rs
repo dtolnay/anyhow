@@ -4,6 +4,7 @@
     clippy::extra_unused_type_parameters,
     clippy::if_same_then_else,
     clippy::ifs_same_cond,
+    clippy::ignored_unit_patterns,
     clippy::items_after_statements,
     clippy::let_and_return,
     clippy::let_underscore_untyped,
