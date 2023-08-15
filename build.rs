@@ -68,6 +68,14 @@ fn main() {
 }
 
 fn compile_probe() -> Option<ExitStatus> {
+    if env::var_os("RUSTC_STAGE").is_some() {
+        // We are running inside rustc bootstrap. This is a highly non-standard environment with
+        // issues such as <https://github.com/rust-lang/cargo/issues/11138> and
+        // <https://github.com/rust-lang/rust/issues/114839>. Let's just not use nightly features
+        // here.
+        return None;
+    }
+
     let rustc = env::var_os("RUSTC")?;
     let out_dir = env::var_os("OUT_DIR")?;
     let probefile = Path::new(&out_dir).join("probe.rs");
