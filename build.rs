@@ -11,49 +11,38 @@ compile_error! {
     "`backtrace` feature without `std` feature is not supported"
 }
 
-// This code exercises the surface area that we expect of the std Backtrace
-// type. If the current toolchain is able to compile it, we go ahead and use
-// backtrace in anyhow.
+// This code exercises the surface area that we expect of the Error generic
+// member access API. If the current toolchain is able to compile it, then
+// anyhow is able to provide backtrace support.
 const PROBE: &str = r#"
-    #![feature(error_generic_member_access, provide_any)]
+    #![feature(error_generic_member_access)]
 
-    use std::any::{Demand, Provider};
-    use std::backtrace::{Backtrace, BacktraceStatus};
-    use std::error::Error;
-    use std::fmt::{self, Display};
+    use std::backtrace::Backtrace;
+    use std::error::{self, Error, Request};
+    use std::fmt::{self, Debug, Display};
 
-    #[derive(Debug)]
-    struct E {
-        backtrace: Backtrace,
-    }
+    struct MyError(Thing);
+    struct Thing;
 
-    impl Display for E {
+    impl Debug for MyError {
         fn fmt(&self, _formatter: &mut fmt::Formatter) -> fmt::Result {
             unimplemented!()
         }
     }
 
-    impl Error for E {
-        fn provide<'a>(&'a self, demand: &mut Demand<'a>) {
-            demand.provide_ref(&self.backtrace);
+    impl Display for MyError {
+        fn fmt(&self, _formatter: &mut fmt::Formatter) -> fmt::Result {
+            unimplemented!()
         }
     }
 
-    struct P;
-
-    impl Provider for P {
-        fn provide<'a>(&'a self, _demand: &mut Demand<'a>) {}
+    impl Error for MyError {
+        fn provide<'a>(&'a self, request: &mut Request<'a>) {
+            request.provide_ref(&self.0);
+        }
     }
 
-    const _: fn() = || {
-        let backtrace: Backtrace = Backtrace::capture();
-        let status: BacktraceStatus = backtrace.status();
-        match status {
-            BacktraceStatus::Captured | BacktraceStatus::Disabled | _ => {}
-        }
-    };
-
-    const _: fn(&dyn Error) -> Option<&Backtrace> = |err| err.request_ref::<Backtrace>();
+    const _: fn(&dyn Error) -> Option<&Backtrace> = |err| error::request_ref::<Backtrace>(err);
 "#;
 
 fn main() {
