@@ -642,16 +642,22 @@ pub mod __private {
     use alloc::fmt;
     use core::fmt::Arguments;
 
+    #[doc(hidden)]
     pub use crate::ensure::{BothDebug, NotBothDebug};
+    #[doc(hidden)]
     pub use alloc::format;
+    #[doc(hidden)]
     pub use core::result::Result::Err;
+    #[doc(hidden)]
     pub use core::{concat, format_args, stringify};
 
     #[doc(hidden)]
     pub mod kind {
+        #[doc(hidden)]
         pub use crate::kind::{AdhocKind, TraitKind};
 
         #[cfg(feature = "std")]
+        #[doc(hidden)]
         pub use crate::kind::BoxedKind;
     }
 
