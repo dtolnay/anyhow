@@ -1,4 +1,4 @@
-#![allow(clippy::option_if_let_else)]
+#![allow(clippy::needless_raw_string_hashes, clippy::option_if_let_else)]
 
 use std::env;
 use std::fs;
