@@ -68,6 +68,10 @@ fn main() {
         // core::fmt::Arguments::as_str
         // https://blog.rust-lang.org/2021/05/06/Rust-1.52.0.html#stabilized-apis
         println!("cargo:rustc-cfg=anyhow_no_fmt_arguments_as_str");
+
+        // #![deny(unsafe_op_in_unsafe_fn)]
+        // https://github.com/rust-lang/rust/issues/71668
+        println!("cargo:rustc-cfg=anyhow_no_unsafe_op_in_unsafe_fn_lint");
     }
 }
 

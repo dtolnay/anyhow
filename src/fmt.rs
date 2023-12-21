@@ -5,10 +5,11 @@ use core::fmt::{self, Debug, Write};
 
 impl ErrorImpl {
     pub(crate) unsafe fn display(this: Ref<Self>, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", Self::error(this))?;
+        write!(f, "{}", unsafe { Self::error(this) })?;
 
         if f.alternate() {
-            for cause in Self::chain(this).skip(1) {
+            let chain = unsafe { Self::chain(this) };
+            for cause in chain.skip(1) {
                 write!(f, ": {}", cause)?;
             }
         }
@@ -17,7 +18,7 @@ impl ErrorImpl {
     }
 
     pub(crate) unsafe fn debug(this: Ref<Self>, f: &mut fmt::Formatter) -> fmt::Result {
-        let error = Self::error(this);
+        let error = unsafe { Self::error(this) };
 
         if f.alternate() {
             return Debug::fmt(error, f);
@@ -43,7 +44,7 @@ impl ErrorImpl {
         {
             use crate::backtrace::BacktraceStatus;
 
-            let backtrace = Self::backtrace(this);
+            let backtrace = unsafe { Self::backtrace(this) };
             if let BacktraceStatus::Captured = backtrace.status() {
                 let mut backtrace = backtrace.to_string();
                 write!(f, "\n\n")?;
