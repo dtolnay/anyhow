@@ -610,8 +610,8 @@ struct ErrorVTable {
 unsafe fn object_drop<E>(e: Own<ErrorImpl>) {
     // Cast back to ErrorImpl<E> so that the allocator receives the correct
     // Layout to deallocate the Box's memory.
-    let unerased = e.cast::<ErrorImpl<E>>().boxed();
-    drop(unerased);
+    let unerased_own = e.cast::<ErrorImpl<E>>();
+    drop(unsafe { unerased_own.boxed() });
 }
 
 // Safety: requires layout of *e to match ErrorImpl<E>.
@@ -620,8 +620,8 @@ unsafe fn object_drop_front<E>(e: Own<ErrorImpl>, target: TypeId) {
     // without dropping E itself. This is used by downcast after doing a
     // ptr::read to take ownership of the E.
     let _ = target;
-    let unerased = e.cast::<ErrorImpl<ManuallyDrop<E>>>().boxed();
-    drop(unerased);
+    let unerased_own = e.cast::<ErrorImpl<ManuallyDrop<E>>>();
+    drop(unsafe { unerased_own.boxed() });
 }
 
 // Safety: requires layout of *e to match ErrorImpl<E>.
@@ -631,15 +631,15 @@ where
 {
     // Attach E's native StdError vtable onto a pointer to self._object.
 
-    let unerased = e.cast::<ErrorImpl<E>>();
+    let unerased_ref = e.cast::<ErrorImpl<E>>();
 
     #[cfg(not(anyhow_no_ptr_addr_of))]
-    return Ref::from_raw(NonNull::new_unchecked(
-        ptr::addr_of!((*unerased.as_ptr())._object) as *mut E,
-    ));
+    return Ref::from_raw(unsafe {
+        NonNull::new_unchecked(ptr::addr_of!((*unerased_ref.as_ptr())._object) as *mut E)
+    });
 
     #[cfg(anyhow_no_ptr_addr_of)]
-    return Ref::new(&unerased.deref()._object);
+    return Ref::new(unsafe { &unerased_ref.deref()._object });
 }
 
 // Safety: requires layout of *e to match ErrorImpl<E>, and for `e` to be derived
@@ -650,7 +650,8 @@ where
     E: StdError + Send + Sync + 'static,
 {
     // Attach E's native StdError vtable onto a pointer to self._object.
-    &mut e.cast::<ErrorImpl<E>>().deref_mut()._object
+    let unerased_mut = e.cast::<ErrorImpl<E>>();
+    unsafe { &mut unerased_mut.deref_mut()._object }
 }
 
 // Safety: requires layout of *e to match ErrorImpl<E>.
@@ -659,7 +660,8 @@ where
     E: StdError + Send + Sync + 'static,
 {
     // Attach ErrorImpl<E>'s native StdError vtable. The StdError impl is below.
-    e.cast::<ErrorImpl<E>>().boxed()
+    let unerased_own = e.cast::<ErrorImpl<E>>();
+    unsafe { unerased_own.boxed() }
 }
 
 // Safety: requires layout of *e to match ErrorImpl<E>.
@@ -671,18 +673,18 @@ where
         // Caller is looking for an E pointer and e is ErrorImpl<E>, take a
         // pointer to its E field.
 
-        let unerased = e.cast::<ErrorImpl<E>>();
+        let unerased_ref = e.cast::<ErrorImpl<E>>();
 
         #[cfg(not(anyhow_no_ptr_addr_of))]
         return Some(
-            Ref::from_raw(NonNull::new_unchecked(
-                ptr::addr_of!((*unerased.as_ptr())._object) as *mut E,
-            ))
+            Ref::from_raw(unsafe {
+                NonNull::new_unchecked(ptr::addr_of!((*unerased_ref.as_ptr())._object) as *mut E)
+            })
             .cast::<()>(),
         );
 
         #[cfg(anyhow_no_ptr_addr_of)]
-        return Some(Ref::new(&unerased.deref()._object).cast::<()>());
+        return Some(Ref::new(unsafe { &unerased_ref.deref()._object }).cast::<()>());
     } else {
         None
     }
@@ -697,7 +699,8 @@ where
     if TypeId::of::<E>() == target {
         // Caller is looking for an E pointer and e is ErrorImpl<E>, take a
         // pointer to its E field.
-        let unerased = e.cast::<ErrorImpl<E>>().deref_mut();
+        let unerased_mut = e.cast::<ErrorImpl<E>>();
+        let unerased = unsafe { unerased_mut.deref_mut() };
         Some(Mut::new(&mut unerased._object).cast::<()>())
     } else {
         None
@@ -718,10 +721,12 @@ where
     E: 'static,
 {
     if TypeId::of::<C>() == target {
-        let unerased = e.cast::<ErrorImpl<ContextError<C, E>>>().deref();
+        let unerased_ref = e.cast::<ErrorImpl<ContextError<C, E>>>();
+        let unerased = unsafe { unerased_ref.deref() };
         Some(Ref::new(&unerased._object.context).cast::<()>())
     } else if TypeId::of::<E>() == target {
-        let unerased = e.cast::<ErrorImpl<ContextError<C, E>>>().deref();
+        let unerased_ref = e.cast::<ErrorImpl<ContextError<C, E>>>();
+        let unerased = unsafe { unerased_ref.deref() };
         Some(Ref::new(&unerased._object.error).cast::<()>())
     } else {
         None
@@ -736,10 +741,12 @@ where
     E: 'static,
 {
     if TypeId::of::<C>() == target {
-        let unerased = e.cast::<ErrorImpl<ContextError<C, E>>>().deref_mut();
+        let unerased_mut = e.cast::<ErrorImpl<ContextError<C, E>>>();
+        let unerased = unsafe { unerased_mut.deref_mut() };
         Some(Mut::new(&mut unerased._object.context).cast::<()>())
     } else if TypeId::of::<E>() == target {
-        let unerased = e.cast::<ErrorImpl<ContextError<C, E>>>().deref_mut();
+        let unerased_mut = e.cast::<ErrorImpl<ContextError<C, E>>>();
+        let unerased = unsafe { unerased_mut.deref_mut() };
         Some(Mut::new(&mut unerased._object.error).cast::<()>())
     } else {
         None
@@ -756,15 +763,11 @@ where
     // Called after downcasting by value to either the C or the E and doing a
     // ptr::read to take ownership of that value.
     if TypeId::of::<C>() == target {
-        let unerased = e
-            .cast::<ErrorImpl<ContextError<ManuallyDrop<C>, E>>>()
-            .boxed();
-        drop(unerased);
+        let unerased_own = e.cast::<ErrorImpl<ContextError<ManuallyDrop<C>, E>>>();
+        drop(unsafe { unerased_own.boxed() });
     } else {
-        let unerased = e
-            .cast::<ErrorImpl<ContextError<C, ManuallyDrop<E>>>>()
-            .boxed();
-        drop(unerased);
+        let unerased_own = e.cast::<ErrorImpl<ContextError<C, ManuallyDrop<E>>>>();
+        drop(unsafe { unerased_own.boxed() });
     }
 }
 
@@ -773,13 +776,14 @@ unsafe fn context_chain_downcast<C>(e: Ref<ErrorImpl>, target: TypeId) -> Option
 where
     C: 'static,
 {
-    let unerased = e.cast::<ErrorImpl<ContextError<C, Error>>>().deref();
+    let unerased_ref = e.cast::<ErrorImpl<ContextError<C, Error>>>();
+    let unerased = unsafe { unerased_ref.deref() };
     if TypeId::of::<C>() == target {
         Some(Ref::new(&unerased._object.context).cast::<()>())
     } else {
         // Recurse down the context chain per the inner error's vtable.
         let source = &unerased._object.error;
-        (vtable(source.inner.ptr).object_downcast)(source.inner.by_ref(), target)
+        unsafe { (vtable(source.inner.ptr).object_downcast)(source.inner.by_ref(), target) }
     }
 }
 
@@ -789,13 +793,14 @@ unsafe fn context_chain_downcast_mut<C>(e: Mut<ErrorImpl>, target: TypeId) -> Op
 where
     C: 'static,
 {
-    let unerased = e.cast::<ErrorImpl<ContextError<C, Error>>>().deref_mut();
+    let unerased_mut = e.cast::<ErrorImpl<ContextError<C, Error>>>();
+    let unerased = unsafe { unerased_mut.deref_mut() };
     if TypeId::of::<C>() == target {
         Some(Mut::new(&mut unerased._object.context).cast::<()>())
     } else {
         // Recurse down the context chain per the inner error's vtable.
         let source = &mut unerased._object.error;
-        (vtable(source.inner.ptr).object_downcast_mut)(source.inner.by_mut(), target)
+        unsafe { (vtable(source.inner.ptr).object_downcast_mut)(source.inner.by_mut(), target) }
     }
 }
 
@@ -807,21 +812,18 @@ where
     // Called after downcasting by value to either the C or one of the causes
     // and doing a ptr::read to take ownership of that value.
     if TypeId::of::<C>() == target {
-        let unerased = e
-            .cast::<ErrorImpl<ContextError<ManuallyDrop<C>, Error>>>()
-            .boxed();
+        let unerased_own = e.cast::<ErrorImpl<ContextError<ManuallyDrop<C>, Error>>>();
         // Drop the entire rest of the data structure rooted in the next Error.
-        drop(unerased);
+        drop(unsafe { unerased_own.boxed() });
     } else {
-        let unerased = e
-            .cast::<ErrorImpl<ContextError<C, ManuallyDrop<Error>>>>()
-            .boxed();
+        let unerased_own = e.cast::<ErrorImpl<ContextError<C, ManuallyDrop<Error>>>>();
+        let unerased = unsafe { unerased_own.boxed() };
         // Read the Own<ErrorImpl> from the next error.
         let inner = unerased._object.error.inner;
         drop(unerased);
-        let vtable = vtable(inner.ptr);
+        let vtable = unsafe { vtable(inner.ptr) };
         // Recursively drop the next error using the same target typeid.
-        (vtable.object_drop_rest)(inner, target);
+        unsafe { (vtable.object_drop_rest)(inner, target) };
     }
 }
 
@@ -832,8 +834,9 @@ unsafe fn context_backtrace<C>(e: Ref<ErrorImpl>) -> Option<&Backtrace>
 where
     C: 'static,
 {
-    let unerased = e.cast::<ErrorImpl<ContextError<C, Error>>>().deref();
-    let backtrace = ErrorImpl::backtrace(unerased._object.error.inner.by_ref());
+    let unerased_ref = e.cast::<ErrorImpl<ContextError<C, Error>>>();
+    let unerased = unsafe { unerased_ref.deref() };
+    let backtrace = unsafe { ErrorImpl::backtrace(unerased._object.error.inner.by_ref()) };
     Some(backtrace)
 }
 
@@ -853,7 +856,7 @@ pub(crate) struct ErrorImpl<E = ()> {
 // avoids converting `p` into a reference.
 unsafe fn vtable(p: NonNull<ErrorImpl>) -> &'static ErrorVTable {
     // NOTE: This assumes that `ErrorVTable` is the first field of ErrorImpl.
-    *(p.as_ptr() as *const &'static ErrorVTable)
+    unsafe { *(p.as_ptr() as *const &'static ErrorVTable) }
 }
 
 // repr C to ensure that ContextError<C, E> has the same layout as
@@ -877,7 +880,7 @@ impl ErrorImpl {
     pub(crate) unsafe fn error(this: Ref<Self>) -> &(dyn StdError + Send + Sync + 'static) {
         // Use vtable to attach E's native StdError vtable for the right
         // original type E.
-        (vtable(this.ptr).object_ref)(this).deref()
+        unsafe { (vtable(this.ptr).object_ref)(this).deref() }
     }
 
     #[cfg(feature = "std")]
@@ -886,12 +889,14 @@ impl ErrorImpl {
         // original type E.
 
         #[cfg(not(anyhow_no_ptr_addr_of))]
-        return (vtable(this.ptr).object_ref)(this.by_ref())
-            .by_mut()
-            .deref_mut();
+        return unsafe {
+            (vtable(this.ptr).object_ref)(this.by_ref())
+                .by_mut()
+                .deref_mut()
+        };
 
         #[cfg(anyhow_no_ptr_addr_of)]
-        return (vtable(this.ptr).object_mut)(this);
+        return unsafe { (vtable(this.ptr).object_mut)(this) };
     }
 
     #[cfg(any(backtrace, feature = "backtrace"))]
@@ -899,29 +904,29 @@ impl ErrorImpl {
         // This unwrap can only panic if the underlying error's backtrace method
         // is nondeterministic, which would only happen in maliciously
         // constructed code.
-        this.deref()
+        unsafe { this.deref() }
             .backtrace
             .as_ref()
             .or_else(|| {
                 #[cfg(backtrace)]
-                return error::request_ref::<Backtrace>(Self::error(this));
+                return error::request_ref::<Backtrace>(unsafe { Self::error(this) });
                 #[cfg(not(backtrace))]
-                return (vtable(this.ptr).object_backtrace)(this);
+                return unsafe { (vtable(this.ptr).object_backtrace)(this) };
             })
             .expect("backtrace capture failed")
     }
 
     #[cfg(backtrace)]
     unsafe fn provide<'a>(this: Ref<'a, Self>, request: &mut Request<'a>) {
-        if let Some(backtrace) = &this.deref().backtrace {
+        if let Some(backtrace) = unsafe { &this.deref().backtrace } {
             request.provide_ref(backtrace);
         }
-        Self::error(this).provide(request);
+        unsafe { Self::error(this) }.provide(request);
     }
 
     #[cold]
     pub(crate) unsafe fn chain(this: Ref<Self>) -> Chain {
-        Chain::new(Self::error(this))
+        Chain::new(unsafe { Self::error(this) })
     }
 }
 
