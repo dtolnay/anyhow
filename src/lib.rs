@@ -215,6 +215,11 @@
 #![cfg_attr(doc_cfg, feature(doc_cfg))]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![deny(dead_code, unused_imports, unused_mut)]
+#![cfg_attr(
+    not(anyhow_no_unsafe_op_in_unsafe_fn_lint),
+    deny(unsafe_op_in_unsafe_fn)
+)]
+#![cfg_attr(anyhow_no_unsafe_op_in_unsafe_fn_lint, allow(unused_unsafe))]
 #![allow(
     clippy::doc_markdown,
     clippy::enum_glob_use,
