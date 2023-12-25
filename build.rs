@@ -47,6 +47,8 @@ const PROBE: &str = r#"
 
 fn main() {
     if cfg!(feature = "std") {
+        println!("cargo:rerun-if-env-changed=RUSTC_BOOTSTRAP");
+
         match compile_probe() {
             Some(status) if status.success() => println!("cargo:rustc-cfg=backtrace"),
             _ => {}
