@@ -1,34 +1,34 @@
-#[cfg(backtrace)]
+#[cfg(std_backtrace)]
 pub(crate) use std::backtrace::{Backtrace, BacktraceStatus};
 
-#[cfg(all(not(backtrace), feature = "backtrace"))]
+#[cfg(all(not(std_backtrace), feature = "backtrace"))]
 pub(crate) use self::capture::{Backtrace, BacktraceStatus};
 
-#[cfg(not(any(backtrace, feature = "backtrace")))]
+#[cfg(not(any(std_backtrace, feature = "backtrace")))]
 pub(crate) enum Backtrace {}
 
-#[cfg(backtrace)]
+#[cfg(std_backtrace)]
 macro_rules! impl_backtrace {
     () => {
         std::backtrace::Backtrace
     };
 }
 
-#[cfg(all(not(backtrace), feature = "backtrace"))]
+#[cfg(all(not(std_backtrace), feature = "backtrace"))]
 macro_rules! impl_backtrace {
     () => {
         impl core::fmt::Debug + core::fmt::Display
     };
 }
 
-#[cfg(any(backtrace, feature = "backtrace"))]
+#[cfg(any(std_backtrace, feature = "backtrace"))]
 macro_rules! backtrace {
     () => {
         Some(crate::backtrace::Backtrace::capture())
     };
 }
 
-#[cfg(not(any(backtrace, feature = "backtrace")))]
+#[cfg(not(any(std_backtrace, feature = "backtrace")))]
 macro_rules! backtrace {
     () => {
         None
@@ -45,21 +45,21 @@ macro_rules! backtrace_if_absent {
     };
 }
 
-#[cfg(all(feature = "std", not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
+#[cfg(all(feature = "std", not(error_generic_member_access), any(std_backtrace, feature = "backtrace")))]
 macro_rules! backtrace_if_absent {
     ($err:expr) => {
         backtrace!()
     };
 }
 
-#[cfg(all(feature = "std", not(backtrace), not(feature = "backtrace")))]
+#[cfg(all(feature = "std", not(std_backtrace), not(feature = "backtrace")))]
 macro_rules! backtrace_if_absent {
     ($err:expr) => {
         None
     };
 }
 
-#[cfg(all(not(backtrace), feature = "backtrace"))]
+#[cfg(all(not(std_backtrace), feature = "backtrace"))]
 mod capture {
     use backtrace::{BacktraceFmt, BytesOrWideString, Frame, PrintFmt, SymbolName};
     use core::cell::UnsafeCell;

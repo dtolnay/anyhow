@@ -99,7 +99,7 @@ impl Error {
             #[cfg(anyhow_no_ptr_addr_of)]
             object_downcast_mut: object_downcast_mut::<E>,
             object_drop_rest: object_drop_front::<E>,
-            #[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
+            #[cfg(all(not(error_generic_member_access), any(std_backtrace, feature = "backtrace")))]
             object_backtrace: no_backtrace,
         };
 
@@ -124,7 +124,7 @@ impl Error {
             #[cfg(anyhow_no_ptr_addr_of)]
             object_downcast_mut: object_downcast_mut::<M>,
             object_drop_rest: object_drop_front::<M>,
-            #[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
+            #[cfg(all(not(error_generic_member_access), any(std_backtrace, feature = "backtrace")))]
             object_backtrace: no_backtrace,
         };
 
@@ -150,7 +150,7 @@ impl Error {
             #[cfg(anyhow_no_ptr_addr_of)]
             object_downcast_mut: object_downcast_mut::<M>,
             object_drop_rest: object_drop_front::<M>,
-            #[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
+            #[cfg(all(not(error_generic_member_access), any(std_backtrace, feature = "backtrace")))]
             object_backtrace: no_backtrace,
         };
 
@@ -178,7 +178,7 @@ impl Error {
             #[cfg(anyhow_no_ptr_addr_of)]
             object_downcast_mut: context_downcast_mut::<C, E>,
             object_drop_rest: context_drop_rest::<C, E>,
-            #[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
+            #[cfg(all(not(error_generic_member_access), any(std_backtrace, feature = "backtrace")))]
             object_backtrace: no_backtrace,
         };
 
@@ -204,7 +204,7 @@ impl Error {
             #[cfg(anyhow_no_ptr_addr_of)]
             object_downcast_mut: object_downcast_mut::<Box<dyn StdError + Send + Sync>>,
             object_drop_rest: object_drop_front::<Box<dyn StdError + Send + Sync>>,
-            #[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
+            #[cfg(all(not(error_generic_member_access), any(std_backtrace, feature = "backtrace")))]
             object_backtrace: no_backtrace,
         };
 
@@ -317,7 +317,7 @@ impl Error {
             #[cfg(anyhow_no_ptr_addr_of)]
             object_downcast_mut: context_chain_downcast_mut::<C>,
             object_drop_rest: context_chain_drop_rest::<C>,
-            #[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
+            #[cfg(all(not(error_generic_member_access), any(std_backtrace, feature = "backtrace")))]
             object_backtrace: context_backtrace::<C>,
         };
 
@@ -354,7 +354,7 @@ impl Error {
     /// [dependencies]
     /// anyhow = { version = "1.0", features = ["backtrace"] }
     /// ```
-    #[cfg(any(backtrace, feature = "backtrace"))]
+    #[cfg(any(std_backtrace, feature = "backtrace"))]
     #[cfg_attr(doc_cfg, doc(cfg(any(nightly, feature = "backtrace"))))]
     pub fn backtrace(&self) -> &impl_backtrace!() {
         unsafe { ErrorImpl::backtrace(self.inner.by_ref()) }
@@ -598,7 +598,7 @@ struct ErrorVTable {
     #[cfg(anyhow_no_ptr_addr_of)]
     object_downcast_mut: unsafe fn(Mut<ErrorImpl>, TypeId) -> Option<Mut<()>>,
     object_drop_rest: unsafe fn(Own<ErrorImpl>, TypeId),
-    #[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
+    #[cfg(all(not(error_generic_member_access), any(std_backtrace, feature = "backtrace")))]
     object_backtrace: unsafe fn(Ref<ErrorImpl>) -> Option<&Backtrace>,
 }
 
@@ -703,7 +703,7 @@ where
     }
 }
 
-#[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
+#[cfg(all(not(error_generic_member_access), any(std_backtrace, feature = "backtrace")))]
 fn no_backtrace(e: Ref<ErrorImpl>) -> Option<&Backtrace> {
     let _ = e;
     None
@@ -824,7 +824,7 @@ where
 }
 
 // Safety: requires layout of *e to match ErrorImpl<ContextError<C, Error>>.
-#[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
+#[cfg(all(not(error_generic_member_access), any(std_backtrace, feature = "backtrace")))]
 #[allow(clippy::unnecessary_wraps)]
 unsafe fn context_backtrace<C>(e: Ref<ErrorImpl>) -> Option<&Backtrace>
 where
@@ -895,7 +895,7 @@ impl ErrorImpl {
         return unsafe { (vtable(this.ptr).object_mut)(this) };
     }
 
-    #[cfg(any(backtrace, feature = "backtrace"))]
+    #[cfg(any(std_backtrace, feature = "backtrace"))]
     pub(crate) unsafe fn backtrace(this: Ref<Self>) -> &Backtrace {
         // This unwrap can only panic if the underlying error's backtrace method
         // is nondeterministic, which would only happen in maliciously

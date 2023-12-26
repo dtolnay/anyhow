@@ -86,7 +86,7 @@ fn main() {
     }
 
     if nightly_backtrace_support || (cfg!(feature = "std") && rustc >= 65) {
-        println!("cargo:rustc-cfg=backtrace");
+        println!("cargo:rustc-cfg=std_backtrace");
     }
 }
 
