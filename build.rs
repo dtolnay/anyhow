@@ -46,11 +46,20 @@ const PROBE: &str = r#"
 "#;
 
 fn main() {
+    // If the compile probe succeeds, i.e. if a nightly compiler is used and the
+    // provide API exists, then `std::backtrace` is also usable. So `cfg
+    // (provide_api)` implies `cfg(backtrace)`. We do set `cfg(backtrace)` in
+    // this script explicitly anyway to make the `cfg()` attributes in the main
+    // code less complex.
+    let mut nightly_backtrace_support = false;
     if cfg!(feature = "std") {
         println!("cargo:rerun-if-env-changed=RUSTC_BOOTSTRAP");
 
         match compile_probe() {
-            Some(status) if status.success() => println!("cargo:rustc-cfg=backtrace"),
+            Some(status) if status.success() => {
+                println!("cargo:rustc-cfg=provide_api");
+                nightly_backtrace_support = true;
+            }
             _ => {}
         }
     }
@@ -74,6 +83,10 @@ fn main() {
         // #![deny(unsafe_op_in_unsafe_fn)]
         // https://github.com/rust-lang/rust/issues/71668
         println!("cargo:rustc-cfg=anyhow_no_unsafe_op_in_unsafe_fn_lint");
+    }
+
+    if nightly_backtrace_support || (cfg!(feature = "std") && rustc >= 65) {
+        println!("cargo:rustc-cfg=backtrace");
     }
 }
 

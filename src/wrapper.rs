@@ -1,7 +1,7 @@
 use crate::StdError;
 use core::fmt::{self, Debug, Display};
 
-#[cfg(backtrace)]
+#[cfg(provide_api)]
 use std::error::Request;
 
 #[repr(transparent)]
@@ -74,7 +74,7 @@ impl StdError for BoxedError {
         self.0.source()
     }
 
-    #[cfg(backtrace)]
+    #[cfg(provide_api)]
     fn provide<'a>(&'a self, request: &mut Request<'a>) {
         self.0.provide(request);
     }
