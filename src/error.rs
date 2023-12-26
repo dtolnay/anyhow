@@ -363,10 +363,8 @@ impl Error {
     ///
     /// # Stability
     ///
-    /// Standard library backtraces are only available on the nightly channel.
-    /// Tracking issue: [rust-lang/rust#53487][tracking].
-    ///
-    /// On stable compilers, this function is only available if the crate's
+    /// Standard library backtraces are only available when using Rust ≥ 1.65.
+    /// On older compilers, this function is only available if the crate's
     /// "backtrace" feature is enabled, and will use the `backtrace` crate as
     /// the underlying backtrace implementation.
     ///
@@ -374,8 +372,6 @@ impl Error {
     /// [dependencies]
     /// anyhow = { version = "1.0", features = ["backtrace"] }
     /// ```
-    ///
-    /// [tracking]: https://github.com/rust-lang/rust/issues/53487
     #[cfg(any(std_backtrace, feature = "backtrace"))]
     #[cfg_attr(doc_cfg, doc(cfg(any(nightly, feature = "backtrace"))))]
     pub fn backtrace(&self) -> &impl_backtrace!() {

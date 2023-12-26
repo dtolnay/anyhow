@@ -128,11 +128,10 @@
 //!   # ;
 //!   ```
 //!
-//! - If using the nightly channel, or stable with `features = ["backtrace"]`, a
-//!   backtrace is captured and printed with the error if the underlying error
-//!   type does not already provide its own. In order to see backtraces, they
-//!   must be enabled through the environment variables described in
-//!   [`std::backtrace`]:
+//! - If using Rust ≥ 1.65 or `features = ["backtrace"]`, a backtrace is captured
+//!   and printed with the error if the underlying error type does not already
+//!   provide its own. In order to see backtraces, they must be enabled through the
+//!   environment variables described in [`std::backtrace`]:
 //!
 //!   - If you want panics and errors to both have backtraces, set
 //!     `RUST_BACKTRACE=1`;
@@ -140,10 +139,7 @@
 //!   - If you want only panics to have backtraces, set `RUST_BACKTRACE=1` and
 //!     `RUST_LIB_BACKTRACE=0`.
 //!
-//!   The tracking issue for this feature is [rust-lang/rust#53487].
-//!
 //!   [`std::backtrace`]: https://doc.rust-lang.org/std/backtrace/index.html#environment-variables
-//!   [rust-lang/rust#53487]: https://github.com/rust-lang/rust/issues/53487
 //!
 //! - Anyhow works with any error type that has an impl of `std::error::Error`,
 //!   including ones defined in your crate. We do not bundle a `derive(Error)`
