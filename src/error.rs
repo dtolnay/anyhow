@@ -11,7 +11,7 @@ use core::mem::ManuallyDrop;
 #[cfg(not(anyhow_no_ptr_addr_of))]
 use core::ptr;
 use core::ptr::NonNull;
-#[cfg(provide_api)]
+#[cfg(error_generic_member_access)]
 use std::error::{self, Request};
 
 #[cfg(feature = "std")]
@@ -99,7 +99,7 @@ impl Error {
             #[cfg(anyhow_no_ptr_addr_of)]
             object_downcast_mut: object_downcast_mut::<E>,
             object_drop_rest: object_drop_front::<E>,
-            #[cfg(all(not(provide_api), any(backtrace, feature = "backtrace")))]
+            #[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
             object_backtrace: no_backtrace,
         };
 
@@ -124,7 +124,7 @@ impl Error {
             #[cfg(anyhow_no_ptr_addr_of)]
             object_downcast_mut: object_downcast_mut::<M>,
             object_drop_rest: object_drop_front::<M>,
-            #[cfg(all(not(provide_api), any(backtrace, feature = "backtrace")))]
+            #[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
             object_backtrace: no_backtrace,
         };
 
@@ -150,7 +150,7 @@ impl Error {
             #[cfg(anyhow_no_ptr_addr_of)]
             object_downcast_mut: object_downcast_mut::<M>,
             object_drop_rest: object_drop_front::<M>,
-            #[cfg(all(not(provide_api), any(backtrace, feature = "backtrace")))]
+            #[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
             object_backtrace: no_backtrace,
         };
 
@@ -178,7 +178,7 @@ impl Error {
             #[cfg(anyhow_no_ptr_addr_of)]
             object_downcast_mut: context_downcast_mut::<C, E>,
             object_drop_rest: context_drop_rest::<C, E>,
-            #[cfg(all(not(provide_api), any(backtrace, feature = "backtrace")))]
+            #[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
             object_backtrace: no_backtrace,
         };
 
@@ -204,7 +204,7 @@ impl Error {
             #[cfg(anyhow_no_ptr_addr_of)]
             object_downcast_mut: object_downcast_mut::<Box<dyn StdError + Send + Sync>>,
             object_drop_rest: object_drop_front::<Box<dyn StdError + Send + Sync>>,
-            #[cfg(all(not(provide_api), any(backtrace, feature = "backtrace")))]
+            #[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
             object_backtrace: no_backtrace,
         };
 
@@ -317,7 +317,7 @@ impl Error {
             #[cfg(anyhow_no_ptr_addr_of)]
             object_downcast_mut: context_chain_downcast_mut::<C>,
             object_drop_rest: context_chain_drop_rest::<C>,
-            #[cfg(all(not(provide_api), any(backtrace, feature = "backtrace")))]
+            #[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
             object_backtrace: context_backtrace::<C>,
         };
 
@@ -519,7 +519,7 @@ impl Error {
         }
     }
 
-    #[cfg(provide_api)]
+    #[cfg(error_generic_member_access)]
     pub(crate) fn provide<'a>(&'a self, request: &mut Request<'a>) {
         unsafe { ErrorImpl::provide(self.inner.by_ref(), request) }
     }
@@ -529,7 +529,7 @@ impl Error {
     // deref'ing to dyn Error where the provide implementation would include
     // only the original error's Backtrace from before it got wrapped into an
     // anyhow::Error.
-    #[cfg(provide_api)]
+    #[cfg(error_generic_member_access)]
     #[doc(hidden)]
     pub fn thiserror_provide<'a>(&'a self, request: &mut Request<'a>) {
         Self::provide(self, request);
@@ -598,7 +598,7 @@ struct ErrorVTable {
     #[cfg(anyhow_no_ptr_addr_of)]
     object_downcast_mut: unsafe fn(Mut<ErrorImpl>, TypeId) -> Option<Mut<()>>,
     object_drop_rest: unsafe fn(Own<ErrorImpl>, TypeId),
-    #[cfg(all(not(provide_api), any(backtrace, feature = "backtrace")))]
+    #[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
     object_backtrace: unsafe fn(Ref<ErrorImpl>) -> Option<&Backtrace>,
 }
 
@@ -703,7 +703,7 @@ where
     }
 }
 
-#[cfg(all(not(provide_api), any(backtrace, feature = "backtrace")))]
+#[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
 fn no_backtrace(e: Ref<ErrorImpl>) -> Option<&Backtrace> {
     let _ = e;
     None
@@ -824,7 +824,7 @@ where
 }
 
 // Safety: requires layout of *e to match ErrorImpl<ContextError<C, Error>>.
-#[cfg(all(not(provide_api), any(backtrace, feature = "backtrace")))]
+#[cfg(all(not(error_generic_member_access), any(backtrace, feature = "backtrace")))]
 #[allow(clippy::unnecessary_wraps)]
 unsafe fn context_backtrace<C>(e: Ref<ErrorImpl>) -> Option<&Backtrace>
 where
@@ -904,15 +904,15 @@ impl ErrorImpl {
             .backtrace
             .as_ref()
             .or_else(|| {
-                #[cfg(provide_api)]
+                #[cfg(error_generic_member_access)]
                 return error::request_ref::<Backtrace>(unsafe { Self::error(this) });
-                #[cfg(not(provide_api))]
+                #[cfg(not(error_generic_member_access))]
                 return unsafe { (vtable(this.ptr).object_backtrace)(this) };
             })
             .expect("backtrace capture failed")
     }
 
-    #[cfg(provide_api)]
+    #[cfg(error_generic_member_access)]
     unsafe fn provide<'a>(this: Ref<'a, Self>, request: &mut Request<'a>) {
         if let Some(backtrace) = unsafe { &this.deref().backtrace } {
             request.provide_ref(backtrace);
@@ -934,7 +934,7 @@ where
         unsafe { ErrorImpl::error(self.erase()).source() }
     }
 
-    #[cfg(provide_api)]
+    #[cfg(error_generic_member_access)]
     fn provide<'a>(&'a self, request: &mut Request<'a>) {
         unsafe { ErrorImpl::provide(self.erase(), request) }
     }
