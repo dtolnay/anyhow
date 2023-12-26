@@ -363,17 +363,17 @@ impl Error {
     ///
     /// # Stability
     ///
-    /// Standard library backtraces are only available when using Rust ≥ 1.65.
-    /// On older compilers, this function is only available if the crate's
+    /// Standard library backtraces are only available when using Rust &ge;
+    /// 1.65. On older compilers, this function is only available if the crate's
     /// "backtrace" feature is enabled, and will use the `backtrace` crate as
-    /// the underlying backtrace implementation.
+    /// the underlying backtrace implementation. The return type of this
+    /// function on old compilers is `&(impl Debug + Display)`.
     ///
     /// ```toml
     /// [dependencies]
     /// anyhow = { version = "1.0", features = ["backtrace"] }
     /// ```
     #[cfg(any(std_backtrace, feature = "backtrace"))]
-    #[cfg_attr(doc_cfg, doc(cfg(any(nightly, feature = "backtrace"))))]
     pub fn backtrace(&self) -> &impl_backtrace!() {
         unsafe { ErrorImpl::backtrace(self.inner.by_ref()) }
     }
