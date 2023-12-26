@@ -3,7 +3,7 @@ use crate::{Context, Error, StdError};
 use core::convert::Infallible;
 use core::fmt::{self, Debug, Display, Write};
 
-#[cfg(backtrace)]
+#[cfg(error_generic_member_access)]
 use std::error::Request;
 
 mod ext {
@@ -143,7 +143,7 @@ where
         Some(&self.error)
     }
 
-    #[cfg(backtrace)]
+    #[cfg(error_generic_member_access)]
     fn provide<'a>(&'a self, request: &mut Request<'a>) {
         StdError::provide(&self.error, request);
     }
@@ -157,7 +157,7 @@ where
         Some(unsafe { crate::ErrorImpl::error(self.error.inner.by_ref()) })
     }
 
-    #[cfg(backtrace)]
+    #[cfg(error_generic_member_access)]
     fn provide<'a>(&'a self, request: &mut Request<'a>) {
         Error::provide(&self.error, request);
     }
