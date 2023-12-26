@@ -46,6 +46,7 @@ const PROBE: &str = r#"
 "#;
 
 fn main() {
+    let mut error_generic_member_access = false;
     if cfg!(feature = "std") {
         println!("cargo:rerun-if-env-changed=RUSTC_BOOTSTRAP");
 
@@ -53,6 +54,7 @@ fn main() {
             Some(status) if status.success() => {
                 println!("cargo:rustc-cfg=std_backtrace");
                 println!("cargo:rustc-cfg=error_generic_member_access");
+                error_generic_member_access = true;
             }
             _ => {}
         }
@@ -77,6 +79,12 @@ fn main() {
         // #![deny(unsafe_op_in_unsafe_fn)]
         // https://github.com/rust-lang/rust/issues/71668
         println!("cargo:rustc-cfg=anyhow_no_unsafe_op_in_unsafe_fn_lint");
+    }
+
+    if !error_generic_member_access && cfg!(feature = "std") && rustc >= 65 {
+        // std::backtrace::Backtrace
+        // https://blog.rust-lang.org/2022/11/03/Rust-1.65.0.html#stabilized-apis
+        println!("cargo:rustc-cfg=std_backtrace");
     }
 }
 
