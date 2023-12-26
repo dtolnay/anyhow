@@ -35,7 +35,7 @@ macro_rules! backtrace {
     };
 }
 
-#[cfg(backtrace)]
+#[cfg(error_generic_member_access)]
 macro_rules! backtrace_if_absent {
     ($err:expr) => {
         match std::error::request_ref::<std::backtrace::Backtrace>($err as &dyn std::error::Error) {
@@ -45,7 +45,11 @@ macro_rules! backtrace_if_absent {
     };
 }
 
-#[cfg(all(feature = "std", not(backtrace), feature = "backtrace"))]
+#[cfg(all(
+    feature = "std",
+    not(error_generic_member_access),
+    any(backtrace, feature = "backtrace")
+))]
 macro_rules! backtrace_if_absent {
     ($err:expr) => {
         backtrace!()
