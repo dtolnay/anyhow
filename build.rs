@@ -51,7 +51,7 @@ fn main() {
 
         match compile_probe() {
             Some(status) if status.success() => {
-                println!("cargo:rustc-cfg=backtrace");
+                println!("cargo:rustc-cfg=std_backtrace");
                 println!("cargo:rustc-cfg=error_generic_member_access");
             }
             _ => {}
