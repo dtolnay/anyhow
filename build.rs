@@ -13,12 +13,49 @@ fn main() {
     let mut error_generic_member_access = false;
     if cfg!(feature = "std") {
         println!("cargo:rerun-if-changed=build/probe.rs");
-        println!("cargo:rerun-if-env-changed=RUSTC_BOOTSTRAP");
 
-        if compile_probe() {
+        let consider_rustc_bootstrap;
+        if compile_probe(false) {
+            // This is a nightly or dev compiler, so it supports unstable
+            // features regardless of RUSTC_BOOTSTRAP. No need to rerun build
+            // script if RUSTC_BOOTSTRAP is changed.
+            error_generic_member_access = true;
+            consider_rustc_bootstrap = false;
+        } else if let Some(rustc_bootstrap) = env::var_os("RUSTC_BOOTSTRAP") {
+            if compile_probe(true) {
+                // This is a stable or beta compiler for which the user has set
+                // RUSTC_BOOTSTRAP to turn on unstable features. Rerun build
+                // script if they change it.
+                error_generic_member_access = true;
+                consider_rustc_bootstrap = true;
+            } else if rustc_bootstrap == "1" {
+                // This compiler does not support the generic member access API
+                // in the form that anyhow expects. No need to pay attention to
+                // RUSTC_BOOTSTRAP.
+                error_generic_member_access = false;
+                consider_rustc_bootstrap = false;
+            } else {
+                // This is a stable or beta compiler for which RUSTC_BOOTSTRAP
+                // is set to restrict the use of unstable features by this
+                // crate.
+                error_generic_member_access = false;
+                consider_rustc_bootstrap = true;
+            }
+        } else {
+            // Without RUSTC_BOOTSTRAP, this compiler does not support the
+            // generic member access API in the form that anyhow expects, but
+            // try again if the user turns on unstable features.
+            error_generic_member_access = false;
+            consider_rustc_bootstrap = true;
+        }
+
+        if error_generic_member_access {
             println!("cargo:rustc-cfg=std_backtrace");
             println!("cargo:rustc-cfg=error_generic_member_access");
-            error_generic_member_access = true;
+        }
+
+        if consider_rustc_bootstrap {
+            println!("cargo:rerun-if-env-changed=RUSTC_BOOTSTRAP");
         }
     }
 
@@ -50,7 +87,7 @@ fn main() {
     }
 }
 
-fn compile_probe() -> bool {
+fn compile_probe(rustc_bootstrap: bool) -> bool {
     if env::var_os("RUSTC_STAGE").is_some() {
         // We are running inside rustc bootstrap. This is a highly non-standard
         // environment with issues such as:
@@ -75,6 +112,10 @@ fn compile_probe() -> bool {
     } else {
         Command::new(rustc)
     };
+
+    if !rustc_bootstrap {
+        cmd.env_remove("RUSTC_BOOTSTRAP");
+    }
 
     cmd.stderr(Stdio::null())
         .arg("--edition=2018")
