@@ -78,7 +78,7 @@ fn compile_probe() -> bool {
 
     cmd.stderr(Stdio::null())
         .arg("--edition=2018")
-        .arg("--crate-name=anyhow_build")
+        .arg("--crate-name=anyhow")
         .arg("--crate-type=lib")
         .arg("--emit=metadata")
         .arg("--out-dir")
