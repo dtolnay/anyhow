@@ -1,5 +1,3 @@
-#![allow(clippy::option_if_let_else)]
-
 use std::env;
 use std::ffi::OsString;
 use std::path::Path;
