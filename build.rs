@@ -1,7 +1,6 @@
-#![allow(clippy::needless_raw_string_hashes, clippy::option_if_let_else)]
+#![allow(clippy::option_if_let_else)]
 
 use std::env;
-use std::fs;
 use std::path::Path;
 use std::process::{Command, ExitStatus, Stdio};
 use std::str;
@@ -11,43 +10,10 @@ compile_error! {
     "`backtrace` feature without `std` feature is not supported"
 }
 
-// This code exercises the surface area that we expect of the Error generic
-// member access API. If the current toolchain is able to compile it, then
-// anyhow is able to provide backtrace support.
-const PROBE: &str = r#"
-    #![feature(error_generic_member_access)]
-
-    use std::backtrace::Backtrace;
-    use std::error::{self, Error, Request};
-    use std::fmt::{self, Debug, Display};
-
-    struct MyError(Thing);
-    struct Thing;
-
-    impl Debug for MyError {
-        fn fmt(&self, _formatter: &mut fmt::Formatter) -> fmt::Result {
-            unimplemented!()
-        }
-    }
-
-    impl Display for MyError {
-        fn fmt(&self, _formatter: &mut fmt::Formatter) -> fmt::Result {
-            unimplemented!()
-        }
-    }
-
-    impl Error for MyError {
-        fn provide<'a>(&'a self, request: &mut Request<'a>) {
-            request.provide_ref(&self.0);
-        }
-    }
-
-    const _: fn(&dyn Error) -> Option<&Backtrace> = |err| error::request_ref::<Backtrace>(err);
-"#;
-
 fn main() {
     let mut error_generic_member_access = false;
     if cfg!(feature = "std") {
+        println!("cargo:rerun-if-changed=build/probe.rs");
         println!("cargo:rerun-if-env-changed=RUSTC_BOOTSTRAP");
 
         match compile_probe() {
@@ -102,8 +68,7 @@ fn compile_probe() -> Option<ExitStatus> {
 
     let rustc = env::var_os("RUSTC")?;
     let out_dir = env::var_os("OUT_DIR")?;
-    let probefile = Path::new(&out_dir).join("probe.rs");
-    fs::write(&probefile, PROBE).ok()?;
+    let probefile = Path::new("build").join("probe.rs");
 
     // Make sure to pick up Cargo rustc configuration.
     let mut cmd = if let Some(wrapper) = env::var_os("RUSTC_WRAPPER") {
