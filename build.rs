@@ -146,7 +146,7 @@ fn compile_probe(rustc_bootstrap: bool) -> bool {
 }
 
 fn rustc_minor_version() -> Option<u32> {
-    let rustc = env::var_os("RUSTC")?;
+    let rustc = cargo_env_var("RUSTC");
     let output = Command::new(rustc).arg("--version").output().ok()?;
     let version = str::from_utf8(&output.stdout).ok()?;
     let mut pieces = version.split('.');
