@@ -237,6 +237,13 @@
     clippy::wrong_self_convention
 )]
 
+#[cfg(all(
+    anyhow_nightly_testing,
+    feature = "std",
+    not(error_generic_member_access)
+))]
+compile_error!("Build script probe failed to compile.");
+
 extern crate alloc;
 
 #[macro_use]
