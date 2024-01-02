@@ -30,3 +30,6 @@ impl Error for MyError {
 }
 
 const _: fn(&dyn Error) -> Option<&Backtrace> = |err| error::request_ref::<Backtrace>(err);
+
+// Include in sccache cache key.
+const _: Option<&str> = option_env!("RUSTC_BOOTSTRAP");
