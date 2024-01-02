@@ -121,7 +121,7 @@ fn compile_probe(rustc_bootstrap: bool) -> bool {
         .arg("--edition=2018")
         .arg("--crate-name=anyhow")
         .arg("--crate-type=lib")
-        .arg("--emit=metadata")
+        .arg("--emit=dep-info,metadata")
         .arg("--out-dir")
         .arg(out_dir)
         .arg(probefile);
