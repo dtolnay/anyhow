@@ -1,6 +1,7 @@
 #![allow(
     clippy::assertions_on_result_states,
     clippy::eq_op,
+    clippy::incompatible_msrv, // https://github.com/rust-lang/rust-clippy/issues/12257
     clippy::items_after_statements,
     clippy::needless_pass_by_value,
     clippy::shadow_unrelated,
