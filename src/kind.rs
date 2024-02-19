@@ -49,6 +49,8 @@ use core::fmt::{Debug, Display};
 
 #[cfg(feature = "std")]
 use crate::StdError;
+#[cfg(feature = "std")]
+use alloc::boxed::Box;
 
 pub struct Adhoc;
 

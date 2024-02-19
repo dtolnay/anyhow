@@ -209,7 +209,7 @@
 #![doc(html_root_url = "https://docs.rs/anyhow/1.0.79")]
 #![cfg_attr(error_generic_member_access, feature(error_generic_member_access))]
 #![cfg_attr(doc_cfg, feature(doc_cfg))]
-#![cfg_attr(not(feature = "std"), no_std)]
+#![no_std]
 #![deny(dead_code, unused_imports, unused_mut)]
 #![cfg_attr(
     not(anyhow_no_unsafe_op_in_unsafe_fn_lint),
@@ -246,6 +246,9 @@
 compile_error!("Build script probe failed to compile.");
 
 extern crate alloc;
+
+#[cfg(feature = "std")]
+extern crate std;
 
 #[macro_use]
 mod backtrace;
