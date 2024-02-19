@@ -65,11 +65,11 @@ macro_rules! backtrace_if_absent {
 
 #[cfg(all(not(std_backtrace), feature = "backtrace"))]
 mod capture {
+    use alloc::borrow::Cow;
     use backtrace::{BacktraceFmt, BytesOrWideString, Frame, PrintFmt, SymbolName};
     use core::cell::UnsafeCell;
     use core::fmt::{self, Debug, Display};
     use core::sync::atomic::{AtomicUsize, Ordering};
-    use std::borrow::Cow;
     use std::env;
     use std::path::{self, Path, PathBuf};
     use std::sync::Once;

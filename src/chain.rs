@@ -2,7 +2,7 @@ use self::ChainState::*;
 use crate::StdError;
 
 #[cfg(feature = "std")]
-use std::vec;
+use alloc::vec;
 
 #[cfg(feature = "std")]
 pub(crate) use crate::Chain;
