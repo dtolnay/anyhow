@@ -54,15 +54,18 @@
 /// ```
 #[macro_export]
 macro_rules! bail {
-    ($msg:literal $(,)?) => {
+    ($msg:literal $(,)?) => {{
+        #[allow(clippy::needless_return)]
         return $crate::__private::Err($crate::__anyhow!($msg))
-    };
-    ($err:expr $(,)?) => {
+    }};
+    ($err:expr $(,)?) => {{
+        #[allow(clippy::needless_return)]
         return $crate::__private::Err($crate::__anyhow!($err))
-    };
-    ($fmt:expr, $($arg:tt)*) => {
+    }};
+    ($fmt:expr, $($arg:tt)*) => {{
+        #[allow(clippy::needless_return)]
         return $crate::__private::Err($crate::__anyhow!($fmt, $($arg)*))
-    };
+    }};
 }
 
 /// Return early with an error if a condition is not satisfied.
