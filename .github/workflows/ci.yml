@@ -50,7 +50,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rust: [1.52.0, 1.51.0, 1.50.0, 1.39.0]
+        rust: [1.65.0, 1.64.0, 1.55.0, 1.52.0, 1.51.0, 1.50.0, 1.39.0]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
@@ -60,6 +60,8 @@ jobs:
           components: rust-src
       - run: cargo check
       - run: cargo check --no-default-features
+      - run: cargo check --features backtrace
+        if: matrix.rust != '1.52.0' && matrix.rust != '1.51.0' && matrix.rust != '1.50.0' && matrix.rust != '1.39.0'
 
   minimal:
     name: Minimal versions
