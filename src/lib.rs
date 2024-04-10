@@ -17,7 +17,7 @@
 //!   the return type of any fallible function.
 //!
 //!   Within the function, use `?` to easily propagate any error that implements
-//!   the `std::error::Error` trait.
+//!   the [`std::error::Error`] trait.
 //!
 //!   ```
 //!   # pub trait Deserialize {}
@@ -192,8 +192,8 @@
 //!
 //! # No-std support
 //!
-//! In no_std mode, the same API is almost all available and works the same way.
-//! To depend on Anyhow in no_std mode, disable our default enabled "std"
+//! In no_std mode, almost all of the same API is available and works the same
+//! way. To depend on Anyhow in no_std mode, disable our default enabled "std"
 //! feature in Cargo.toml. A global allocator is required.
 //!
 //! ```toml
