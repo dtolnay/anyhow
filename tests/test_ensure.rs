@@ -3,6 +3,7 @@
     clippy::char_lit_as_u8,
     clippy::deref_addrof,
     clippy::diverging_sub_expression,
+    clippy::erasing_op,
     clippy::extra_unused_type_parameters,
     clippy::if_same_then_else,
     clippy::ifs_same_cond,
