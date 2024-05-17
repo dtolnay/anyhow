@@ -815,24 +815,24 @@ macro_rules! __fancy_ensure {
 #[macro_export]
 macro_rules! __fallback_ensure {
     ($cond:expr $(,)?) => {
-        if !$cond {
+        if $crate::__private::not($cond) {
             return $crate::__private::Err($crate::Error::msg(
                 $crate::__private::concat!("Condition failed: `", $crate::__private::stringify!($cond), "`")
             ));
         }
     };
     ($cond:expr, $msg:literal $(,)?) => {
-        if !$cond {
+        if $crate::__private::not($cond) {
             return $crate::__private::Err($crate::__anyhow!($msg));
         }
     };
     ($cond:expr, $err:expr $(,)?) => {
-        if !$cond {
+        if $crate::__private::not($cond) {
             return $crate::__private::Err($crate::__anyhow!($err));
         }
     };
     ($cond:expr, $fmt:expr, $($arg:tt)*) => {
-        if !$cond {
+        if $crate::__private::not($cond) {
             return $crate::__private::Err($crate::__anyhow!($fmt, $($arg)*));
         }
     };
