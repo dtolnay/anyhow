@@ -648,48 +648,6 @@ macro_rules! __parse_ensure {
         $crate::__parse_ensure!(type (qpath (epath (pat $stack))) $bail ($($fuel)*) {($($buf)* $langle) $($parse)*} ($($rest)*) $($rest)*)
     };
 
-    // high precedence binary operators
-
-    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($add:tt $($dup:tt)*) + $($rest:tt)*) => {
-        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $add) $($parse)*} ($($rest)*) $($rest)*)
-    };
-
-    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($sub:tt $($dup:tt)*) - $($rest:tt)*) => {
-        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $sub) $($parse)*} ($($rest)*) $($rest)*)
-    };
-
-    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($mul:tt $($dup:tt)*) * $($rest:tt)*) => {
-        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $mul) $($parse)*} ($($rest)*) $($rest)*)
-    };
-
-    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($div:tt $($dup:tt)*) / $($rest:tt)*) => {
-        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $div) $($parse)*} ($($rest)*) $($rest)*)
-    };
-
-    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($rem:tt $($dup:tt)*) % $($rest:tt)*) => {
-        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $rem) $($parse)*} ($($rest)*) $($rest)*)
-    };
-
-    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($bitxor:tt $($dup:tt)*) ^ $($rest:tt)*) => {
-        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $bitxor) $($parse)*} ($($rest)*) $($rest)*)
-    };
-
-    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($bitand:tt $($dup:tt)*) & $($rest:tt)*) => {
-        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $bitand) $($parse)*} ($($rest)*) $($rest)*)
-    };
-
-    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($bitor:tt $($dup:tt)*) | $($rest:tt)*) => {
-        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $bitor) $($parse)*} ($($rest)*) $($rest)*)
-    };
-
-    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($shl:tt $($dup:tt)*) << $($rest:tt)*) => {
-        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $shl) $($parse)*} ($($rest)*) $($rest)*)
-    };
-
-    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($shr:tt $($dup:tt)*) >> $($rest:tt)*) => {
-        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $shr) $($parse)*} ($($rest)*) $($rest)*)
-    };
-
     // comparison binary operators
 
     (atom () $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($eq:tt $($dup:tt)*) == $($rest:tt)*) => {
@@ -738,6 +696,48 @@ macro_rules! __parse_ensure {
 
     (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)+) $($parse:tt)*} ($gt:tt $($dup:tt)*) > $($rest:tt)*) => {
         $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $gt) $($parse)*} ($($rest)*) $($rest)*)
+    };
+
+    // high precedence binary operators
+
+    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($add:tt $($dup:tt)*) + $($rest:tt)*) => {
+        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $add) $($parse)*} ($($rest)*) $($rest)*)
+    };
+
+    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($sub:tt $($dup:tt)*) - $($rest:tt)*) => {
+        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $sub) $($parse)*} ($($rest)*) $($rest)*)
+    };
+
+    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($mul:tt $($dup:tt)*) * $($rest:tt)*) => {
+        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $mul) $($parse)*} ($($rest)*) $($rest)*)
+    };
+
+    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($div:tt $($dup:tt)*) / $($rest:tt)*) => {
+        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $div) $($parse)*} ($($rest)*) $($rest)*)
+    };
+
+    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($rem:tt $($dup:tt)*) % $($rest:tt)*) => {
+        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $rem) $($parse)*} ($($rest)*) $($rest)*)
+    };
+
+    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($bitxor:tt $($dup:tt)*) ^ $($rest:tt)*) => {
+        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $bitxor) $($parse)*} ($($rest)*) $($rest)*)
+    };
+
+    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($bitand:tt $($dup:tt)*) & $($rest:tt)*) => {
+        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $bitand) $($parse)*} ($($rest)*) $($rest)*)
+    };
+
+    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($bitor:tt $($dup:tt)*) | $($rest:tt)*) => {
+        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $bitor) $($parse)*} ($($rest)*) $($rest)*)
+    };
+
+    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($shl:tt $($dup:tt)*) << $($rest:tt)*) => {
+        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $shl) $($parse)*} ($($rest)*) $($rest)*)
+    };
+
+    (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($shr:tt $($dup:tt)*) >> $($rest:tt)*) => {
+        $crate::__parse_ensure!(0 $stack $bail ($($fuel)*) {($($buf)* $shr) $($parse)*} ($($rest)*) $($rest)*)
     };
 
     // low precedence binary operators
