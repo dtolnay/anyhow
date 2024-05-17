@@ -121,7 +121,10 @@ fn test_low_precedence_binary_operator() {
     // Must not partition as `false == (true && false)`.
     let test = || Ok(ensure!(false == true && false));
     assert_err(test, "Condition failed: `false == true && false`");
+}
 
+#[test]
+fn f0() {
     // But outside the root level, it is fine.
     let test = || Ok(ensure!(while false == true && false {} < ()));
     assert_err(
@@ -137,34 +140,59 @@ fn test_closure() {
     // closure precedence.
     let test = || Ok(ensure!(S + move || 1 == 1));
     assert_err(test, "Condition failed: `S + (move || 1 == 1)`");
+}
 
+#[test]
+fn f1() {
     let test = || Ok(ensure!(S + || 1 == 1));
     assert_err(test, "Condition failed: `S + (|| 1 == 1)`");
+}
 
+#[test]
+fn f2() {
     // Must not partition as `S + ((move | ()) | 1) == 1` by treating those
     // pipes as bitwise-or.
     let test = || Ok(ensure!(S + move |()| 1 == 1));
     assert_err(test, "Condition failed: `S + (move |()| 1 == 1)`");
+}
 
+#[test]
+fn f3() {
     let test = || Ok(ensure!(S + |()| 1 == 1));
     assert_err(test, "Condition failed: `S + (|()| 1 == 1)`");
 }
 
 #[test]
 fn test_unary() {
-    let mut x = &1;
+    let x = &1;
     let test = || Ok(ensure!(*x == 2));
     assert_err(test, "Condition failed: `*x == 2` (1 vs 2)");
+}
 
+#[test]
+fn f4() {
+    let x = &1;
     let test = || Ok(ensure!(!x == 1));
     assert_err(test, "Condition failed: `!x == 1` (-2 vs 1)");
+}
 
+#[test]
+fn f5() {
+    let x = &1;
     let test = || Ok(ensure!(-x == 1));
     assert_err(test, "Condition failed: `-x == 1` (-1 vs 1)");
+}
 
+#[test]
+fn f6() {
+    let x = &1;
     let test = || Ok(ensure!(&x == &&2));
     assert_err(test, "Condition failed: `&x == &&2` (1 vs 2)");
+}
 
+#[test]
+fn f7() {
+    let mut x = &1;
     let test = || Ok(ensure!(&mut x == *&&mut &2));
     assert_err(test, "Condition failed: `&mut x == *&&mut &2` (1 vs 2)");
 }
@@ -174,35 +202,50 @@ fn test_if() {
     #[rustfmt::skip]
     let test = || Ok(ensure!(if false {}.t(1) == 2));
     assert_err(test, "Condition failed: `if false {}.t(1) == 2` (1 vs 2)");
+}
 
+#[test]
+fn f8() {
     #[rustfmt::skip]
     let test = || Ok(ensure!(if false {} else {}.t(1) == 2));
     assert_err(
         test,
         "Condition failed: `if false {} else {}.t(1) == 2` (1 vs 2)",
     );
+}
 
+#[test]
+fn f9() {
     #[rustfmt::skip]
     let test = || Ok(ensure!(if false {} else if false {}.t(1) == 2));
     assert_err(
         test,
         "Condition failed: `if false {} else if false {}.t(1) == 2` (1 vs 2)",
     );
+}
 
+#[test]
+fn f10() {
     #[rustfmt::skip]
     let test = || Ok(ensure!(if let 1 = 2 {}.t(1) == 2));
     assert_err(
         test,
         "Condition failed: `if let 1 = 2 {}.t(1) == 2` (1 vs 2)",
     );
+}
 
+#[test]
+fn f11() {
     #[rustfmt::skip]
     let test = || Ok(ensure!(if let 1 | 2 = 2 {}.t(1) == 2));
     assert_err(
         test,
         "Condition failed: `if let 1 | 2 = 2 {}.t(1) == 2` (1 vs 2)",
     );
+}
 
+#[test]
+fn f12() {
     #[rustfmt::skip]
     let test = || Ok(ensure!(if let | 1 | 2 = 2 {}.t(1) == 2));
     assert_err(
@@ -219,42 +262,60 @@ fn test_loop() {
         test,
         "Condition failed: `1 + loop { break 1 } == 1` (2 vs 1)",
     );
+}
 
+#[test]
+fn f13() {
     #[rustfmt::skip]
     let test = || Ok(ensure!(1 + 'a: loop { break 'a 1 } == 1));
     assert_err(
         test,
         "Condition failed: `1 + 'a: loop { break 'a 1 } == 1` (2 vs 1)",
     );
+}
 
+#[test]
+fn f14() {
     #[rustfmt::skip]
     let test = || Ok(ensure!(while false {}.t(1) == 2));
     assert_err(
         test,
         "Condition failed: `while false {}.t(1) == 2` (1 vs 2)",
     );
+}
 
+#[test]
+fn f15() {
     #[rustfmt::skip]
     let test = || Ok(ensure!(while let None = Some(1) {}.t(1) == 2));
     assert_err(
         test,
         "Condition failed: `while let None = Some(1) {}.t(1) == 2` (1 vs 2)",
     );
+}
 
+#[test]
+fn f16() {
     #[rustfmt::skip]
     let test = || Ok(ensure!(for _x in iter::once(0) {}.t(1) == 2));
     assert_err(
         test,
         "Condition failed: `for _x in iter::once(0) {}.t(1) == 2` (1 vs 2)",
     );
+}
 
+#[test]
+fn f17() {
     #[rustfmt::skip]
     let test = || Ok(ensure!(for | _x in iter::once(0) {}.t(1) == 2));
     assert_err(
         test,
         "Condition failed: `for _x in iter::once(0) {}.t(1) == 2` (1 vs 2)",
     );
+}
 
+#[test]
+fn f18() {
     #[rustfmt::skip]
     let test = || Ok(ensure!(for true | false in iter::empty() {}.t(1) == 2));
     assert_err(
@@ -280,23 +341,35 @@ fn test_atom() {
         test,
         "Condition failed: `[false, false].len() > 3` (2 vs 3)",
     );
+}
 
+#[test]
+fn f19() {
     #[rustfmt::skip]
     let test = || Ok(ensure!({ let x = 1; x } >= 3));
     assert_err(test, "Condition failed: `{ let x = 1; x } >= 3` (1 vs 3)");
+}
 
+#[test]
+fn f20() {
     let test = || Ok(ensure!(S + async { 1 } == true));
     assert_err(
         test,
         "Condition failed: `S + async { 1 } == true` (false vs true)",
     );
+}
 
+#[test]
+fn f21() {
     let test = || Ok(ensure!(S + async move { 1 } == true));
     assert_err(
         test,
         "Condition failed: `S + async move { 1 } == true` (false vs true)",
     );
+}
 
+#[test]
+fn f22() {
     let x = &1;
     let test = || Ok(ensure!(S + unsafe { ptr::read(x) } == true));
     assert_err(
@@ -309,57 +382,94 @@ fn test_atom() {
 fn test_path() {
     let test = || Ok(ensure!(crate::S.t(1) == 2));
     assert_err(test, "Condition failed: `crate::S.t(1) == 2` (1 vs 2)");
+}
 
+#[test]
+fn f23() {
     let test = || Ok(ensure!(::anyhow::Error::root_cause.t(1) == 2));
     assert_err(
         test,
         "Condition failed: `::anyhow::Error::root_cause.t(1) == 2` (1 vs 2)",
     );
+}
 
+#[test]
+fn f24() {
     let test = || Ok(ensure!(Error::msg::<&str>.t(1) == 2));
     assert_err(
         test,
         "Condition failed: `Error::msg::<&str>.t(1) == 2` (1 vs 2)",
     );
+}
 
+#[test]
+fn f25() {
     #[rustfmt::skip]
     let test = || Ok(ensure!(Error::msg::<&str,>.t(1) == 2));
     assert_err(
         test,
         "Condition failed: `Error::msg::<&str>.t(1) == 2` (1 vs 2)",
     );
+}
 
+#[test]
+fn f26() {
     let test = || Ok(ensure!(Error::msg::<<str as ToOwned>::Owned>.t(1) == 2));
     assert_err(
         test,
         "Condition failed: `Error::msg::<<str as ToOwned>::Owned>.t(1) == 2` (1 vs 2)",
     );
+}
 
+#[test]
+fn f27() {
     let test = || Ok(ensure!(Chain::<'static>::new.t(1) == 2));
     assert_err(
         test,
         "Condition failed: `Chain::<'static>::new.t(1) == 2` (1 vs 2)",
     );
+}
 
+#[test]
+fn f28() {
     #[rustfmt::skip]
     let test = || Ok(ensure!(Chain::<'static,>::new.t(1) == 2));
     assert_err(
         test,
         "Condition failed: `Chain::<'static>::new.t(1) == 2` (1 vs 2)",
     );
+}
 
+#[test]
+fn f29() {
     fn f<const I: isize>() {}
     let test = || Ok(ensure!(f::<1>() != ()));
     assert_err(test, "Condition failed: `f::<1>() != ()` (() vs ())");
+}
+
+#[test]
+fn f30() {
+    fn f<const I: isize>() {}
     let test = || Ok(ensure!(f::<-1>() != ()));
     assert_err(test, "Condition failed: `f::<-1>() != ()` (() vs ())");
+}
 
+#[test]
+fn f31() {
     fn g<T, const I: isize>() {}
     let test = || Ok(ensure!(g::<u8, 1>() != ()));
     assert_err(test, "Condition failed: `g::<u8, 1>() != ()` (() vs ())");
+}
+
+#[test]
+fn f32() {
+    fn g<T, const I: isize>() {}
     let test = || Ok(ensure!(g::<u8, -1>() != ()));
     assert_err(test, "Condition failed: `g::<u8, -1>() != ()` (() vs ())");
+}
 
+#[test]
+fn f33() {
     #[derive(PartialOrd, PartialEq, Debug)]
     enum E<'a, T> {
         #[allow(dead_code)]
@@ -370,27 +480,54 @@ fn test_path() {
     #[rustfmt::skip]
     let test = || Ok(ensure!(E::U::<>>E::U::<u8>));
     assert_err(test, "Condition failed: `E::U::<> > E::U::<u8>` (U vs U)");
+}
 
+#[test]
+fn f34() {
+    #[derive(PartialOrd, PartialEq, Debug)]
+    enum E<'a, T> {
+        #[allow(dead_code)]
+        T(&'a T),
+        U,
+    }
     #[rustfmt::skip]
     let test = || Ok(ensure!(E::U::<u8>>E::U));
     assert_err(test, "Condition failed: `E::U::<u8> > E::U` (U vs U)");
+}
 
+#[test]
+fn f35() {
+    #[derive(PartialOrd, PartialEq, Debug)]
+    enum E<'a, T> {
+        #[allow(dead_code)]
+        T(&'a T),
+        U,
+    }
     #[rustfmt::skip]
     let test = || Ok(ensure!(E::U::<u8,>>E::U));
     assert_err(test, "Condition failed: `E::U::<u8> > E::U` (U vs U)");
+}
 
+#[test]
+fn f36() {
     let test = || Ok(ensure!(Generic::<dyn Debug + Sync> != Generic));
     assert_err(
         test,
         "Condition failed: `Generic::<dyn Debug + Sync> != Generic` (Generic vs Generic)",
     );
+}
 
+#[test]
+fn f37() {
     let test = || Ok(ensure!(Generic::<dyn Fn() + Sync> != Generic));
     assert_err(
         test,
         "Condition failed: `Generic::<dyn Fn() + Sync> != Generic` (Generic vs Generic)",
     );
+}
 
+#[test]
+fn f38() {
     #[rustfmt::skip]
     let test = || {
         Ok(ensure!(
@@ -410,10 +547,16 @@ fn test_macro() {
         test,
         "Condition failed: `anyhow!(\"...\").to_string().len() <= 1` (3 vs 1)",
     );
+}
 
+#[test]
+fn f39() {
     let test = || Ok(ensure!(vec![1].len() < 1));
     assert_err(test, "Condition failed: `vec![1].len() < 1` (1 vs 1)");
+}
 
+#[test]
+fn f40() {
     let test = || Ok(ensure!(stringify! {} != ""));
     assert_err(
         test,
@@ -425,34 +568,56 @@ fn test_macro() {
 fn test_trailer() {
     let test = || Ok(ensure!((|| 1)() == 2));
     assert_err(test, "Condition failed: `(|| 1)() == 2` (1 vs 2)");
+}
 
+#[test]
+fn f41() {
     let test = || Ok(ensure!(b"hmm"[1] == b'c'));
     assert_err(test, "Condition failed: `b\"hmm\"[1] == b'c'` (109 vs 99)");
+}
 
+#[test]
+fn f42() {
     let test = || Ok(ensure!(PhantomData::<u8> {} != PhantomData));
     assert_err(
         test,
         "Condition failed: `PhantomData::<u8> {} != PhantomData` (PhantomData<u8> vs PhantomData<u8>)",
     );
+}
 
+#[test]
+fn f43() {
     let result = Ok::<_, Error>(1);
     let test = || Ok(ensure!(result? == 2));
     assert_err(test, "Condition failed: `result? == 2` (1 vs 2)");
+}
 
+#[test]
+fn f44() {
     let test = || Ok(ensure!((2, 3).1 == 2));
     assert_err(test, "Condition failed: `(2, 3).1 == 2` (3 vs 2)");
+}
 
+#[test]
+fn f45() {
     #[rustfmt::skip]
     let test = || Ok(ensure!((2, (3, 4)). 1.1 == 2));
     assert_err(test, "Condition failed: `(2, (3, 4)).1.1 == 2` (4 vs 2)");
+}
 
+#[test]
+fn f46() {
     let err = anyhow!("");
     let test = || Ok(ensure!(err.is::<&str>() == false));
     assert_err(
         test,
         "Condition failed: `err.is::<&str>() == false` (true vs false)",
     );
+}
 
+#[test]
+fn f47() {
+    let err = anyhow!("");
     let test = || Ok(ensure!(err.is::<<str as ToOwned>::Owned>() == true));
     assert_err(
         test,
@@ -485,7 +650,10 @@ fn test_too_long() {
         test,
         "Condition failed: `\"\" == \"x\".repeat(10)` (\"\" vs \"xxxxxxxxxx\")",
     );
+}
 
+#[test]
+fn f48() {
     let test = || Ok(ensure!("" == "x".repeat(80)));
     assert_err(test, "Condition failed: `\"\" == \"x\".repeat(80)`");
 }
@@ -494,95 +662,155 @@ fn test_too_long() {
 fn test_as() {
     let test = || Ok(ensure!('\0' as u8 > 1));
     assert_err(test, "Condition failed: `'\\0' as u8 > 1` (0 vs 1)");
+}
 
+#[test]
+fn f49() {
     let test = || Ok(ensure!('\0' as ::std::primitive::u8 > 1));
     assert_err(
         test,
         "Condition failed: `'\\0' as ::std::primitive::u8 > 1` (0 vs 1)",
     );
+}
 
+#[test]
+fn f50() {
     let test = || Ok(ensure!(&[0] as &[i32] == [1]));
     assert_err(
         test,
         "Condition failed: `&[0] as &[i32] == [1]` ([0] vs [1])",
     );
+}
 
+#[test]
+fn f51() {
     let test = || Ok(ensure!(0 as *const () as *mut _ == 1 as *mut ()));
     assert_err(
         test,
         "Condition failed: `0 as *const () as *mut _ == 1 as *mut ()` (0x0 vs 0x1)",
     );
+}
 
+#[test]
+fn f52() {
     let s = "";
     let test = || Ok(ensure!(s as &str != s));
     assert_err(test, "Condition failed: `s as &str != s` (\"\" vs \"\")");
+}
 
+#[test]
+fn f53() {
+    let s = "";
     let test = || Ok(ensure!(&s as &&str != &s));
     assert_err(test, "Condition failed: `&s as &&str != &s` (\"\" vs \"\")");
+}
 
+#[test]
+fn f54() {
+    let s = "";
     let test = || Ok(ensure!(s as &'static str != s));
     assert_err(
         test,
         "Condition failed: `s as &'static str != s` (\"\" vs \"\")",
     );
+}
 
+#[test]
+fn f55() {
+    let s = "";
     let test = || Ok(ensure!(&s as &&'static str != &s));
     assert_err(
         test,
         "Condition failed: `&s as &&'static str != &s` (\"\" vs \"\")",
     );
+}
 
+#[test]
+fn f56() {
+    let s = "";
     let m: &mut str = Default::default();
     let test = || Ok(ensure!(m as &mut str != s));
     assert_err(
         test,
         "Condition failed: `m as &mut str != s` (\"\" vs \"\")",
     );
+}
 
+#[test]
+fn f57() {
+    let s = "";
+    let m: &mut str = Default::default();
     let test = || Ok(ensure!(&m as &&mut str != &s));
     assert_err(
         test,
         "Condition failed: `&m as &&mut str != &s` (\"\" vs \"\")",
     );
+}
 
+#[test]
+fn f58() {
+    let s = "";
+    let m: &mut str = Default::default();
     let test = || Ok(ensure!(&m as &&'static mut str != &s));
     assert_err(
         test,
         "Condition failed: `&m as &&'static mut str != &s` (\"\" vs \"\")",
     );
+}
 
+#[test]
+fn f59() {
     let f = || {};
     let test = || Ok(ensure!(f as fn() as usize * 0 != 0));
     assert_err(
         test,
         "Condition failed: `f as fn() as usize * 0 != 0` (0 vs 0)",
     );
+}
 
+#[test]
+fn f60() {
+    let f = || {};
     let test = || Ok(ensure!(f as fn() -> () as usize * 0 != 0));
     assert_err(
         test,
         "Condition failed: `f as fn() -> () as usize * 0 != 0` (0 vs 0)",
     );
+}
 
+#[test]
+fn f61() {
+    let f = || {};
     let test = || Ok(ensure!(f as for<'a> fn() as usize * 0 != 0));
     assert_err(
         test,
         "Condition failed: `f as for<'a> fn() as usize * 0 != 0` (0 vs 0)",
     );
+}
 
+#[test]
+fn f62() {
+    let f = || {};
     let test = || Ok(ensure!(f as unsafe fn() as usize * 0 != 0));
     assert_err(
         test,
         "Condition failed: `f as unsafe fn() as usize * 0 != 0` (0 vs 0)",
     );
+}
 
+#[test]
+fn f63() {
+    let f = || {};
     #[rustfmt::skip]
     let test = || Ok(ensure!(f as extern "Rust" fn() as usize * 0 != 0));
     assert_err(
         test,
         "Condition failed: `f as extern \"Rust\" fn() as usize * 0 != 0` (0 vs 0)",
     );
+}
 
+#[test]
+fn f64() {
     extern "C" fn extern_fn() {}
     #[rustfmt::skip]
     let test = || Ok(ensure!(extern_fn as extern fn() as usize * 0 != 0));
@@ -590,14 +818,20 @@ fn test_as() {
         test,
         "Condition failed: `extern_fn as extern fn() as usize * 0 != 0` (0 vs 0)",
     );
+}
 
+#[test]
+fn f65() {
     let f = || -> ! { panic!() };
     let test = || Ok(ensure!(f as fn() -> ! as usize * 0 != 0));
     assert_err(
         test,
         "Condition failed: `f as fn() -> ! as usize * 0 != 0` (0 vs 0)",
     );
+}
 
+#[test]
+fn f66() {
     trait EqDebug<T>: PartialEq<T> + Debug {
         type Assoc;
     }
@@ -614,7 +848,10 @@ fn test_as() {
         test,
         "Condition failed: `&0 as &dyn EqDebug<i32, Assoc = bool> != &0` (0 vs 0)",
     );
+}
 
+#[test]
+fn f67() {
     let test = || {
         Ok(ensure!(
             PhantomData as PhantomData<<i32 as ToOwned>::Owned> != PhantomData
@@ -624,7 +861,10 @@ fn test_as() {
         test,
         "Condition failed: `PhantomData as PhantomData<<i32 as ToOwned>::Owned> != PhantomData` (PhantomData<i32> vs PhantomData<i32>)",
     );
+}
 
+#[test]
+fn f68() {
     macro_rules! int {
         (...) => {
             u8
@@ -633,10 +873,26 @@ fn test_as() {
 
     let test = || Ok(ensure!(0 as int!(...) != 0));
     assert_err(test, "Condition failed: `0 as int!(...) != 0` (0 vs 0)");
+}
 
+#[test]
+fn f69() {
+    macro_rules! int {
+        (...) => {
+            u8
+        };
+    }
     let test = || Ok(ensure!(0 as int![...] != 0));
     assert_err(test, "Condition failed: `0 as int![...] != 0` (0 vs 0)");
+}
 
+#[test]
+fn f70() {
+    macro_rules! int {
+        (...) => {
+            u8
+        };
+    }
     let test = || Ok(ensure!(0 as int! {...} != 0));
     assert_err(test, "Condition failed: `0 as int! { ... } != 0` (0 vs 0)");
 }
@@ -648,74 +904,111 @@ fn test_pat() {
         test,
         "Condition failed: `if let ref mut _x @ 0 = 0 { 0 } else { 1 } == 1` (0 vs 1)",
     );
+}
 
+#[test]
+fn f71() {
     let test = || Ok(ensure!(if let -1..=1 = 0 { 0 } else { 1 } == 1));
     assert_err(
         test,
         "Condition failed: `if let -1..=1 = 0 { 0 } else { 1 } == 1` (0 vs 1)",
     );
+}
 
+#[test]
+fn f72() {
     let test = || Ok(ensure!(if let &0 = &0 { 0 } else { 1 } == 1));
     assert_err(
         test,
         "Condition failed: `if let &0 = &0 { 0 } else { 1 } == 1` (0 vs 1)",
     );
+}
 
+#[test]
+fn f73() {
     let test = || Ok(ensure!(if let &&0 = &&0 { 0 } else { 1 } == 1));
     assert_err(
         test,
         "Condition failed: `if let &&0 = &&0 { 0 } else { 1 } == 1` (0 vs 1)",
     );
+}
 
+#[test]
+fn f74() {
     let test = || Ok(ensure!(if let &mut 0 = &mut 0 { 0 } else { 1 } == 1));
     assert_err(
         test,
         "Condition failed: `if let &mut 0 = &mut 0 { 0 } else { 1 } == 1` (0 vs 1)",
     );
+}
 
+#[test]
+fn f75() {
     let test = || Ok(ensure!(if let &&mut 0 = &&mut 0 { 0 } else { 1 } == 1));
     assert_err(
         test,
         "Condition failed: `if let &&mut 0 = &&mut 0 { 0 } else { 1 } == 1` (0 vs 1)",
     );
+}
 
+#[test]
+fn f76() {
     let test = || Ok(ensure!(if let (0, 1) = (0, 1) { 0 } else { 1 } == 1));
     assert_err(
         test,
         "Condition failed: `if let (0, 1) = (0, 1) { 0 } else { 1 } == 1` (0 vs 1)",
     );
+}
 
+#[test]
+fn f77() {
     let test = || Ok(ensure!(if let [0] = b"\0" { 0 } else { 1 } == 1));
     assert_err(
         test,
         "Condition failed: `if let [0] = b\"\\0\" { 0 } else { 1 } == 1` (0 vs 1)",
     );
+}
 
+#[test]
+fn f78() {
     let p = PhantomData::<u8>;
     let test = || Ok(ensure!(if let P::<u8> {} = p { 0 } else { 1 } == 1));
     assert_err(
         test,
         "Condition failed: `if let P::<u8> {} = p { 0 } else { 1 } == 1` (0 vs 1)",
     );
+}
 
+#[test]
+fn f79() {
+    let p = PhantomData::<u8>;
     let test = || Ok(ensure!(if let ::std::marker::PhantomData = p {} != ()));
     assert_err(
         test,
         "Condition failed: `if let ::std::marker::PhantomData = p {} != ()` (() vs ())",
     );
+}
 
+#[test]
+fn f80() {
     let test = || Ok(ensure!(if let <S as Trait>::V = 0 { 0 } else { 1 } == 1));
     assert_err(
         test,
         "Condition failed: `if let <S as Trait>::V = 0 { 0 } else { 1 } == 1` (0 vs 1)",
     );
+}
 
+#[test]
+fn f81() {
     let test = || Ok(ensure!(for _ in iter::once(()) {} != ()));
     assert_err(
         test,
         "Condition failed: `for _ in iter::once(()) {} != ()` (() vs ())",
     );
+}
 
+#[test]
+fn f82() {
     let test = || Ok(ensure!(if let stringify!(x) = "x" { 0 } else { 1 } == 1));
     assert_err(
         test,
