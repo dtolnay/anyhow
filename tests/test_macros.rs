@@ -15,6 +15,7 @@ use self::common::*;
 use anyhow::{anyhow, ensure, Result};
 use std::cell::Cell;
 use std::future;
+use std::ops::Not;
 
 #[test]
 fn test_messages() {
@@ -60,10 +61,19 @@ fn test_ensure_nonbool() -> Result<()> {
         condition: bool,
     }
 
+    impl Not for Struct {
+        type Output = bool;
+        fn not(self) -> Self::Output {
+            !self.condition
+        }
+    }
+
     let s = Struct { condition: true };
     match &s {
         Struct { condition } => ensure!(condition), // &bool
     }
+
+    ensure!(s);
 
     Ok(())
 }
