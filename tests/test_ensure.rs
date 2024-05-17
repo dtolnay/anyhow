@@ -1,5 +1,6 @@
 #![allow(
     clippy::bool_to_int_with_if,
+    clippy::char_lit_as_u8,
     clippy::diverging_sub_expression,
     clippy::extra_unused_type_parameters,
     clippy::if_same_then_else,
