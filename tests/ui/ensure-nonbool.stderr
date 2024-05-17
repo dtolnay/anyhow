@@ -1,15 +1,41 @@
 error[E0600]: cannot apply unary operator `!` to type `&'static str`
- --> tests/ui/ensure-nonbool.rs:4:5
-  |
-4 |     ensure!("...");
-  |     ^^^^^^^^^^^^^^ cannot apply unary operator `!`
-  |
-  = note: this error originates in the macro `$crate::__fallback_ensure` which comes from the expansion of the macro `ensure` (in Nightly builds, run with -Z macro-backtrace for more info)
+  --> tests/ui/ensure-nonbool.rs:16:5
+   |
+16 |     ensure!("...");
+   |     ^^^^^^^^^^^^^^ cannot apply unary operator `!`
+   |
+   = note: this error originates in the macro `$crate::__fallback_ensure` which comes from the expansion of the macro `ensure` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0600]: cannot apply unary operator `!` to type `&mut bool`
- --> tests/ui/ensure-nonbool.rs:9:25
-  |
-9 |         Struct(cond) => ensure!(cond),
-  |                         ^^^^^^^^^^^^^ cannot apply unary operator `!`
-  |
-  = note: this error originates in the macro `$crate::__fallback_ensure` which comes from the expansion of the macro `ensure` (in Nightly builds, run with -Z macro-backtrace for more info)
+  --> tests/ui/ensure-nonbool.rs:20:23
+   |
+20 |         Bool(cond) => ensure!(cond),
+   |                       ^^^^^^^^^^^^^ cannot apply unary operator `!`
+   |
+   = note: this error originates in the macro `$crate::__fallback_ensure` which comes from the expansion of the macro `ensure` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0600]: cannot apply unary operator `!` to type `DerefBool`
+  --> tests/ui/ensure-nonbool.rs:24:5
+   |
+24 |     ensure!(db);
+   |     ^^^^^^^^^^^ cannot apply unary operator `!`
+   |
+note: an implementation of `Not` might be missing for `DerefBool`
+  --> tests/ui/ensure-nonbool.rs:6:1
+   |
+6  | struct DerefBool(bool);
+   | ^^^^^^^^^^^^^^^^ must implement `Not`
+note: the trait `Not` must be implemented
+  --> $RUST/core/src/ops/bit.rs
+   |
+   | pub trait Not {
+   | ^^^^^^^^^^^^^
+   = note: this error originates in the macro `$crate::__fallback_ensure` which comes from the expansion of the macro `ensure` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0600]: cannot apply unary operator `!` to type `&DerefBool`
+  --> tests/ui/ensure-nonbool.rs:25:5
+   |
+25 |     ensure!(&db);
+   |     ^^^^^^^^^^^^ cannot apply unary operator `!`
+   |
+   = note: this error originates in the macro `$crate::__fallback_ensure` which comes from the expansion of the macro `ensure` (in Nightly builds, run with -Z macro-backtrace for more info)
