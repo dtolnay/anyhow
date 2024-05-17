@@ -651,6 +651,7 @@ pub fn Ok<T>(t: T) -> Result<T> {
 // Not public API. Referenced by macro-generated code.
 #[doc(hidden)]
 pub mod __private {
+    use self::not::Bool;
     use crate::Error;
     use alloc::fmt;
     use core::fmt::Arguments;
@@ -698,5 +699,32 @@ pub mod __private {
     #[must_use]
     pub fn must_use(error: Error) -> Error {
         error
+    }
+
+    #[doc(hidden)]
+    #[inline]
+    pub fn not(cond: impl Bool) -> bool {
+        cond.not()
+    }
+
+    mod not {
+        #[doc(hidden)]
+        pub trait Bool {
+            fn not(self) -> bool;
+        }
+
+        impl Bool for bool {
+            #[inline]
+            fn not(self) -> bool {
+                !self
+            }
+        }
+
+        impl Bool for &bool {
+            #[inline]
+            fn not(self) -> bool {
+                !*self
+            }
+        }
     }
 }
