@@ -55,19 +55,17 @@ fn test_ensure() {
 }
 
 #[test]
-fn test_ensure_nonbool() {
+fn test_ensure_nonbool() -> Result<()> {
     struct Struct {
         condition: bool,
     }
 
-    fn f(s: &Struct) -> Result<()> {
-        match s {
-            Struct { condition } => ensure!(condition), // &bool
-        }
-        Ok(())
+    let s = Struct { condition: true };
+    match &s {
+        Struct { condition } => ensure!(condition), // &bool
     }
 
-    f(&Struct { condition: true }).unwrap();
+    Ok(())
 }
 
 #[test]
