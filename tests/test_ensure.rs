@@ -19,6 +19,7 @@
     clippy::redundant_pattern_matching,
     clippy::too_many_lines,
     clippy::unit_arg,
+    clippy::unnecessary_cast,
     clippy::while_immutable_condition,
     clippy::zero_ptr,
     irrefutable_let_patterns
