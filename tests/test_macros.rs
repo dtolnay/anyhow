@@ -11,7 +11,7 @@
 mod common;
 
 use self::common::*;
-use anyhow::{anyhow, ensure};
+use anyhow::{anyhow, ensure, Result};
 use std::cell::Cell;
 use std::future;
 
@@ -51,6 +51,22 @@ fn test_ensure() {
         f().unwrap_err().to_string(),
         "Condition failed: `v + v == 1` (2 vs 1)",
     );
+}
+
+#[test]
+fn test_ensure_nonbool() {
+    struct Struct {
+        condition: bool,
+    }
+
+    fn f(s: &Struct) -> Result<()> {
+        match s {
+            Struct { condition } => ensure!(condition), // &bool
+        }
+        Ok(())
+    }
+
+    f(&Struct { condition: true }).unwrap();
 }
 
 #[test]
