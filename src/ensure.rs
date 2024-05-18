@@ -262,6 +262,10 @@ macro_rules! __parse_ensure {
         $crate::__parse_ensure!(type (qpath (tpath (arglist (epath $stack)))) $bail ($($fuel)*) {($($buf)* $colons $langle) $($parse)*} ($($rest)*) $($rest)*)
     };
 
+    (epath $stack:tt ($($bail:tt)*) (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} $dup:tt :: <- - $($rest:tt)*) => {
+        $crate::__fallback_ensure!($($bail)*)
+    };
+
     (epath $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($colons:tt $larrow:tt $($dup:tt)*) :: <- $lit:literal $($rest:tt)*) => {
         $crate::__parse_ensure!(generic (epath $stack) $bail ($($fuel)*) {($($buf)* $colons $larrow) $($parse)*} ($($dup)*) $($dup)*)
     };
@@ -316,6 +320,10 @@ macro_rules! __parse_ensure {
         $crate::__parse_ensure!(type (qpath (tpath (arglist (atom $stack)))) $bail ($($fuel)*) {($($buf)* $dot $ident $colons $langle) $($parse)*} ($($rest)*) $($rest)*)
     };
 
+    (atom $stack:tt ($($bail:tt)*) (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} $dup:tt . $i:ident :: <- - $($rest:tt)*) => {
+        $crate::__fallback_ensure!($($bail)*)
+    };
+
     (atom $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($dot:tt $ident:tt $colons:tt $larrow:tt $($dup:tt)*) . $i:ident :: <- $lit:literal $($rest:tt)*) => {
         $crate::__parse_ensure!(generic (atom $stack) $bail ($($fuel)*) {($($buf)* $dot $ident $colons $larrow) $($parse)*} ($($dup)*) $($dup)*)
     };
@@ -324,7 +332,7 @@ macro_rules! __parse_ensure {
         $crate::__parse_ensure!(atom $stack $bail ($($fuel)*) {($($buf)* $dot $field) $($parse)*} ($($rest)*) $($rest)*)
     };
 
-    (atom $stack:tt ($($bail:tt)*) (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} $dup:tt . - $lit:literal $($rest:tt)*) => {
+    (atom $stack:tt ($($bail:tt)*) (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} $dup:tt . - $($rest:tt)*) => {
         $crate::__fallback_ensure!($($bail)*)
     };
 
@@ -386,11 +394,15 @@ macro_rules! __parse_ensure {
         $crate::__parse_ensure!(type $stack $bail ($($fuel)*) {($($buf)* $and) $($parse)*} ($($rest)*) $($rest)*)
     };
 
+    (type $stack:tt ($($bail:tt)*) (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} $dup:tt unsafe extern - $($rest:tt)*) => {
+        $crate::__fallback_ensure!($($bail)*)
+    };
+
     (type $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($unsafe:tt $(extern $($abi:literal)?)? fn $($dup:tt)*) unsafe $($rest:tt)*) => {
         $crate::__parse_ensure!(type $stack $bail ($($fuel)*) {($($buf)* $unsafe) $($parse)*} ($($rest)*) $($rest)*)
     };
 
-    (type $stack:tt ($($bail:tt)*) (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} $dup:tt extern - $lit:literal $($rest:tt)*) => {
+    (type $stack:tt ($($bail:tt)*) (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} $dup:tt extern - $($rest:tt)*) => {
         $crate::__fallback_ensure!($($bail)*)
     };
 
@@ -452,6 +464,10 @@ macro_rules! __parse_ensure {
         $crate::__parse_ensure!(type (qpath (tpath (arglist (tpath $stack)))) $bail ($($fuel)*) {($($buf)* $langle) $($parse)*} ($($rest)*) $($rest)*)
     };
 
+    (tpath $stack:tt ($($bail:tt)*) (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} $dup:tt <- - $($rest:tt)*) => {
+        $crate::__fallback_ensure!($($bail)*)
+    };
+
     (tpath $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($larrow:tt $($dup:tt)*) <- $lit:literal $($rest:tt)*) => {
         $crate::__parse_ensure!(generic (tpath $stack) $bail ($($fuel)*) {($($buf)* $larrow) $($parse)*} ($($dup)*) $($dup)*)
     };
@@ -462,6 +478,10 @@ macro_rules! __parse_ensure {
 
     (tpath $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($colons:tt $langle:tt $($dup:tt)*) :: << $($rest:tt)*) => {
         $crate::__parse_ensure!(type (qpath (tpath (arglist (tpath $stack)))) $bail ($($fuel)*) {($($buf)* $colons $langle) $($parse)*} ($($rest)*) $($rest)*)
+    };
+
+    (tpath $stack:tt ($($bail:tt)*) (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} $dup:tt :: <- - $($rest:tt)*) => {
+        $crate::__fallback_ensure!($($bail)*)
     };
 
     (tpath $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($colons:tt $larrow:tt $($dup:tt)*) :: <- $lit:literal $($rest:tt)*) => {
@@ -550,8 +570,16 @@ macro_rules! __parse_ensure {
         $crate::__parse_ensure!($pop (split $stack) $bail ($($fuel)*) {($($buf)*) $($parse)*} ($rangle $($rest)*) $rangle $($rest)*)
     };
 
+    (generic $stack:tt ($($bail:tt)*) (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} $dup:tt - - $($rest:tt)*) => {
+        $crate::__fallback_ensure!($($bail)*)
+    };
+
     (generic $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($neg:tt $($dup:tt)*) - $lit:literal $($rest:tt)*) => {
         $crate::__parse_ensure!(generic $stack $bail ($($fuel)*) {($($buf)* $neg) $($parse)*} ($($dup)*) $($dup)*)
+    };
+
+    (generic $stack:tt ($($bail:tt)*) (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} $dup:tt - $($rest:tt)*) => {
+        $crate::__fallback_ensure!($($bail)*)
     };
 
     (generic $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($literal:tt $($dup:tt)*) $lit:literal $($rest:tt)*) => {
@@ -616,8 +644,16 @@ macro_rules! __parse_ensure {
         $crate::__parse_ensure!(pat $stack $bail ($($fuel)*) {($($buf)* $at) $($parse)*} ($($rest)*) $($rest)*)
     };
 
+    (pat $stack:tt ($($bail:tt)*) (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} $dup:tt - - $($rest:tt)*) => {
+        $crate::__fallback_ensure!($($bail)*)
+    };
+
     (pat $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($neg:tt $($dup:tt)*) - $lit:literal $($rest:tt)*) => {
         $crate::__parse_ensure!(pat $stack $bail ($($fuel)*) {($($buf)* $neg) $($parse)*} ($($dup)*) $($dup)*)
+    };
+
+    (pat $stack:tt ($($bail:tt)*) (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} $dup:tt - $($rest:tt)*) => {
+        $crate::__fallback_ensure!($($bail)*)
     };
 
     (pat $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($literal:tt $($dup:tt)*) $lit:literal $($rest:tt)*) => {
