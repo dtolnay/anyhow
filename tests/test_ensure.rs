@@ -132,6 +132,19 @@ fn test_low_precedence_binary_operator() {
         test,
         "Condition failed: `while false == true && false {} < ()` (() vs ())",
     );
+
+    let a = 15;
+    let b = 3;
+    let test = || Ok(ensure!(a <= b || a - b <= 10));
+    assert_err(test, "Condition failed: `a <= b || a - b <= 10`");
+}
+
+#[test]
+fn test_high_precedence_binary_operator() {
+    let a = 15;
+    let b = 3;
+    let test = || Ok(ensure!(a - b <= 10));
+    assert_err(test, "Condition failed: `a - b <= 10` (12 vs 10)");
 }
 
 #[test]
