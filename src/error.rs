@@ -26,7 +26,7 @@ impl Error {
     /// If the error type does not provide a backtrace, a backtrace will be
     /// created here to ensure that a backtrace exists.
     #[cfg(feature = "std")]
-    #[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
+    #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
     #[cold]
     #[must_use]
     pub fn new<E>(error: E) -> Self
@@ -400,7 +400,7 @@ impl Error {
     /// }
     /// ```
     #[cfg(feature = "std")]
-    #[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
+    #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
     #[cold]
     pub fn chain(&self) -> Chain {
         unsafe { ErrorImpl::chain(self.inner.by_ref()) }
@@ -412,7 +412,7 @@ impl Error {
     /// The root cause is the last error in the iterator produced by
     /// [`chain()`][Error::chain].
     #[cfg(feature = "std")]
-    #[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
+    #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
     pub fn root_cause(&self) -> &(dyn StdError + 'static) {
         self.chain().last().unwrap()
     }
@@ -555,7 +555,7 @@ impl Error {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
 impl<E> From<E> for Error
 where
     E: StdError + Send + Sync + 'static,
@@ -568,7 +568,7 @@ where
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
 impl Deref for Error {
     type Target = dyn StdError + Send + Sync + 'static;
 
@@ -578,7 +578,7 @@ impl Deref for Error {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
 impl DerefMut for Error {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { ErrorImpl::error_mut(self.inner.by_mut()) }

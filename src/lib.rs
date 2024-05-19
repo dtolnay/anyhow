@@ -208,7 +208,7 @@
 
 #![doc(html_root_url = "https://docs.rs/anyhow/1.0.85")]
 #![cfg_attr(error_generic_member_access, feature(error_generic_member_access))]
-#![cfg_attr(doc_cfg, feature(doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![no_std]
 #![deny(dead_code, unused_imports, unused_mut)]
 #![cfg_attr(
@@ -408,7 +408,7 @@ pub struct Error {
 /// }
 /// ```
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
 #[derive(Clone)]
 pub struct Chain<'a> {
     state: crate::chain::ChainState<'a>,
