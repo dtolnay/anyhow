@@ -22,7 +22,7 @@ std = []
 # preferred.
 backtrace = { version = "0.3.51", optional = true }
 
-[dev-dependencies]
+[dev-dependencies]  
 futures = { version = "0.3", default-features = false }
 rustversion = "1.0.6"
 syn = { version = "2.0", features = ["full"] }
