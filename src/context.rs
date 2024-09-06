@@ -4,7 +4,7 @@ use core::convert::Infallible;
 use core::fmt::{self, Debug, Display, Write};
 
 #[cfg(error_generic_member_access)]
-use std::error::Request;
+use core::error::Request;
 
 mod ext {
     use super::*;

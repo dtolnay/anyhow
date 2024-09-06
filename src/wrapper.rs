@@ -5,7 +5,7 @@ use core::fmt::{self, Debug, Display};
 use alloc::boxed::Box;
 
 #[cfg(error_generic_member_access)]
-use std::error::Request;
+use core::error::Request;
 
 #[repr(transparent)]
 pub struct MessageError<M>(pub M);
