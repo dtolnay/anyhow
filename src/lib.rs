@@ -208,7 +208,6 @@
 
 #![doc(html_root_url = "https://docs.rs/anyhow/1.0.85")]
 #![cfg_attr(error_generic_member_access, feature(error_generic_member_access))]
-#![cfg_attr(docsrs, feature(doc_cfg))]
 #![no_std]
 #![deny(dead_code, unused_imports, unused_mut)]
 #![cfg_attr(
