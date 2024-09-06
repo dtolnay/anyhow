@@ -47,7 +47,7 @@ macro_rules! backtrace_if_absent {
 }
 
 #[cfg(all(
-    feature = "std",
+    any(feature = "std", not(anyhow_no_core_error)),
     not(error_generic_member_access),
     any(std_backtrace, feature = "backtrace")
 ))]
@@ -57,7 +57,11 @@ macro_rules! backtrace_if_absent {
     };
 }
 
-#[cfg(all(feature = "std", not(std_backtrace), not(feature = "backtrace")))]
+#[cfg(all(
+    any(feature = "std", not(anyhow_no_core_error)),
+    not(std_backtrace),
+    not(feature = "backtrace"),
+))]
 macro_rules! backtrace_if_absent {
     ($err:expr) => {
         None

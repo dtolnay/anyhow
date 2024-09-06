@@ -67,6 +67,7 @@ fn main() {
 
     if rustc >= 80 {
         println!("cargo:rustc-check-cfg=cfg(anyhow_nightly_testing)");
+        println!("cargo:rustc-check-cfg=cfg(anyhow_no_core_error)");
         println!("cargo:rustc-check-cfg=cfg(anyhow_no_fmt_arguments_as_str)");
         println!("cargo:rustc-check-cfg=cfg(anyhow_no_ptr_addr_of)");
         println!("cargo:rustc-check-cfg=cfg(anyhow_no_unsafe_op_in_unsafe_fn_lint)");
@@ -94,6 +95,12 @@ fn main() {
         // std::backtrace::Backtrace
         // https://blog.rust-lang.org/2022/11/03/Rust-1.65.0.html#stabilized-apis
         println!("cargo:rustc-cfg=std_backtrace");
+    }
+
+    if rustc < 81 {
+        // core::error::Error
+        // https://blog.rust-lang.org/2024/09/05/Rust-1.81.0.html#coreerrorerror
+        println!("cargo:rustc-cfg=anyhow_no_core_error");
     }
 }
 
