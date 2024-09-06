@@ -266,13 +266,16 @@ use crate::error::ErrorImpl;
 use crate::ptr::Own;
 use core::fmt::Display;
 
-#[cfg(not(feature = "std"))]
+#[cfg(all(not(feature = "std"), anyhow_no_core_error))]
 use core::fmt::Debug;
 
 #[cfg(feature = "std")]
 use std::error::Error as StdError;
 
-#[cfg(not(feature = "std"))]
+#[cfg(not(any(feature = "std", anyhow_no_core_error)))]
+use core::error::Error as StdError;
+
+#[cfg(all(not(feature = "std"), anyhow_no_core_error))]
 trait StdError: Debug + Display {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         None
@@ -407,8 +410,7 @@ pub struct Error {
 ///     None
 /// }
 /// ```
-#[cfg(feature = "std")]
-#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
+#[cfg(any(feature = "std", not(anyhow_no_core_error)))]
 #[derive(Clone)]
 pub struct Chain<'a> {
     state: crate::chain::ChainState<'a>,
@@ -670,7 +672,7 @@ pub mod __private {
         #[doc(hidden)]
         pub use crate::kind::{AdhocKind, TraitKind};
 
-        #[cfg(feature = "std")]
+        #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
         #[doc(hidden)]
         pub use crate::kind::BoxedKind;
     }
