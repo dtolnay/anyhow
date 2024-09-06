@@ -38,7 +38,8 @@ macro_rules! backtrace {
 #[cfg(error_generic_member_access)]
 macro_rules! backtrace_if_absent {
     ($err:expr) => {
-        match std::error::request_ref::<std::backtrace::Backtrace>($err as &dyn std::error::Error) {
+        match core::error::request_ref::<std::backtrace::Backtrace>($err as &dyn core::error::Error)
+        {
             Some(_) => None,
             None => backtrace!(),
         }

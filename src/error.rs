@@ -6,13 +6,13 @@ use crate::ptr::{Own, Ref};
 use crate::{Error, StdError};
 use alloc::boxed::Box;
 use core::any::TypeId;
+#[cfg(error_generic_member_access)]
+use core::error::{self, Request};
 use core::fmt::{self, Debug, Display};
 use core::mem::ManuallyDrop;
 #[cfg(not(anyhow_no_ptr_addr_of))]
 use core::ptr;
 use core::ptr::NonNull;
-#[cfg(error_generic_member_access)]
-use std::error::{self, Request};
 
 #[cfg(feature = "std")]
 use core::ops::{Deref, DerefMut};
