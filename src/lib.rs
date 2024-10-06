@@ -227,6 +227,7 @@
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
     clippy::needless_doctest_main,
+    clippy::needless_lifetimes,
     clippy::new_ret_no_self,
     clippy::redundant_else,
     clippy::return_self_not_must_use,
