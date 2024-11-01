@@ -184,6 +184,12 @@ fn test_unary() {
 
     let test = || Ok(ensure!(&mut x == *&&mut &2));
     assert_err(test, "Condition failed: `&mut x == *&&mut &2` (1 vs 2)");
+
+    let test = || Ok(ensure!(S + &raw const x != S + &raw mut x));
+    assert_err(
+        test,
+        "Condition failed: `S + &raw const x != S + &raw mut x`", // FIXME
+    );
 }
 
 #[test]
