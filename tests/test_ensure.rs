@@ -184,7 +184,12 @@ fn test_unary() {
 
     let test = || Ok(ensure!(&mut x == *&&mut &2));
     assert_err(test, "Condition failed: `&mut x == *&&mut &2` (1 vs 2)");
+}
 
+#[rustversion::since(1.82)]
+#[test]
+fn test_raw_addr() {
+    let mut x = 1;
     let test = || Ok(ensure!(S + &raw const x != S + &raw mut x));
     assert_err(
         test,
