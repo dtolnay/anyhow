@@ -188,7 +188,7 @@ fn test_unary() {
     let test = || Ok(ensure!(S + &raw const x != S + &raw mut x));
     assert_err(
         test,
-        "Condition failed: `S + &raw const x != S + &raw mut x`", // FIXME
+        "Condition failed: `S + &raw const x != S + &raw mut x` (false vs false)",
     );
 }
 
