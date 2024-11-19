@@ -240,3 +240,32 @@ macro_rules! __anyhow {
         $crate::Error::msg($crate::__private::format!($fmt, $($arg)*))
     };
 }
+
+/// Unwraps an option with a general error message.
+///
+/// This macro is equivalent to ``maybe_foo.context("`maybe_foo` is `None`)?;``
+///
+/// The surrounding function's or closure's return value is required to be
+/// <code>Result&lt;_, [anyhow::Error][crate::Error]&gt;</code>.
+///
+/// ## Example
+/// ```
+/// # use anyhow::unwrap_some;
+///
+/// # fn main() -> anyhow::Result<()> {
+///     let maybe_foo: Option<i32> = Some(42);
+///     let foo = unwrap_some!(maybe_foo);
+///     assert_eq!(foo, 42);
+///
+///     let maybe_foo: Option<i32> = None;
+///     let result: anyhow::Result<_> = (|| Ok(unwrap_some!(maybe_foo)))();
+///     assert_eq!(result.unwrap_err().to_string(), "`maybe_foo` is `None`");
+/// #
+/// #    Ok(())
+/// # }
+#[macro_export]
+macro_rules! unwrap_some {
+    ($opt:expr) => {
+        $opt.ok_or_else(|| $crate::anyhow!(concat!("`", stringify!($opt), "`", " is `None`")))?
+    };
+}
