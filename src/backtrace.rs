@@ -35,6 +35,20 @@ macro_rules! backtrace {
     };
 }
 
+#[cfg(feature = "tracing")]
+macro_rules! capture_span {
+    () => {
+        Some(::tracing::Span::current())
+    };
+}
+
+#[cfg(not(feature = "tracing"))]
+macro_rules! capture_span {
+    () => {
+        None
+    };
+}
+
 #[cfg(error_generic_member_access)]
 macro_rules! backtrace_if_absent {
     ($err:expr) => {
@@ -63,6 +77,30 @@ macro_rules! backtrace_if_absent {
     not(feature = "backtrace"),
 ))]
 macro_rules! backtrace_if_absent {
+    ($err:expr) => {
+        None
+    };
+}
+
+#[cfg(all(error_generic_member_access, feature = "tracing"))]
+macro_rules! span_if_absent {
+    ($err:expr) => {
+        match core::error::request_ref::<::tracing::Span>($err as &dyn core::error::Error) {
+            Some(_) => None,
+            None => capture_span!(),
+        }
+    };
+}
+
+#[cfg(all(not(error_generic_member_access), feature = "tracing"))]
+macro_rules! span_if_absent {
+    ($err:expr) => {
+        capture_span!()
+    };
+}
+
+#[cfg(not(feature = "tracing"))]
+macro_rules! span_if_absent {
     ($err:expr) => {
         None
     };
