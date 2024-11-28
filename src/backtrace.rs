@@ -42,13 +42,6 @@ macro_rules! capture_span {
     };
 }
 
-#[cfg(not(feature = "tracing"))]
-macro_rules! capture_span {
-    () => {
-        None
-    };
-}
-
 #[cfg(error_generic_member_access)]
 macro_rules! backtrace_if_absent {
     ($err:expr) => {
@@ -96,13 +89,6 @@ macro_rules! span_if_absent {
 macro_rules! span_if_absent {
     ($err:expr) => {
         capture_span!()
-    };
-}
-
-#[cfg(not(feature = "tracing"))]
-macro_rules! span_if_absent {
-    ($err:expr) => {
-        None
     };
 }
 

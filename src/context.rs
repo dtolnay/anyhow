@@ -25,8 +25,15 @@ mod ext {
             C: Display + Send + Sync + 'static,
         {
             let backtrace = backtrace_if_absent!(&self);
+            #[cfg(feature = "tracing")]
             let span = span_if_absent!(&self);
-            Error::from_context(context, self, backtrace, span)
+            Error::from_context(
+                context,
+                self,
+                backtrace,
+                #[cfg(feature = "tracing")]
+                span,
+            )
         }
     }
 
@@ -97,7 +104,12 @@ impl<T> Context<T, Infallible> for Option<T> {
         // backtrace.
         match self {
             Some(ok) => Ok(ok),
-            None => Err(Error::from_display(context, backtrace!(), capture_span!())),
+            None => Err(Error::from_display(
+                context,
+                backtrace!(),
+                #[cfg(feature = "tracing")]
+                capture_span!(),
+            )),
         }
     }
 
@@ -111,6 +123,7 @@ impl<T> Context<T, Infallible> for Option<T> {
             None => Err(Error::from_display(
                 context(),
                 backtrace!(),
+                #[cfg(feature = "tracing")]
                 capture_span!(),
             )),
         }

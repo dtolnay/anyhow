@@ -36,8 +36,14 @@ impl Error {
         E: StdError + Send + Sync + 'static,
     {
         let backtrace = backtrace_if_absent!(&error);
+        #[cfg(feature = "tracing")]
         let span = span_if_absent!(&error);
-        Error::from_std(error, backtrace, span)
+        Error::from_std(
+            error,
+            backtrace,
+            #[cfg(feature = "tracing")]
+            span,
+        )
     }
 
     /// Create a new error object from a printable error message.
@@ -83,7 +89,12 @@ impl Error {
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        Error::from_adhoc(message, backtrace!(), capture_span!())
+        Error::from_adhoc(
+            message,
+            backtrace!(),
+            #[cfg(feature = "tracing")]
+            capture_span!(),
+        )
     }
 
     #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
@@ -91,7 +102,7 @@ impl Error {
     pub(crate) fn from_std<E>(
         error: E,
         backtrace: Option<Backtrace>,
-        span: Option<tracing::Span>,
+        #[cfg(feature = "tracing")] span: Option<tracing::Span>,
     ) -> Self
     where
         E: StdError + Send + Sync + 'static,
@@ -116,14 +127,22 @@ impl Error {
         };
 
         // Safety: passing vtable that operates on the right type E.
-        unsafe { Error::construct(error, vtable, backtrace, span) }
+        unsafe {
+            Error::construct(
+                error,
+                vtable,
+                backtrace,
+                #[cfg(feature = "tracing")]
+                span,
+            )
+        }
     }
 
     #[cold]
     pub(crate) fn from_adhoc<M>(
         message: M,
         backtrace: Option<Backtrace>,
-        span: Option<tracing::Span>,
+        #[cfg(feature = "tracing")] span: Option<tracing::Span>,
     ) -> Self
     where
         M: Display + Debug + Send + Sync + 'static,
@@ -151,14 +170,22 @@ impl Error {
 
         // Safety: MessageError is repr(transparent) so it is okay for the
         // vtable to allow casting the MessageError<M> to M.
-        unsafe { Error::construct(error, vtable, backtrace, span) }
+        unsafe {
+            Error::construct(
+                error,
+                vtable,
+                backtrace,
+                #[cfg(feature = "tracing")]
+                span,
+            )
+        }
     }
 
     #[cold]
     pub(crate) fn from_display<M>(
         message: M,
         backtrace: Option<Backtrace>,
-        span: Option<tracing::Span>,
+        #[cfg(feature = "tracing")] span: Option<tracing::Span>,
     ) -> Self
     where
         M: Display + Send + Sync + 'static,
@@ -186,7 +213,15 @@ impl Error {
 
         // Safety: DisplayError is repr(transparent) so it is okay for the
         // vtable to allow casting the DisplayError<M> to M.
-        unsafe { Error::construct(error, vtable, backtrace, span) }
+        unsafe {
+            Error::construct(
+                error,
+                vtable,
+                backtrace,
+                #[cfg(feature = "tracing")]
+                span,
+            )
+        }
     }
 
     #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
@@ -195,7 +230,7 @@ impl Error {
         context: C,
         error: E,
         backtrace: Option<Backtrace>,
-        span: Option<tracing::Span>,
+        #[cfg(feature = "tracing")] span: Option<tracing::Span>,
     ) -> Self
     where
         C: Display + Send + Sync + 'static,
@@ -223,7 +258,15 @@ impl Error {
         };
 
         // Safety: passing vtable that operates on the right type.
-        unsafe { Error::construct(error, vtable, backtrace, span) }
+        unsafe {
+            Error::construct(
+                error,
+                vtable,
+                backtrace,
+                #[cfg(feature = "tracing")]
+                span,
+            )
+        }
     }
 
     #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
@@ -231,7 +274,7 @@ impl Error {
     pub(crate) fn from_boxed(
         error: Box<dyn StdError + Send + Sync>,
         backtrace: Option<Backtrace>,
-        span: Option<tracing::Span>,
+        #[cfg(feature = "tracing")] span: Option<tracing::Span>,
     ) -> Self {
         use crate::wrapper::BoxedError;
         let error = BoxedError(error);
@@ -256,7 +299,15 @@ impl Error {
 
         // Safety: BoxedError is repr(transparent) so it is okay for the vtable
         // to allow casting to Box<dyn StdError + Send + Sync>.
-        unsafe { Error::construct(error, vtable, backtrace, span) }
+        unsafe {
+            Error::construct(
+                error,
+                vtable,
+                backtrace,
+                #[cfg(feature = "tracing")]
+                span,
+            )
+        }
     }
 
     // Takes backtrace as argument rather than capturing it here so that the
@@ -269,7 +320,7 @@ impl Error {
         error: E,
         vtable: &'static ErrorVTable,
         backtrace: Option<Backtrace>,
-        span: Option<tracing::Span>,
+        #[cfg(feature = "tracing")] span: Option<tracing::Span>,
     ) -> Self
     where
         E: StdError + Send + Sync + 'static,
@@ -277,6 +328,7 @@ impl Error {
         let inner: Box<ErrorImpl<E>> = Box::new(ErrorImpl {
             vtable,
             backtrace,
+            #[cfg(feature = "tracing")]
             span,
             _object: error,
         });
@@ -378,10 +430,19 @@ impl Error {
         let backtrace = None;
 
         // As the cause is anyhow::Error, we already have a span for it.
+        #[cfg(feature = "tracing")]
         let span = None;
 
         // Safety: passing vtable that operates on the right type.
-        unsafe { Error::construct(error, vtable, backtrace, span) }
+        unsafe {
+            Error::construct(
+                error,
+                vtable,
+                backtrace,
+                #[cfg(feature = "tracing")]
+                span,
+            )
+        }
     }
 
     /// Get the backtrace for this Error.
@@ -603,8 +664,14 @@ where
     #[cold]
     fn from(error: E) -> Self {
         let backtrace = backtrace_if_absent!(&error);
+        #[cfg(feature = "tracing")]
         let span = span_if_absent!(&error);
-        Error::from_std(error, backtrace, span)
+        Error::from_std(
+            error,
+            backtrace,
+            #[cfg(feature = "tracing")]
+            span,
+        )
     }
 }
 
@@ -930,6 +997,7 @@ where
 pub(crate) struct ErrorImpl<E = ()> {
     vtable: &'static ErrorVTable,
     backtrace: Option<Backtrace>,
+    #[cfg(feature = "tracing")]
     span: Option<tracing::Span>,
     // NOTE: Don't use directly. Use only through vtable. Erased type may have
     // different alignment.
@@ -1022,6 +1090,7 @@ impl ErrorImpl {
         if let Some(backtrace) = unsafe { &this.deref().backtrace } {
             request.provide_ref(backtrace);
         }
+        #[cfg(feature = "tracing")]
         if let Some(span) = unsafe { &this.deref().span } {
             request.provide_ref(span);
         }
