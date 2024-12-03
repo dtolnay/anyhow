@@ -21,6 +21,7 @@ std = []
 # besides bringing in an unused dependency, as `std::backtrace` is always
 # preferred.
 backtrace = { version = "0.3.51", optional = true }
+tracing = { version = "0.1.7", optional = true }
 
 [dev-dependencies]
 futures = { version = "0.3", default-features = false }

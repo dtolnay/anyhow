@@ -70,7 +70,12 @@ impl Adhoc {
     where
         M: Display + Debug + Send + Sync + 'static,
     {
-        Error::from_adhoc(message, backtrace!())
+        Error::from_adhoc(
+            message,
+            backtrace!(),
+            #[cfg(feature = "tracing")]
+            capture_span!(),
+        )
     }
 }
 
@@ -116,6 +121,13 @@ impl Boxed {
     #[cold]
     pub fn new(self, error: Box<dyn StdError + Send + Sync>) -> Error {
         let backtrace = backtrace_if_absent!(&*error);
-        Error::from_boxed(error, backtrace)
+        #[cfg(feature = "tracing")]
+        let span = span_if_absent!(&*error);
+        Error::from_boxed(
+            error,
+            backtrace,
+            #[cfg(feature = "tracing")]
+            span,
+        )
     }
 }
