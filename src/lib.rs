@@ -627,11 +627,11 @@ pub trait Context<T, E>: context::private::Sealed {
         F: FnOnce() -> C;
 }
 
-/// Equivalent to Ok::<_, anyhow::Error>(value).
+/// Equivalent to `Ok::<_, anyhow::Error>(value)`.
 ///
-/// This simplifies creation of an anyhow::Result in places where type inference
-/// cannot deduce the `E` type of the result &mdash; without needing to write
-/// `Ok::<_, anyhow::Error>(value)`.
+/// This simplifies creation of an `anyhow::Result` in places where type
+/// inference cannot deduce the `E` type of the result &mdash; without needing
+/// to write`Ok::<_, anyhow::Error>(value)`.
 ///
 /// One might think that `anyhow::Result::Ok(value)` would work in such cases
 /// but it does not.
