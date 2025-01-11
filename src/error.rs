@@ -478,6 +478,7 @@ impl Error {
     /// The root cause is the last error in the iterator produced by
     /// [`chain()`][Error::chain].
     #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
+    #[allow(clippy::double_ended_iterator_last)]
     pub fn root_cause(&self) -> &(dyn StdError + 'static) {
         self.chain().last().unwrap()
     }
