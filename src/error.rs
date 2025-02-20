@@ -490,7 +490,7 @@ impl Error {
     /// context has been attached. For details about the interaction between
     /// context and downcasting, [see here].
     ///
-    /// [see here]: trait.Context.html#effect-on-downcasting
+    /// [see here]: crate::Context#effect-on-downcasting
     pub fn is<E>(&self) -> bool
     where
         E: Display + Debug + Send + Sync + 'static,

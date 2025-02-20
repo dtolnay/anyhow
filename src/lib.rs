@@ -139,7 +139,7 @@
 //!   - If you want only panics to have backtraces, set `RUST_BACKTRACE=1` and
 //!     `RUST_LIB_BACKTRACE=0`.
 //!
-//!   [`std::backtrace`]: https://doc.rust-lang.org/std/backtrace/index.html#environment-variables
+//!   [`std::backtrace`]: std::backtrace#environment-variables
 //!
 //! - Anyhow works with any error type that has an impl of `std::error::Error`,
 //!   including ones defined in your crate. We do not bundle a `derive(Error)`
