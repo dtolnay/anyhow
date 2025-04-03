@@ -739,9 +739,10 @@ unsafe fn object_boxed<E>(e: Own<ErrorImpl>) -> Box<dyn StdError + Send + Sync +
 where
     E: StdError + Send + Sync + 'static,
 {
-    // Attach ErrorImpl<E>'s native StdError vtable. The StdError impl is below.
+    // Attach E's native StdError vtable. We don't use ErrorImpl<E>'s vtable as that would prevent
+    // downcasting to E.
     let unerased_own = e.cast::<ErrorImpl<E>>();
-    unsafe { unerased_own.boxed() }
+    Box::new(unsafe { unerased_own.boxed() }._object)
 }
 
 // Safety: requires layout of *e to match ErrorImpl<E>.

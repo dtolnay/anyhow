@@ -43,3 +43,13 @@ fn test_boxed_anyhow() {
     let error = anyhow!(error);
     assert_eq!("oh no!", error.source().unwrap().to_string());
 }
+
+#[test]
+fn test_into_boxed_downcasts() {
+    let error = MyError {
+        source: io::ErrorKind::NotFound.into(),
+    };
+    let error = anyhow::Error::from(error);
+    let error: Box<dyn StdError + 'static> = error.into();
+    error.downcast_ref::<MyError>().expect("should be original");
+}
