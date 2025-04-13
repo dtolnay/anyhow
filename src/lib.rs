@@ -260,6 +260,8 @@ mod error;
 mod fmt;
 mod kind;
 mod macros;
+#[cfg(error_generic_member_access)]
+mod nightly;
 mod ptr;
 mod wrapper;
 
