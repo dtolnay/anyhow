@@ -1,13 +1,13 @@
 use crate::backtrace::Backtrace;
 use crate::chain::Chain;
+#[cfg(error_generic_member_access)]
+use crate::nightly::{self, Request};
 #[cfg(any(feature = "std", not(anyhow_no_core_error), anyhow_no_ptr_addr_of))]
 use crate::ptr::Mut;
 use crate::ptr::{Own, Ref};
 use crate::{Error, StdError};
 use alloc::boxed::Box;
 use core::any::TypeId;
-#[cfg(error_generic_member_access)]
-use core::error::{self, Request};
 use core::fmt::{self, Debug, Display};
 use core::mem::ManuallyDrop;
 #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
@@ -995,7 +995,7 @@ impl ErrorImpl {
             .as_ref()
             .or_else(|| {
                 #[cfg(error_generic_member_access)]
-                return error::request_ref::<Backtrace>(unsafe { Self::error(this) });
+                return nightly::request_ref_backtrace(unsafe { Self::error(this) });
                 #[cfg(not(error_generic_member_access))]
                 return unsafe { (vtable(this.ptr).object_backtrace)(this) };
             })
@@ -1005,9 +1005,9 @@ impl ErrorImpl {
     #[cfg(error_generic_member_access)]
     unsafe fn provide<'a>(this: Ref<'a, Self>, request: &mut Request<'a>) {
         if let Some(backtrace) = unsafe { &this.deref().backtrace } {
-            request.provide_ref(backtrace);
+            nightly::provide_ref_backtrace(request, backtrace);
         }
-        unsafe { Self::error(this) }.provide(request);
+        nightly::provide(unsafe { Self::error(this) }, request);
     }
 
     #[cold]
