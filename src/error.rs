@@ -157,6 +157,7 @@ impl Error {
             object_ref: object_ref::<E>,
             #[cfg(anyhow_no_ptr_addr_of)]
             object_mut: object_mut::<E>,
+            #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
             object_boxed: object_boxed::<E>,
             object_downcast: object_downcast::<E>,
             #[cfg(anyhow_no_ptr_addr_of)]
@@ -185,6 +186,7 @@ impl Error {
             object_ref: object_ref::<MessageError<M>>,
             #[cfg(all(any(feature = "std", not(anyhow_no_core_error)), anyhow_no_ptr_addr_of))]
             object_mut: object_mut::<MessageError<M>>,
+            #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
             object_boxed: object_boxed::<MessageError<M>>,
             object_downcast: object_downcast::<M>,
             #[cfg(anyhow_no_ptr_addr_of)]
@@ -214,6 +216,7 @@ impl Error {
             object_ref: object_ref::<DisplayError<M>>,
             #[cfg(all(any(feature = "std", not(anyhow_no_core_error)), anyhow_no_ptr_addr_of))]
             object_mut: object_mut::<DisplayError<M>>,
+            #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
             object_boxed: object_boxed::<DisplayError<M>>,
             object_downcast: object_downcast::<M>,
             #[cfg(anyhow_no_ptr_addr_of)]
@@ -249,6 +252,7 @@ impl Error {
             object_ref: object_ref::<ContextError<C, E>>,
             #[cfg(anyhow_no_ptr_addr_of)]
             object_mut: object_mut::<ContextError<C, E>>,
+            #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
             object_boxed: object_boxed::<ContextError<C, E>>,
             object_downcast: context_downcast::<C, E>,
             #[cfg(anyhow_no_ptr_addr_of)]
@@ -278,6 +282,7 @@ impl Error {
             object_ref: object_ref::<BoxedError>,
             #[cfg(anyhow_no_ptr_addr_of)]
             object_mut: object_mut::<BoxedError>,
+            #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
             object_boxed: object_boxed::<BoxedError>,
             object_downcast: object_downcast::<Box<dyn StdError + Send + Sync>>,
             #[cfg(anyhow_no_ptr_addr_of)]
@@ -394,6 +399,7 @@ impl Error {
             object_ref: object_ref::<ContextError<C, Error>>,
             #[cfg(all(any(feature = "std", not(anyhow_no_core_error)), anyhow_no_ptr_addr_of))]
             object_mut: object_mut::<ContextError<C, Error>>,
+            #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
             object_boxed: object_boxed::<ContextError<C, Error>>,
             object_downcast: context_chain_downcast::<C>,
             #[cfg(anyhow_no_ptr_addr_of)]
@@ -674,6 +680,7 @@ struct ErrorVTable {
     object_ref: unsafe fn(Ref<ErrorImpl>) -> Ref<dyn StdError + Send + Sync + 'static>,
     #[cfg(all(any(feature = "std", not(anyhow_no_core_error)), anyhow_no_ptr_addr_of))]
     object_mut: unsafe fn(Mut<ErrorImpl>) -> &mut (dyn StdError + Send + Sync + 'static),
+    #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
     object_boxed: unsafe fn(Own<ErrorImpl>) -> Box<dyn StdError + Send + Sync + 'static>,
     object_downcast: unsafe fn(Ref<ErrorImpl>, TypeId) -> Option<Ref<()>>,
     #[cfg(anyhow_no_ptr_addr_of)]
@@ -735,6 +742,7 @@ where
 }
 
 // Safety: requires layout of *e to match ErrorImpl<E>.
+#[cfg(any(feature = "std", not(anyhow_no_core_error)))]
 unsafe fn object_boxed<E>(e: Own<ErrorImpl>) -> Box<dyn StdError + Send + Sync + 'static>
 where
     E: StdError + Send + Sync + 'static,
@@ -1048,6 +1056,7 @@ where
     }
 }
 
+#[cfg(any(feature = "std", not(anyhow_no_core_error)))]
 impl From<Error> for Box<dyn StdError + Send + Sync + 'static> {
     #[cold]
     fn from(error: Error) -> Self {
@@ -1060,12 +1069,14 @@ impl From<Error> for Box<dyn StdError + Send + Sync + 'static> {
     }
 }
 
+#[cfg(any(feature = "std", not(anyhow_no_core_error)))]
 impl From<Error> for Box<dyn StdError + Send + 'static> {
     fn from(error: Error) -> Self {
         Box::<dyn StdError + Send + Sync>::from(error)
     }
 }
 
+#[cfg(any(feature = "std", not(anyhow_no_core_error)))]
 impl From<Error> for Box<dyn StdError + 'static> {
     fn from(error: Error) -> Self {
         Box::<dyn StdError + Send + Sync>::from(error)
