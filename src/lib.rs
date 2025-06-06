@@ -238,6 +238,7 @@
     clippy::wildcard_imports,
     clippy::wrong_self_convention
 )]
+#![allow(unknown_lints, mismatched_lifetime_syntaxes)]
 
 #[cfg(all(
     anyhow_nightly_testing,
