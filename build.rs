@@ -13,6 +13,22 @@ compile_error! {
 }
 
 fn main() {
+    // Check if location feature is enabled and Rust version is sufficient
+    if cfg!(feature = "location") {
+        let rustc = match rustc_minor_version() {
+            Some(rustc) => rustc,
+            None => {
+                eprintln!("Failed to determine Rust version");
+                process::exit(1);
+            }
+        };
+        
+        if rustc < 46 {
+            eprintln!("The 'location' feature requires Rust 1.46.0 or later");
+            process::exit(1);
+        }
+    }
+    
     let mut error_generic_member_access = false;
     if cfg!(feature = "std") {
         println!("cargo:rerun-if-changed=src/nightly.rs");

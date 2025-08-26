@@ -14,6 +14,7 @@ rust-version = "1.39"
 [features]
 default = ["std"]
 std = []
+location = []
 
 [dependencies]
 # On compilers older than 1.65, features=["backtrace"] may be used to enable

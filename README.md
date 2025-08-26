@@ -123,6 +123,39 @@ anyhow = "1.0"
   bail!("Missing attribute: {}", missing);
   ```
 
+- When the "location" feature is enabled, you can get detailed location
+  information about where errors occurred using the `where_info()` method.
+  This includes the file path, line number, and column number where the
+  error was created.
+
+  **Note:** The "location" feature requires Rust 1.46.0 or later.
+
+  ```toml
+  [dependencies]
+  anyhow = { version = "1.0", features = ["location"] }
+  ```
+
+  ```rust
+  use anyhow::anyhow;
+
+  fn process_data() -> anyhow::Result<()> {
+      let error = anyhow!("Failed to process data");
+      
+      // Get location information
+      if let Some(location_info) = error.where_info() {
+          println!("{}", location_info);
+          // Output: Error occurred: Failed to process data (at src/main.rs:10:23)
+      }
+      
+      Ok(())
+  }
+  ```
+
+  The `where_info()` method returns `Option<String>` containing formatted
+  location information when the "location" feature is enabled, or `None`
+  when the feature is disabled. Note that context operations may lose
+  location information due to implementation limitations.
+
 <br>
 
 ## No-std support

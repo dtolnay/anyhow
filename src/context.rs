@@ -20,12 +20,17 @@ mod ext {
     where
         E: crate::StdError + Send + Sync + 'static,
     {
+        #[track_caller]
         fn ext_context<C>(self, context: C) -> Error
         where
             C: Display + Send + Sync + 'static,
         {
             let backtrace = backtrace_if_absent!(&self);
-            Error::construct_from_context(context, self, backtrace)
+            #[cfg(feature = "location")]
+            let location = Some(crate::location::Location::capture());
+            #[cfg(not(feature = "location"))]
+            let location = None;
+            Error::construct_from_context(context, self, backtrace, location)
         }
     }
 
@@ -43,6 +48,7 @@ impl<T, E> Context<T, E> for Result<T, E>
 where
     E: ext::StdError + Send + Sync + 'static,
 {
+    #[track_caller]
     fn context<C>(self, context: C) -> Result<T, Error>
     where
         C: Display + Send + Sync + 'static,
@@ -55,6 +61,7 @@ where
         }
     }
 
+    #[track_caller]
     fn with_context<C, F>(self, context: F) -> Result<T, Error>
     where
         C: Display + Send + Sync + 'static,
@@ -88,6 +95,7 @@ where
 /// }
 /// ```
 impl<T> Context<T, Infallible> for Option<T> {
+    #[track_caller]
     fn context<C>(self, context: C) -> Result<T, Error>
     where
         C: Display + Send + Sync + 'static,
@@ -96,10 +104,17 @@ impl<T> Context<T, Infallible> for Option<T> {
         // backtrace.
         match self {
             Some(ok) => Ok(ok),
-            None => Err(Error::construct_from_display(context, backtrace!())),
+            None => {
+                #[cfg(feature = "location")]
+                let location = Some(crate::location::Location::capture());
+                #[cfg(not(feature = "location"))]
+                let location = None;
+                Err(Error::construct_from_display(context, backtrace!(), location))
+            }
         }
     }
 
+    #[track_caller]
     fn with_context<C, F>(self, context: F) -> Result<T, Error>
     where
         C: Display + Send + Sync + 'static,
@@ -107,7 +122,13 @@ impl<T> Context<T, Infallible> for Option<T> {
     {
         match self {
             Some(ok) => Ok(ok),
-            None => Err(Error::construct_from_display(context(), backtrace!())),
+            None => {
+                #[cfg(feature = "location")]
+                let location = Some(crate::location::Location::capture());
+                #[cfg(not(feature = "location"))]
+                let location = None;
+                Err(Error::construct_from_display(context(), backtrace!(), location))
+            }
         }
     }
 }

@@ -260,6 +260,8 @@ mod ensure;
 mod error;
 mod fmt;
 mod kind;
+#[cfg(feature = "location")]
+mod location;
 mod macros;
 #[cfg(error_generic_member_access)]
 mod nightly;
@@ -684,18 +686,25 @@ pub mod __private {
     #[doc(hidden)]
     #[inline]
     #[cold]
+    #[track_caller]
     pub fn format_err(args: Arguments) -> Error {
         #[cfg(anyhow_no_fmt_arguments_as_str)]
         let fmt_arguments_as_str = None::<&str>;
         #[cfg(not(anyhow_no_fmt_arguments_as_str))]
         let fmt_arguments_as_str = args.as_str();
 
+        #[cfg(feature = "location")]
+        let location = Some(crate::location::Location::capture());
+        #[cfg(not(feature = "location"))]
+        let location = None;
+        let backtrace = backtrace!();
+
         if let Some(message) = fmt_arguments_as_str {
             // anyhow!("literal"), can downcast to &'static str
-            Error::msg(message)
+            Error::construct_from_display(message, backtrace, location)
         } else {
             // anyhow!("interpolate {var}"), can downcast to String
-            Error::msg(fmt::format(args))
+            Error::construct_from_display(fmt::format(args), backtrace, location)
         }
     }
 
