@@ -93,7 +93,7 @@ fn test_altdebug() {
 }
 
 #[test]
-#[cfg(feature = "serde")]
+#[cfg(feature = "serialize")]
 fn test_serde() {
     let error = f().unwrap_err();
     let serialized = serde_json::to_string(&error).unwrap();

@@ -265,7 +265,7 @@ mod macros;
 mod nightly;
 mod ptr;
 mod wrapper;
-#[cfg(feature = "serde")]
+#[cfg(feature = "serialize")]
 mod serde;
 
 use crate::error::ErrorImpl;

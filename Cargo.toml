@@ -12,9 +12,9 @@ repository = "https://github.com/dtolnay/anyhow"
 rust-version = "1.39"
 
 [features]
-default = ["std", "serde"]
+default = ["std"]
 std = []
-serde = ["dep:serde"]
+serialize = ["serde"]
 
 [dependencies]
 # On compilers older than 1.65, features=["backtrace"] may be used to enable
