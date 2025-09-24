@@ -91,3 +91,13 @@ fn test_altdebug() {
     assert_eq!(EXPECTED_ALTDEBUG_G, format!("{:#?}", g().unwrap_err()));
     assert_eq!(EXPECTED_ALTDEBUG_H, format!("{:#?}", h().unwrap_err()));
 }
+
+#[test]
+#[cfg(feature = "serde")]
+fn test_serde() {
+    let error = f().unwrap_err();
+    let serialized = serde_json::to_string(&error).unwrap();
+    assert_eq!(serialized, "\"oh no!\"");
+    let deserialized: anyhow::Error = serde_json::from_str(&serialized).unwrap();
+    assert_eq!(deserialized.to_string(), "oh no!");
+}

@@ -12,8 +12,9 @@ repository = "https://github.com/dtolnay/anyhow"
 rust-version = "1.39"
 
 [features]
-default = ["std"]
+default = ["std", "serde"]
 std = []
+serde = ["dep:serde"]
 
 [dependencies]
 # On compilers older than 1.65, features=["backtrace"] may be used to enable
@@ -22,12 +23,15 @@ std = []
 # preferred.
 backtrace = { version = "0.3.51", optional = true }
 
+serde = { version = "1" , optional = true }
+
 [dev-dependencies]
 futures = { version = "0.3", default-features = false }
 rustversion = "1.0.6"
 syn = { version = "2.0", features = ["full"] }
 thiserror = "2"
 trybuild = { version = "1.0.108", features = ["diff"] }
+serde_json = "1"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]

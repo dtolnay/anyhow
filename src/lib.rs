@@ -265,6 +265,8 @@ mod macros;
 mod nightly;
 mod ptr;
 mod wrapper;
+#[cfg(feature = "serde")]
+mod serde;
 
 use crate::error::ErrorImpl;
 use crate::ptr::Own;
