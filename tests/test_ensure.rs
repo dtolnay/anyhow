@@ -464,7 +464,7 @@ fn test_trailer() {
         "Condition failed: `PhantomData::<u8> {} != PhantomData` (PhantomData<u8> vs PhantomData<u8>)",
     );
 
-    let result = Ok::<_, Error>(1);
+    let result = Ok(1);
     let test = || Ok(ensure!(result? == 2));
     assert_err(test, "Condition failed: `result? == 2` (1 vs 2)");
 
