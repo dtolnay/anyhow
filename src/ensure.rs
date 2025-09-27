@@ -900,7 +900,7 @@ macro_rules! __fancy_ensure {
                             $crate::__private::stringify!($rhs),
                             "`",
                         ),
-                    ));
+                    ).into());
                 }
             }
         }
@@ -914,22 +914,22 @@ macro_rules! __fallback_ensure {
         if $crate::__private::not($cond) {
             return $crate::__private::Err($crate::Error::msg(
                 $crate::__private::concat!("Condition failed: `", $crate::__private::stringify!($cond), "`")
-            ));
+            ).into());
         }
     };
     ($cond:expr, $msg:literal $(,)?) => {
         if $crate::__private::not($cond) {
-            return $crate::__private::Err($crate::__anyhow!($msg));
+            return $crate::__private::Err($crate::__anyhow!($msg).into());
         }
     };
     ($cond:expr, $err:expr $(,)?) => {
         if $crate::__private::not($cond) {
-            return $crate::__private::Err($crate::__anyhow!($err));
+            return $crate::__private::Err($crate::__anyhow!($err).into());
         }
     };
     ($cond:expr, $fmt:expr, $($arg:tt)*) => {
         if $crate::__private::not($cond) {
-            return $crate::__private::Err($crate::__anyhow!($fmt, $($arg)*));
+            return $crate::__private::Err($crate::__anyhow!($fmt, $($arg)*).into());
         }
     };
 }
