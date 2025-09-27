@@ -27,7 +27,7 @@
 )]
 
 use self::Enum::Generic;
-use anyhow::{anyhow, ensure, Chain, Error, Result};
+use anyhow::{anyhow, ensure, Ok, Chain, Error, Result};
 use std::fmt::{self, Debug};
 use std::iter;
 use std::marker::{PhantomData, PhantomData as P};
