@@ -57,13 +57,13 @@
 #[cfg_attr(not(anyhow_no_clippy_format_args), clippy::format_args)]
 macro_rules! bail {
     ($msg:literal $(,)?) => {
-        return $crate::__private::Err($crate::__anyhow!($msg))
+        $crate::__private::Err($crate::__anyhow!($msg))?;
     };
     ($err:expr $(,)?) => {
-        return $crate::__private::Err($crate::__anyhow!($err))
+        $crate::__private::Err($crate::__anyhow!($err))?;
     };
     ($fmt:expr, $($arg:tt)*) => {
-        return $crate::__private::Err($crate::__anyhow!($fmt, $($arg)*))
+        $crate::__private::Err($crate::__anyhow!($fmt, $($arg)*))?;
     };
 }
 
@@ -129,24 +129,24 @@ __ensure![
     macro_rules! ensure {
         ($cond:expr $(,)?) => {
             if !$cond {
-                return $crate::__private::Err($crate::Error::msg(
+                $crate::__private::Err($crate::Error::msg(
                     $crate::__private::concat!("Condition failed: `", $crate::__private::stringify!($cond), "`")
-                ));
+                ))?;
             }
         };
         ($cond:expr, $msg:literal $(,)?) => {
             if !$cond {
-                return $crate::__private::Err($crate::__anyhow!($msg));
+                $crate::__private::Err($crate::__anyhow!($msg))?;
             }
         };
         ($cond:expr, $err:expr $(,)?) => {
             if !$cond {
-                return $crate::__private::Err($crate::__anyhow!($err));
+                $crate::__private::Err($crate::__anyhow!($err))?;
             }
         };
         ($cond:expr, $fmt:expr, $($arg:tt)*) => {
             if !$cond {
-                return $crate::__private::Err($crate::__anyhow!($fmt, $($arg)*));
+                $crate::__private::Err($crate::__anyhow!($fmt, $($arg)*))?;
             }
         };
     }
