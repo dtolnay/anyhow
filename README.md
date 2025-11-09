@@ -64,6 +64,16 @@ anyhow = "1.0"
   Caused by:
       No such file or directory (os error 2)
   ```
+- Context also works on Option so you can handle those the same way.
+
+  ```rust
+  use anyhow::{Context, Result};
+
+  fn _foo(o: Option<i32>) -> Result<i32> {
+    let v = o.context("Oh, boy!")?;
+    Ok(v)
+  }
+  ```
 
 - Downcasting is supported and can be by value, by shared reference, or by
   mutable reference as needed.
