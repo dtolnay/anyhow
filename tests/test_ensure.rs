@@ -16,6 +16,7 @@
     clippy::needless_else,
     clippy::never_loop,
     clippy::overly_complex_bool_expr,
+    clippy::ptr_cast_constness,
     clippy::redundant_closure_call,
     clippy::redundant_pattern_matching,
     clippy::too_many_lines,

@@ -113,7 +113,7 @@ where
     }
 
     pub fn as_ptr(self) -> *const T {
-        self.ptr.as_ptr() as *const T
+        self.ptr.as_ptr().cast_const()
     }
 
     pub unsafe fn deref(self) -> &'a T {

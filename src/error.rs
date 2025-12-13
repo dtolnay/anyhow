@@ -779,7 +779,7 @@ where
     // Attach E's native StdError vtable onto a pointer to self._object.
     let unerased_ref = e.cast::<ErrorImpl<E>>();
     Ref::from_raw(unsafe {
-        NonNull::new_unchecked(ptr::addr_of!((*unerased_ref.as_ptr())._object) as *mut E)
+        NonNull::new_unchecked(ptr::addr_of!((*unerased_ref.as_ptr())._object).cast_mut())
     })
 }
 
@@ -816,7 +816,7 @@ where
         let unerased_ref = e.cast::<ErrorImpl<E>>();
         Some(
             Ref::from_raw(unsafe {
-                NonNull::new_unchecked(ptr::addr_of!((*unerased_ref.as_ptr())._object) as *mut E)
+                NonNull::new_unchecked(ptr::addr_of!((*unerased_ref.as_ptr())._object).cast_mut())
             })
             .cast::<()>(),
         )
