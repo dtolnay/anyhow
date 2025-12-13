@@ -685,12 +685,7 @@ pub mod __private {
     #[inline]
     #[cold]
     pub fn format_err(args: Arguments) -> Error {
-        #[cfg(anyhow_no_fmt_arguments_as_str)]
-        let fmt_arguments_as_str = None::<&str>;
-        #[cfg(not(anyhow_no_fmt_arguments_as_str))]
-        let fmt_arguments_as_str = args.as_str();
-
-        if let Some(message) = fmt_arguments_as_str {
+        if let Some(message) = args.as_str() {
             // anyhow!("literal"), can downcast to &'static str
             Error::msg(message)
         } else {
