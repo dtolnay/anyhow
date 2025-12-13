@@ -74,16 +74,9 @@ fn main() {
         println!("cargo:rustc-check-cfg=cfg(anyhow_no_core_error)");
         println!("cargo:rustc-check-cfg=cfg(anyhow_no_core_unwind_safe)");
         println!("cargo:rustc-check-cfg=cfg(anyhow_no_fmt_arguments_as_str)");
-        println!("cargo:rustc-check-cfg=cfg(anyhow_no_ptr_addr_of)");
         println!("cargo:rustc-check-cfg=cfg(anyhow_no_unsafe_op_in_unsafe_fn_lint)");
         println!("cargo:rustc-check-cfg=cfg(error_generic_member_access)");
         println!("cargo:rustc-check-cfg=cfg(std_backtrace)");
-    }
-
-    if rustc < 51 {
-        // core::ptr::addr_of
-        // https://blog.rust-lang.org/2021/03/25/Rust-1.51.0.html#stabilized-apis
-        println!("cargo:rustc-cfg=anyhow_no_ptr_addr_of");
     }
 
     if rustc < 52 {
