@@ -9,7 +9,7 @@ edition = "2018"
 keywords = ["error", "error-handling"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/dtolnay/anyhow"
-rust-version = "1.56"
+rust-version = "1.58"
 
 [features]
 default = ["std"]
