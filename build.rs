@@ -64,9 +64,8 @@ fn main() {
         }
     }
 
-    let rustc = match rustc_minor_version() {
-        Some(rustc) => rustc,
-        None => return,
+    let Some(rustc) = rustc_minor_version() else {
+        return;
     };
 
     if rustc >= 80 {
