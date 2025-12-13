@@ -209,12 +209,7 @@
 #![doc(html_root_url = "https://docs.rs/anyhow/1.0.100")]
 #![cfg_attr(error_generic_member_access, feature(error_generic_member_access))]
 #![no_std]
-#![deny(dead_code, unused_imports, unused_mut)]
-#![cfg_attr(
-    not(anyhow_no_unsafe_op_in_unsafe_fn_lint),
-    deny(unsafe_op_in_unsafe_fn)
-)]
-#![cfg_attr(anyhow_no_unsafe_op_in_unsafe_fn_lint, allow(unused_unsafe))]
+#![deny(dead_code, unsafe_op_in_unsafe_fn, unused_imports, unused_mut)]
 #![allow(
     clippy::doc_markdown,
     clippy::elidable_lifetime_names,

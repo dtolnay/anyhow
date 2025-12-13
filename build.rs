@@ -73,15 +73,8 @@ fn main() {
         println!("cargo:rustc-check-cfg=cfg(anyhow_no_clippy_format_args)");
         println!("cargo:rustc-check-cfg=cfg(anyhow_no_core_error)");
         println!("cargo:rustc-check-cfg=cfg(anyhow_no_core_unwind_safe)");
-        println!("cargo:rustc-check-cfg=cfg(anyhow_no_unsafe_op_in_unsafe_fn_lint)");
         println!("cargo:rustc-check-cfg=cfg(error_generic_member_access)");
         println!("cargo:rustc-check-cfg=cfg(std_backtrace)");
-    }
-
-    if rustc < 52 {
-        // #![deny(unsafe_op_in_unsafe_fn)]
-        // https://github.com/rust-lang/rust/issues/71668
-        println!("cargo:rustc-cfg=anyhow_no_unsafe_op_in_unsafe_fn_lint");
     }
 
     if rustc < 56 {
