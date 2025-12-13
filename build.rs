@@ -78,7 +78,7 @@ fn main() {
         println!("cargo:rustc-check-cfg=cfg(std_backtrace)");
     }
 
-    if !error_generic_member_access && cfg!(feature = "std") && rustc >= 65 {
+    if !error_generic_member_access && cfg!(feature = "std") {
         // std::backtrace::Backtrace
         // https://blog.rust-lang.org/2022/11/03/Rust-1.65.0.html#stabilized-apis
         println!("cargo:rustc-cfg=std_backtrace");
