@@ -209,12 +209,7 @@
 #![doc(html_root_url = "https://docs.rs/anyhow/1.0.100")]
 #![cfg_attr(error_generic_member_access, feature(error_generic_member_access))]
 #![no_std]
-#![deny(dead_code, unused_imports, unused_mut)]
-#![cfg_attr(
-    not(anyhow_no_unsafe_op_in_unsafe_fn_lint),
-    deny(unsafe_op_in_unsafe_fn)
-)]
-#![cfg_attr(anyhow_no_unsafe_op_in_unsafe_fn_lint, allow(unused_unsafe))]
+#![deny(dead_code, unsafe_op_in_unsafe_fn, unused_imports, unused_mut)]
 #![allow(
     clippy::doc_markdown,
     clippy::elidable_lifetime_names,
@@ -233,6 +228,7 @@
     clippy::redundant_else,
     clippy::return_self_not_must_use,
     clippy::struct_field_names,
+    clippy::uninlined_format_args,
     clippy::unused_self,
     clippy::used_underscore_binding,
     clippy::wildcard_imports,
@@ -685,12 +681,7 @@ pub mod __private {
     #[inline]
     #[cold]
     pub fn format_err(args: Arguments) -> Error {
-        #[cfg(anyhow_no_fmt_arguments_as_str)]
-        let fmt_arguments_as_str = None::<&str>;
-        #[cfg(not(anyhow_no_fmt_arguments_as_str))]
-        let fmt_arguments_as_str = args.as_str();
-
-        if let Some(message) = fmt_arguments_as_str {
+        if let Some(message) = args.as_str() {
             // anyhow!("literal"), can downcast to &'static str
             Error::msg(message)
         } else {

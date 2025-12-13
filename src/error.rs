@@ -12,12 +12,9 @@ use core::fmt::{self, Debug, Display};
 use core::mem::ManuallyDrop;
 #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
 use core::ops::{Deref, DerefMut};
-#[cfg(not(anyhow_no_core_unwind_safe))]
 use core::panic::{RefUnwindSafe, UnwindSafe};
 use core::ptr;
 use core::ptr::NonNull;
-#[cfg(all(feature = "std", anyhow_no_core_unwind_safe))]
-use std::panic::{RefUnwindSafe, UnwindSafe};
 
 impl Error {
     /// Create a new error object from any error type.
@@ -782,7 +779,7 @@ where
     // Attach E's native StdError vtable onto a pointer to self._object.
     let unerased_ref = e.cast::<ErrorImpl<E>>();
     Ref::from_raw(unsafe {
-        NonNull::new_unchecked(ptr::addr_of!((*unerased_ref.as_ptr())._object) as *mut E)
+        NonNull::new_unchecked(ptr::addr_of!((*unerased_ref.as_ptr())._object).cast_mut())
     })
 }
 
@@ -819,7 +816,7 @@ where
         let unerased_ref = e.cast::<ErrorImpl<E>>();
         Some(
             Ref::from_raw(unsafe {
-                NonNull::new_unchecked(ptr::addr_of!((*unerased_ref.as_ptr())._object) as *mut E)
+                NonNull::new_unchecked(ptr::addr_of!((*unerased_ref.as_ptr())._object).cast_mut())
             })
             .cast::<()>(),
         )
@@ -1085,8 +1082,5 @@ impl AsRef<dyn StdError> for Error {
     }
 }
 
-#[cfg(any(feature = "std", not(anyhow_no_core_unwind_safe)))]
 impl UnwindSafe for Error {}
-
-#[cfg(any(feature = "std", not(anyhow_no_core_unwind_safe)))]
 impl RefUnwindSafe for Error {}
