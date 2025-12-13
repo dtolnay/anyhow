@@ -19,6 +19,7 @@
     clippy::redundant_closure_call,
     clippy::redundant_pattern_matching,
     clippy::too_many_lines,
+    clippy::uninlined_format_args,
     clippy::unit_arg,
     clippy::unnecessary_cast,
     clippy::while_immutable_condition,

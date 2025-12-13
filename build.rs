@@ -1,3 +1,5 @@
+#![allow(clippy::uninlined_format_args)]
+
 use std::env;
 use std::ffi::OsString;
 use std::fs;

@@ -228,6 +228,7 @@
     clippy::redundant_else,
     clippy::return_self_not_must_use,
     clippy::struct_field_names,
+    clippy::uninlined_format_args,
     clippy::unused_self,
     clippy::used_underscore_binding,
     clippy::wildcard_imports,
