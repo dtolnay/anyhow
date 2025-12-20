@@ -42,7 +42,7 @@ jobs:
       - run: cargo check --no-default-features
       - run: cargo check --features backtrace
         if: matrix.rust != '1.80.0' && matrix.rust != '1.76.0'
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         if: matrix.rust == 'nightly' && always()
         with:
           name: Cargo.lock
