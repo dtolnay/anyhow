@@ -316,12 +316,12 @@ pub use anyhow as format_err;
 /// Failed to read instrs from ./path/to/instrs.json: No such file or directory (os error 2)
 /// ```
 ///
-/// The Debug format "{:?}" includes your backtrace if one was captured. Note
-/// that this is the representation you get by default if you return an error
-/// from `fn main` instead of printing it explicitly yourself.
+/// The Debug format "{:?}" includes your backtrace if one was captured.
+/// Note that the "Error: " prefix is not included unlike returning an error directly from `fn main`.
+/// For more info, see the implementation of [std::process::Termination] for [std::result::Result].
 ///
 /// ```console
-/// Error: Failed to read instrs from ./path/to/instrs.json
+/// Failed to read instrs from ./path/to/instrs.json
 ///
 /// Caused by:
 ///     No such file or directory (os error 2)
@@ -330,7 +330,7 @@ pub use anyhow as format_err;
 /// and if there is a backtrace available:
 ///
 /// ```console
-/// Error: Failed to read instrs from ./path/to/instrs.json
+/// Failed to read instrs from ./path/to/instrs.json
 ///
 /// Caused by:
 ///     No such file or directory (os error 2)
