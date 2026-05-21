@@ -170,3 +170,24 @@ fn test_root_cause() {
 
     assert_eq!(err.root_cause().to_string(), "no such file or directory");
 }
+
+#[test]
+fn test_chain_order_and_downcast() {
+    let (err, dropped) = make_chain();
+
+    let mut chain = err.chain();
+    assert_eq!("failed to start server", chain.next().unwrap().to_string());
+    assert_eq!("failed to load config", chain.next().unwrap().to_string());
+    assert_eq!("no such file or directory", chain.next().unwrap().to_string());
+    assert!(chain.next().is_none());
+
+    assert!(err.downcast_ref::<LowLevel>().is_some());
+    assert_eq!(
+        err.downcast_ref::<LowLevel>().unwrap().to_string(),
+        "no such file or directory"
+    );
+
+    assert!(dropped.none());
+    drop(err);
+    assert!(dropped.all());
+}
