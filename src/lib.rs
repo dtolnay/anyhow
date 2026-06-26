@@ -650,7 +650,43 @@ pub trait Context<T, E>: context::private::Sealed {
 pub fn Ok<T>(value: T) -> Result<T> {
     Result::Ok(value)
 }
-
+#[cfg(feature = "std")]
+/// Enum for backtrace visibility.
+/// 
+/// See set_backtrace_visibility() for usage examples.  
+/// Note: BacktraceVisibility is not available in no_std.
+pub enum BacktraceVisibility {
+    /// Visible backtrace for panics and errors.
+    PanicAndError,
+    /// Only show backtrace for panics.
+    PanicOnly 
+}
+#[inline]
+#[cfg(feature = "std")]
+/// Sets backtrace visibility.
+/// 
+/// See BackTraceVisibility for more info.  
+/// Note: set_backtrace_visibility is not available in no_std.   
+/// 
+/// # example  
+/// ``` no_run
+/// use anyhow::{bail, BacktraceVisibility::*, set_backtrace_visibility};  
+/// fn main() -> anyhow::Result<()> {  
+///     set_backtrace_visibility(PanicOnly);  
+///     bail!("you shall not see a backtrace!");  
+/// }
+/// ```
+pub fn set_backtrace_visibility(visibility: BacktraceVisibility) {
+    use std::env;
+    use crate::BacktraceVisibility::*;
+    match visibility {
+        PanicAndError => env::set_var("RUST_BACKTRACE", "1"),
+        PanicOnly => {
+            env::set_var("RUST_BACKTRACE", "1");
+            env::set_var("RUST_LIB_BACKTRACE", "0");
+        }
+    }
+}
 // Not public API. Referenced by macro-generated code.
 #[doc(hidden)]
 pub mod __private {
