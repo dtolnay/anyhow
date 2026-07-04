@@ -625,6 +625,25 @@ pub trait Context<T, E>: context::private::Sealed {
     where
         C: Display + Send + Sync + 'static,
         F: FnOnce() -> C;
+
+    /// Wrap the error value with additional context, without capturing a
+    /// backtrace.
+    ///
+    /// This is a performance-optimized variant of [`context`](Context::context)
+    /// intended for use on hot paths.
+    fn context_lite<C>(self, context: C) -> Result<T, Error>
+    where
+        C: Display + Send + Sync + 'static;
+
+    /// Wrap the error value with additional context that is evaluated lazily
+    /// only once an error does occur, without capturing a backtrace.
+    ///
+    /// This is a performance-optimized variant of
+    /// [`with_context`](Context::with_context) intended for use on hot paths.
+    fn with_context_lite<C, F>(self, f: F) -> Result<T, Error>
+    where
+        C: Display + Send + Sync + 'static,
+        F: FnOnce() -> C;
 }
 
 /// Equivalent to `Ok::<_, anyhow::Error>(value)`.
@@ -688,6 +707,17 @@ pub mod __private {
         } else {
             // anyhow!("interpolate {var}"), can downcast to String
             Error::msg(fmt::format(args))
+        }
+    }
+
+    #[doc(hidden)]
+    #[inline]
+    #[cold]
+    pub fn format_err_lite(args: Arguments) -> Error {
+        if let Some(message) = args.as_str() {
+            Error::msg_lite(message)
+        } else {
+            Error::msg_lite(fmt::format(args))
         }
     }
 

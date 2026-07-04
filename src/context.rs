@@ -13,6 +13,10 @@ mod ext {
         fn ext_context<C>(self, context: C) -> Error
         where
             C: Display + Send + Sync + 'static;
+
+        fn ext_context_lite<C>(self, context: C) -> Error
+        where
+            C: Display + Send + Sync + 'static;
     }
 
     #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
@@ -27,10 +31,24 @@ mod ext {
             let backtrace = backtrace_if_absent!(&self);
             Error::construct_from_context(context, self, backtrace)
         }
+
+        fn ext_context_lite<C>(self, context: C) -> Error
+        where
+            C: Display + Send + Sync + 'static,
+        {
+            Error::construct_from_context(context, self, None)
+        }
     }
 
     impl StdError for Error {
         fn ext_context<C>(self, context: C) -> Error
+        where
+            C: Display + Send + Sync + 'static,
+        {
+            self.context(context)
+        }
+
+        fn ext_context_lite<C>(self, context: C) -> Error
         where
             C: Display + Send + Sync + 'static,
         {
@@ -63,6 +81,27 @@ where
         match self {
             Ok(ok) => Ok(ok),
             Err(error) => Err(error.ext_context(context())),
+        }
+    }
+
+    fn context_lite<C>(self, context: C) -> Result<T, Error>
+    where
+        C: Display + Send + Sync + 'static,
+    {
+        match self {
+            Ok(ok) => Ok(ok),
+            Err(error) => Err(error.ext_context_lite(context)),
+        }
+    }
+
+    fn with_context_lite<C, F>(self, context: F) -> Result<T, Error>
+    where
+        C: Display + Send + Sync + 'static,
+        F: FnOnce() -> C,
+    {
+        match self {
+            Ok(ok) => Ok(ok),
+            Err(error) => Err(error.ext_context_lite(context())),
         }
     }
 }
@@ -108,6 +147,27 @@ impl<T> Context<T, Infallible> for Option<T> {
         match self {
             Some(ok) => Ok(ok),
             None => Err(Error::construct_from_display(context(), backtrace!())),
+        }
+    }
+
+    fn context_lite<C>(self, context: C) -> Result<T, Error>
+    where
+        C: Display + Send + Sync + 'static,
+    {
+        match self {
+            Some(ok) => Ok(ok),
+            None => Err(Error::construct_from_display(context, None)),
+        }
+    }
+
+    fn with_context_lite<C, F>(self, context: F) -> Result<T, Error>
+    where
+        C: Display + Send + Sync + 'static,
+        F: FnOnce() -> C,
+    {
+        match self {
+            Some(ok) => Ok(ok),
+            None => Err(Error::construct_from_display(context(), None)),
         }
     }
 }

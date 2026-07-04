@@ -222,6 +222,51 @@ macro_rules! anyhow {
     };
 }
 
+/// Construct an ad-hoc error from a string or existing non-`anyhow` error
+/// value, without capturing a backtrace.
+///
+/// This is a performance-optimized variant of [`anyhow!`](crate::anyhow) intended for use on
+/// hot paths where the cost of backtrace capture is unacceptable.
+///
+/// # Example
+///
+/// ```
+/// # type V = ();
+/// #
+/// use anyhow::{anyhow_lite, Result};
+///
+/// fn lookup(key: &str) -> Result<V> {
+///     if key.len() != 16 {
+///         return Err(anyhow_lite!("key length must be 16 characters, got {:?}", key));
+///     }
+///
+///     // ...
+///     # Ok(())
+/// }
+/// ```
+#[macro_export]
+#[cfg_attr(not(anyhow_no_clippy_format_args), clippy::format_args)]
+macro_rules! anyhow_lite {
+    ($msg:literal $(,)?) => {
+        $crate::__private::must_use({
+            let error = $crate::__private::format_err_lite($crate::__private::format_args!($msg));
+            error
+        })
+    };
+    ($err:expr $(,)?) => {
+        $crate::__private::must_use({
+            use $crate::__private::kind::*;
+            let error = match $err {
+                error => (&error).anyhow_kind().new_lite(error),
+            };
+            error
+        })
+    };
+    ($fmt:expr, $($arg:tt)*) => {
+        $crate::Error::msg_lite($crate::__private::format!($fmt, $($arg)*))
+    };
+}
+
 // Not public API. This is used in the implementation of some of the other
 // macros, in which the must_use call is not needed because the value is known
 // to be used.

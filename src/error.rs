@@ -35,6 +35,21 @@ impl Error {
         Error::construct_from_std(error, backtrace)
     }
 
+    /// Create a new error object from any error type, without capturing a
+    /// backtrace.
+    ///
+    /// This is a performance-optimized variant of [`Error::new`] intended for
+    /// use on hot paths where the cost of backtrace capture is unacceptable.
+    #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
+    #[cold]
+    #[must_use]
+    pub fn new_lite<E>(error: E) -> Self
+    where
+        E: StdError + Send + Sync + 'static,
+    {
+        Error::construct_from_std(error, None)
+    }
+
     /// Create a new error object from a printable error message.
     ///
     /// If the argument implements std::error::Error, prefer `Error::new`
@@ -79,6 +94,20 @@ impl Error {
         M: Display + Debug + Send + Sync + 'static,
     {
         Error::construct_from_adhoc(message, backtrace!())
+    }
+
+    /// Create a new error object from a printable error message, without
+    /// capturing a backtrace.
+    ///
+    /// This is a performance-optimized variant of [`Error::msg`] intended for
+    /// use on hot paths where the cost of backtrace capture is unacceptable.
+    #[cold]
+    #[must_use]
+    pub fn msg_lite<M>(message: M) -> Self
+    where
+        M: Display + Debug + Send + Sync + 'static,
+    {
+        Error::construct_from_adhoc(message, None)
     }
 
     /// Construct an error object from a type-erased standard library error.
@@ -381,6 +410,40 @@ impl Error {
 
         // Safety: passing vtable that operates on the right type.
         unsafe { Error::construct(error, vtable, backtrace) }
+    }
+
+    /// Capture a backtrace for this error if it doesn't already have one.
+    ///
+    /// This is intended for "upgrading" an error that was created via a `_lite`
+    /// constructor at a cold API boundary, so that you get a backtrace starting
+    /// from the upgrade site rather than from the original construction site.
+    ///
+    /// If the error already has a captured backtrace, this is a no-op.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use anyhow::{anyhow_lite, Result};
+    ///
+    /// fn hot_loop() -> Result<()> {
+    ///     // No backtrace captured here.
+    ///     Err(anyhow_lite!("something failed"))
+    /// }
+    ///
+    /// pub fn api_boundary() -> Result<()> {
+    ///     hot_loop().map_err(|e| e.backtraced())?;
+    ///     Ok(())
+    /// }
+    /// ```
+    #[cfg(feature = "std")]
+    #[cold]
+    #[must_use]
+    pub fn backtraced(mut self) -> Self {
+        let inner = unsafe { self.inner.by_mut().deref_mut() };
+        if inner.backtrace.is_none() {
+            inner.backtrace = backtrace!();
+        }
+        self
     }
 
     /// Get the backtrace for this Error.

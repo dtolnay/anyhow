@@ -72,6 +72,14 @@ impl Adhoc {
     {
         Error::construct_from_adhoc(message, backtrace!())
     }
+
+    #[cold]
+    pub fn new_lite<M>(self, message: M) -> Error
+    where
+        M: Display + Debug + Send + Sync + 'static,
+    {
+        Error::construct_from_adhoc(message, None)
+    }
 }
 
 pub struct Trait;
@@ -92,6 +100,17 @@ impl Trait {
     where
         E: Into<Error>,
     {
+        error.into()
+    }
+
+    #[cold]
+    pub fn new_lite<E>(self, error: E) -> Error
+    where
+        E: Into<Error>,
+    {
+        // For types that implement Into<Error>, the conversion already happened.
+        // We can't retroactively suppress the backtrace here, but this keeps
+        // the API uniform.
         error.into()
     }
 }
@@ -117,5 +136,10 @@ impl Boxed {
     pub fn new(self, error: Box<dyn StdError + Send + Sync>) -> Error {
         let backtrace = backtrace_if_absent!(&*error);
         Error::construct_from_boxed(error, backtrace)
+    }
+
+    #[cold]
+    pub fn new_lite(self, error: Box<dyn StdError + Send + Sync>) -> Error {
+        Error::construct_from_boxed(error, None)
     }
 }
