@@ -75,10 +75,12 @@ anyhow = "1.0"
   }
   ```
 
-- If using Rust &ge; 1.65, a backtrace is captured and printed with the error if
-  the underlying error type does not already provide its own. In order to see
-  backtraces, they must be enabled through the environment variables described
-  in [`std::backtrace`]:
+- If using Rust &ge; 1.65, a backtrace is captured and printed with the error.
+  In order to see backtraces, they must be enabled through the environment
+  variables described in [`std::backtrace`]. On nightly Rust with the
+  `error_generic_member_access` feature enabled, anyhow additionally detects
+  when the underlying error type already provides a backtrace and avoids
+  capturing a second one in that case:
 
   - If you want panics and errors to both have backtraces, set
     `RUST_BACKTRACE=1`;
