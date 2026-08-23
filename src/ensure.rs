@@ -248,8 +248,11 @@ macro_rules! __parse_ensure {
     };
 
     (0 $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($const:tt $block:tt $($dup:tt)*) const {$($body:tt)*} $($rest:tt)*) => {
-        // TODO: this is mostly useless due to https://github.com/rust-lang/rust/issues/86730
-        $crate::__parse_ensure!(atom $stack $bail ($($fuel)*) {($($buf)* $const $block) $($parse)*} ($($rest)*) $($rest)*)
+        // Parenthesized so that the const block is behind a token tree group by
+        // the time it reaches __fancy_ensure's `:expr` matcher, which does not
+        // accept a bare const block before the 2024 edition.
+        // https://github.com/rust-lang/rust/issues/86730
+        $crate::__parse_ensure!(atom $stack $bail ($($fuel)*) {($($buf)* ($const $block)) $($parse)*} ($($rest)*) $($rest)*)
     };
 
     (0 $stack:tt $bail:tt (~$($fuel:tt)*) {($($buf:tt)*) $($parse:tt)*} ($literal:tt $($dup:tt)*) $lit:literal $($rest:tt)*) => {
@@ -931,5 +934,15 @@ macro_rules! __fallback_ensure {
         if $crate::__private::not($cond) {
             return $crate::__private::Err($crate::__anyhow!($fmt, $($arg)*));
         }
+    };
+
+    // A condition beginning with a const block is not accepted by the `:expr`
+    // matcher before the 2024 edition, so put it behind a token tree group and
+    // re-dispatch. https://github.com/rust-lang/rust/issues/86730
+    //
+    // This arm goes last so that a malformed invocation such as `ensure!()`
+    // still reports the `$cond:expr` above as the thing it failed to match.
+    (const $cond:block $($rest:tt)*) => {
+        $crate::__fallback_ensure!((const $cond) $($rest)*)
     };
 }
