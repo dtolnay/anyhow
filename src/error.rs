@@ -463,7 +463,7 @@ impl Error {
     /// [see here]: crate::Context#effect-on-downcasting
     pub fn is<E>(&self) -> bool
     where
-        E: Display + Debug + Send + Sync + 'static,
+        E: Display + Send + Sync + 'static,
     {
         self.downcast_ref::<E>().is_some()
     }
@@ -471,7 +471,7 @@ impl Error {
     /// Attempt to downcast the error object to a concrete type.
     pub fn downcast<E>(mut self) -> Result<E, Self>
     where
-        E: Display + Debug + Send + Sync + 'static,
+        E: Display + Send + Sync + 'static,
     {
         let target = TypeId::of::<E>();
         let inner = self.inner.by_mut();
@@ -535,7 +535,7 @@ impl Error {
     /// ```
     pub fn downcast_ref<E>(&self) -> Option<&E>
     where
-        E: Display + Debug + Send + Sync + 'static,
+        E: Display + Send + Sync + 'static,
     {
         let target = TypeId::of::<E>();
         unsafe {
@@ -549,7 +549,7 @@ impl Error {
     /// Downcast this error object by mutable reference.
     pub fn downcast_mut<E>(&mut self) -> Option<&mut E>
     where
-        E: Display + Debug + Send + Sync + 'static,
+        E: Display + Send + Sync + 'static,
     {
         let target = TypeId::of::<E>();
         unsafe {
