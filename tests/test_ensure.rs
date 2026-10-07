@@ -518,7 +518,13 @@ fn test_too_long() {
     );
 
     let test = || Ok(ensure!("" == "x".repeat(80)));
-    assert_err(test, "Condition failed: `\"\" == \"x\".repeat(80)`");
+    assert_err(
+        test,
+        "Condition failed: `\"\" == \"x\".repeat(80)` (\"\" vs \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\")",
+    );
+
+    let test = || Ok(ensure!("" == "x".repeat(300)));
+    assert_err(test, "Condition failed: `\"\" == \"x\".repeat(300)`");
 }
 
 #[test]

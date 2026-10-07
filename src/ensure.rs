@@ -33,14 +33,14 @@ impl<A, B> NotBothDebug for &(A, B) {
 }
 
 struct Buf {
-    bytes: [MaybeUninit<u8>; 40],
+    bytes: [MaybeUninit<u8>; 256],
     written: usize,
 }
 
 impl Buf {
     fn new() -> Self {
         Buf {
-            bytes: [MaybeUninit::uninit(); 40],
+            bytes: [MaybeUninit::uninit(); 256],
             written: 0,
         }
     }
