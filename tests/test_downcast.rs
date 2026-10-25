@@ -121,3 +121,24 @@ fn test_unsuccessful_downcast() {
     assert!(error.downcast_mut::<&str>().is_none());
     assert!(error.downcast::<&str>().is_err());
 }
+
+// Context types are Display + Send + Sync + 'static, not necessarily Debug.
+// See https://github.com/dtolnay/anyhow/issues/270
+#[test]
+fn test_downcast_display_only_context() {
+    struct Marker;
+
+    impl Display for Marker {
+        fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("marker")
+        }
+    }
+
+    let error = Error::msg("base").context(Marker);
+    assert!(error.is::<Marker>());
+    assert!(error.downcast_ref::<Marker>().is_some());
+
+    let mut error = Error::msg("base").context(Marker);
+    assert!(error.downcast_mut::<Marker>().is_some());
+    error.downcast::<Marker>().unwrap();
+}
