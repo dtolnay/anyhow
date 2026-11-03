@@ -676,6 +676,10 @@ pub mod __private {
         #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
         #[doc(hidden)]
         pub use crate::kind::BoxedKind;
+
+        #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
+        #[doc(hidden)]
+        pub use crate::kind::SharedKind;
     }
 
     #[doc(hidden)]
