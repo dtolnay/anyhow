@@ -9,7 +9,7 @@ note: the lint level is defined here
   |
 1 | #![deny(unused_must_use)]
   |         ^^^^^^^^^^^^^^^
-help: use `let _unused = ...` to ignore the resulting value without dropping it immediately
+help: if you wish to disregard this recommendation, use `let _unused = ...` to ignore the resulting value without dropping it immediately
   |
 8 |         let _unused = anyhow!("it failed");
   |         +++++++++++++
