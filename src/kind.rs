@@ -119,3 +119,42 @@ impl Boxed {
         Error::construct_from_boxed(error, backtrace)
     }
 }
+
+// An anyhow::Error held behind an Arc does not implement
+// std::error::Error (anyhow::Error only derefs to a dyn Error), so it
+// matches neither TraitKind nor BoxedKind and used to fall through to the
+// message-only AdhocKind, which kept only the outermost context and dropped
+// the rest of the chain. SharedKind catches that shape before AdhocKind
+// (fewer autorefs) and routes it through the chain-preserving SharedError
+// wrapper instead.
+//
+// There is deliberately no From<Arc<Error>> impl to go with this: the
+// compiler rejects such an impl as conflicting with the blanket From impl,
+// since std could one day provide an Error impl for Arc wrappers of
+// anyhow::Error. A borrowed &'static Error has the same underlying problem
+// but cannot be covered here: AdhocKind's blanket impl for &T already
+// applies to it with the same receiver, so a SharedKind impl for references
+// would make the macro call ambiguous.
+pub struct Shared;
+
+#[doc(hidden)]
+pub trait SharedKind: Sized {
+    #[inline]
+    fn anyhow_kind(&self) -> Shared {
+        Shared
+    }
+}
+
+#[cfg(any(feature = "std", not(anyhow_no_core_error)))]
+impl SharedKind for alloc::sync::Arc<Error> {}
+
+#[cfg(any(feature = "std", not(anyhow_no_core_error)))]
+impl Shared {
+    #[cold]
+    pub fn new<T>(self, error: T) -> Error
+    where
+        T: core::ops::Deref<Target = Error> + Send + Sync + 'static,
+    {
+        Error::construct_from_shared(error)
+    }
+}
