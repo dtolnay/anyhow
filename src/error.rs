@@ -257,7 +257,7 @@ impl Error {
             #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
             object_boxed: object_boxed::<BoxedError>,
             #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
-            object_reallocate_boxed: object_reallocate_boxed::<BoxedError>,
+            object_reallocate_boxed: boxed_reallocate_boxed,
             object_downcast: object_downcast::<Box<dyn StdError + Send + Sync>>,
             object_drop_rest: object_drop_front::<Box<dyn StdError + Send + Sync>>,
             #[cfg(all(not(error_generic_member_access), feature = "std"))]
@@ -782,6 +782,15 @@ where
     // Attach E's native StdError vtable.
     let unerased_own = e.cast::<ErrorImpl<E>>();
     Box::new(unsafe { unerased_own.boxed() }._object)
+}
+
+// Safety: requires layout of *e to match ErrorImpl<BoxedError>.
+#[cfg(any(feature = "std", not(anyhow_no_core_error)))]
+unsafe fn boxed_reallocate_boxed(e: Own<ErrorImpl>) -> Box<dyn StdError + Send + Sync + 'static> {
+    // Hand back the user's original box rather than boxing BoxedError, which
+    // could not be downcast to anything.
+    let unerased_own = e.cast::<ErrorImpl<crate::wrapper::BoxedError>>();
+    unsafe { unerased_own.boxed() }._object.0
 }
 
 // Safety: requires layout of *e to match ErrorImpl<E>.
