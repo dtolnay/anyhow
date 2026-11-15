@@ -4,6 +4,27 @@ pub(crate) use std::backtrace::Backtrace;
 #[cfg(not(feature = "std"))]
 pub(crate) enum Backtrace {}
 
+// Boxed, and only when one was actually captured, so that errors do not carry
+// 48 bytes of Backtrace inline while backtraces are disabled.
+#[cfg(feature = "std")]
+pub(crate) type StoredBacktrace = Option<alloc::boxed::Box<Backtrace>>;
+
+#[cfg(not(feature = "std"))]
+pub(crate) type StoredBacktrace = Option<Backtrace>;
+
+#[cfg(feature = "std")]
+pub(crate) fn store(backtrace: Option<Backtrace>) -> StoredBacktrace {
+    use std::backtrace::BacktraceStatus;
+    backtrace
+        .filter(|backtrace| backtrace.status() != BacktraceStatus::Disabled)
+        .map(alloc::boxed::Box::new)
+}
+
+#[cfg(not(feature = "std"))]
+pub(crate) fn store(backtrace: Option<Backtrace>) -> StoredBacktrace {
+    backtrace
+}
+
 #[cfg(feature = "std")]
 macro_rules! backtrace {
     () => {

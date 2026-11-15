@@ -1,4 +1,4 @@
-use crate::backtrace::Backtrace;
+use crate::backtrace::{self, Backtrace, StoredBacktrace};
 use crate::chain::Chain;
 #[cfg(error_generic_member_access)]
 use crate::nightly::{self, Request};
@@ -285,7 +285,7 @@ impl Error {
     {
         let inner: Box<ErrorImpl<E>> = Box::new(ErrorImpl {
             vtable,
-            backtrace,
+            backtrace: backtrace::store(backtrace),
             _object: error,
         });
         // Erase the concrete type of E from the compile-time type system. This
@@ -907,11 +907,15 @@ where
 #[repr(C)]
 pub(crate) struct ErrorImpl<E = ()> {
     vtable: &'static ErrorVTable,
-    backtrace: Option<Backtrace>,
+    backtrace: StoredBacktrace,
     // NOTE: Don't use directly. Use only through vtable. Erased type may have
     // different alignment.
     _object: E,
 }
+
+// Stands in for a disabled backtrace, which is not stored per error.
+#[cfg(feature = "std")]
+static DISABLED_BACKTRACE: Backtrace = Backtrace::disabled();
 
 // Reads the vtable out of `p`. This is the same as `p.as_ref().vtable`, but
 // avoids converting `p` into a reference.
@@ -957,19 +961,16 @@ impl ErrorImpl {
 
     #[cfg(feature = "std")]
     pub(crate) unsafe fn backtrace(this: Ref<Self>) -> &Backtrace {
-        // This unwrap can only panic if the underlying error's backtrace method
-        // is nondeterministic, which would only happen in maliciously
-        // constructed code.
         unsafe { this.deref() }
             .backtrace
-            .as_ref()
+            .as_deref()
             .or_else(|| {
                 #[cfg(error_generic_member_access)]
                 return nightly::request_ref_backtrace(unsafe { Self::error(this) });
                 #[cfg(not(error_generic_member_access))]
                 return unsafe { (vtable(this.ptr).object_backtrace)(this) };
             })
-            .expect("backtrace capture failed")
+            .unwrap_or(&DISABLED_BACKTRACE)
     }
 
     #[cfg(error_generic_member_access)]
@@ -978,6 +979,8 @@ impl ErrorImpl {
             nightly::provide_ref_backtrace(request, backtrace);
         }
         nightly::provide(unsafe { Self::error(this) }, request);
+        // No-op if a backtrace was provided above.
+        nightly::provide_ref_backtrace(request, &DISABLED_BACKTRACE);
     }
 
     #[cold]
