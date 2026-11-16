@@ -5,6 +5,8 @@ use crate::nightly::{self, Request};
 #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
 use crate::ptr::Mut;
 use crate::ptr::{Own, Ref};
+#[cfg(any(feature = "std", not(anyhow_no_core_error)))]
+use crate::wrapper::SharedError;
 use crate::{Error, StdError};
 use alloc::boxed::Box;
 use core::any::TypeId;
@@ -266,6 +268,36 @@ impl Error {
 
         // Safety: BoxedError is repr(transparent) so it is okay for the vtable
         // to allow casting to Box<dyn StdError + Send + Sync>.
+        unsafe { Error::construct(error, vtable, backtrace) }
+    }
+
+    // Wrap an anyhow::Error that is held behind an Arc, preserving its full
+    // chain of causes. SharedError is repr(transparent) over T, so the
+    // vtable may keep downcasting to T itself, matching what the old
+    // message-only conversion offered.
+    #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
+    #[cold]
+    pub(crate) fn construct_from_shared<T>(error: T) -> Self
+    where
+        T: Deref<Target = Error> + Send + Sync + 'static,
+    {
+        let error = SharedError(error);
+        let backtrace = backtrace_if_absent!(&error);
+        let vtable = &ErrorVTable {
+            object_drop: object_drop::<SharedError<T>>,
+            object_ref: object_ref::<SharedError<T>>,
+            #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
+            object_boxed: object_boxed::<SharedError<T>>,
+            #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
+            object_reallocate_boxed: object_reallocate_boxed::<SharedError<T>>,
+            object_downcast: object_downcast::<T>,
+            object_drop_rest: object_drop_front::<SharedError<T>>,
+            #[cfg(all(not(error_generic_member_access), feature = "std"))]
+            object_backtrace: no_backtrace,
+        };
+
+        // Safety: SharedError is repr(transparent) over T, so a pointer to
+        // the SharedError field is also a pointer to the wrapped T.
         unsafe { Error::construct(error, vtable, backtrace) }
     }
 
