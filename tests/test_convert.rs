@@ -73,3 +73,23 @@ fn test_anyhow_from_arc_error_downcast_by_value() {
     let shared = converted.downcast::<Arc<Error>>().unwrap();
     assert_eq!("error2: error1", format!("{:#}", shared));
 }
+
+// Converting an Arc<Error> must keep the backtrace the inner error already
+// carries, not capture a fresh one at the conversion site. Only nightly
+// exposes backtraces through the error generic member access API, so this
+// runs there; on stable the converted error captures its own backtrace.
+#[rustversion::not(nightly)]
+#[ignore = "requires nightly"]
+#[test]
+fn test_anyhow_from_arc_error_keeps_backtrace() {}
+
+#[rustversion::nightly]
+#[test]
+fn test_anyhow_from_arc_error_keeps_backtrace() {
+    use std::sync::Arc;
+
+    let error = Error::msg("error1").context("error2");
+    let shared = Arc::new(error);
+    let converted = anyhow::anyhow!(Arc::clone(&shared));
+    assert!(std::ptr::eq(converted.backtrace(), shared.backtrace()));
+}
