@@ -1,5 +1,8 @@
-use crate::{Error, StdError};
+use crate::StdError;
+#[cfg(any(feature = "std", not(anyhow_no_core_error)))]
+use crate::Error;
 use core::fmt::{self, Debug, Display};
+#[cfg(any(feature = "std", not(anyhow_no_core_error)))]
 use core::ops::Deref;
 
 #[cfg(any(feature = "std", not(anyhow_no_core_error)))]

@@ -135,8 +135,10 @@ impl Boxed {
 // but cannot be covered here: AdhocKind's blanket impl for &T already
 // applies to it with the same receiver, so a SharedKind impl for references
 // would make the macro call ambiguous.
+#[cfg(any(feature = "std", not(anyhow_no_core_error)))]
 pub struct Shared;
 
+#[cfg(any(feature = "std", not(anyhow_no_core_error)))]
 #[doc(hidden)]
 pub trait SharedKind: Sized {
     #[inline]
