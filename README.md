@@ -88,6 +88,12 @@ anyhow = "1.0"
 
   [`std::backtrace`]: https://doc.rust-lang.org/std/backtrace/index.html#environment-variables
 
+  > **Note:** Whether anyhow can detect that an underlying error type already
+  > provides its own backtrace depends on the unstable
+  > `error_generic_member_access` feature. When that feature is not
+  > available (stable Rust), anyhow always captures its own backtrace
+  > regardless of whether the underlying error has one.
+
 - Anyhow works with any error type that has an impl of `std::error::Error`,
   including ones defined in your crate. We do not bundle a `derive(Error)` macro
   but you can write the impls yourself or use a standalone macro like
