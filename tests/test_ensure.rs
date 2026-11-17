@@ -15,6 +15,7 @@
     clippy::match_bool,
     clippy::needless_else,
     clippy::never_loop,
+    clippy::nonminimal_bool,
     clippy::overly_complex_bool_expr,
     clippy::ptr_cast_constness,
     clippy::redundant_closure_call,
@@ -292,6 +293,58 @@ fn test_loop() {
         test,
         "Condition failed: `for true | false in iter::empty() {}.t(1) == 2` (1 vs 2)",
     );
+}
+
+#[test]
+fn test_const_block() {
+    #[rustfmt::skip]
+    let test = || Ok(ensure!(const { 1 + 1 } == 3));
+    assert_err(
+        test,
+        "Condition failed: `(const { 1 + 1 }) == 3` (2 vs 3)",
+    );
+
+    #[rustfmt::skip]
+    let test = || Ok(ensure!(3 == const { 1 + 1 }));
+    assert_err(
+        test,
+        "Condition failed: `3 == (const { 1 + 1 })` (3 vs 2)",
+    );
+
+    #[rustfmt::skip]
+    let test = || Ok(ensure!(const { 1 } == const { 2 }));
+    assert_err(
+        test,
+        "Condition failed: `(const { 1 }) == (const { 2 })` (1 vs 2)",
+    );
+
+    #[rustfmt::skip]
+    let test = || Ok(ensure!(1 + const { 1 } == 3));
+    assert_err(
+        test,
+        "Condition failed: `1 + (const { 1 }) == 3` (2 vs 3)",
+    );
+
+    #[rustfmt::skip]
+    let test = || Ok(ensure!([const { 1 }][0] == 2));
+    assert_err(
+        test,
+        "Condition failed: `[const { 1 }][0] == 2` (1 vs 2)",
+    );
+
+    // Conditions that do not go through the comparison machinery.
+
+    #[rustfmt::skip]
+    let test = || Ok(ensure!(const { false }));
+    assert_err(test, "Condition failed: `(const { false })`");
+
+    #[rustfmt::skip]
+    let test = || Ok(ensure!(const { false } && true));
+    assert_err(test, "Condition failed: `(const { false }) && true`");
+
+    #[rustfmt::skip]
+    let test = || Ok(ensure!(true && const { false }));
+    assert_err(test, "Condition failed: `true && const { false }`");
 }
 
 #[test]
