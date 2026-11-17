@@ -13,3 +13,17 @@ fn test_backtrace() {
     let error = anyhow!("oh no!");
     let _ = error.backtrace();
 }
+
+#[cfg(feature = "std")]
+#[test]
+fn test_new_with_backtrace() {
+    use anyhow::Error;
+    use std::backtrace::Backtrace;
+    use std::io;
+
+    let backtrace = Backtrace::force_capture();
+    let expected = format!("{:?}", backtrace);
+    let error =
+        Error::new_with_backtrace(io::Error::new(io::ErrorKind::Other, "oh no!"), backtrace);
+    assert_eq!(expected, format!("{:?}", error.backtrace()));
+}
