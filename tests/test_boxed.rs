@@ -46,7 +46,8 @@ fn test_boxed_anyhow() {
 
 #[test]
 fn test_boxed_reallocate() {
-    let error = Box::<dyn StdError + Send + Sync>::from(io::Error::new(io::ErrorKind::Other, "oh no!"));
+    let error =
+        Box::<dyn StdError + Send + Sync>::from(io::Error::new(io::ErrorKind::Other, "oh no!"));
     let error = anyhow!(error).reallocate_into_boxed_dyn_error_without_backtrace();
     assert_eq!("oh no!", error.downcast::<io::Error>().unwrap().to_string());
 }
