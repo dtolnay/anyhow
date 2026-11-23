@@ -28,5 +28,6 @@ note: the traits `std::error::Error` and `std::fmt::Display` must be implemented
   = note: the following traits define an item `anyhow_kind`, perhaps you need to implement one of them:
           candidate #1: `anyhow::__private::kind::AdhocKind`
           candidate #2: `anyhow::__private::kind::BoxedKind`
-          candidate #3: `anyhow::__private::kind::TraitKind`
+          candidate #3: `anyhow::__private::kind::SharedKind`
+          candidate #4: `anyhow::__private::kind::TraitKind`
   = note: this error originates in the macro `anyhow` (in Nightly builds, run with -Z macro-backtrace for more info)
