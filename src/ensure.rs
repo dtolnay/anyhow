@@ -890,7 +890,7 @@ macro_rules! __fancy_ensure {
                 if !(lhs $op rhs) {
                     #[allow(unused_imports)]
                     use $crate::__private::{BothDebug, NotBothDebug};
-                    return Err((lhs, rhs).__dispatch_ensure(
+                    return $crate::__private::Err((lhs, rhs).__dispatch_ensure(
                         $crate::__private::concat!(
                             "Condition failed: `",
                             $crate::__private::stringify!($lhs),
