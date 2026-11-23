@@ -787,8 +787,8 @@ where
 // Safety: requires layout of *e to match ErrorImpl<BoxedError>.
 #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
 unsafe fn boxed_reallocate_boxed(e: Own<ErrorImpl>) -> Box<dyn StdError + Send + Sync + 'static> {
-    // Hand back the user's original box rather than boxing BoxedError, which
-    // could not be downcast to anything.
+    // Produce the underlying already boxed error, instead of a Box<BoxedError>
+    // as object_reallocate_boxed would do.
     let unerased_own = e.cast::<ErrorImpl<crate::wrapper::BoxedError>>();
     unsafe { unerased_own.boxed() }._object.0
 }
