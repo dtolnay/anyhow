@@ -35,6 +35,21 @@ impl Error {
         Error::construct_from_std(error, backtrace)
     }
 
+    /// Create a new error object from any error type and a backtrace.
+    ///
+    /// The error type must be threadsafe and `'static`, so that the `Error`
+    /// will be as well. This is useful when the backtrace was captured before
+    /// the error was constructed.
+    #[cfg(feature = "std")]
+    #[cold]
+    #[must_use]
+    pub fn new_with_backtrace<E>(error: E, backtrace: Backtrace) -> Self
+    where
+        E: StdError + Send + Sync + 'static,
+    {
+        Error::construct_from_std(error, Some(backtrace))
+    }
+
     /// Create a new error object from a printable error message.
     ///
     /// If the argument implements std::error::Error, prefer `Error::new`
