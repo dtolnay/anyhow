@@ -369,7 +369,7 @@ impl Error {
             #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
             object_boxed: object_boxed::<ContextError<C, Error>>,
             #[cfg(any(feature = "std", not(anyhow_no_core_error)))]
-            object_reallocate_boxed: object_reallocate_boxed::<ContextError<C, Error>>,
+            object_reallocate_boxed: context_chain_reallocate_boxed::<C>,
             object_downcast: context_chain_downcast::<C>,
             object_drop_rest: context_chain_drop_rest::<C>,
             #[cfg(all(not(error_generic_member_access), feature = "std"))]
@@ -872,6 +872,28 @@ where
         let source = &unerased._object.error;
         unsafe { (vtable(source.inner.ptr).object_downcast)(source.inner.by_ref(), target) }
     }
+}
+
+// Safety: requires layout of *e to match ErrorImpl<ContextError<C, Error>>.
+#[cfg(any(feature = "std", not(anyhow_no_core_error)))]
+unsafe fn context_chain_reallocate_boxed<C>(
+    e: Own<ErrorImpl>,
+) -> Box<dyn StdError + Send + Sync + 'static>
+where
+    C: 'static,
+{
+    // Recurse into the inner error so that reallocating a context chain
+    // produces the innermost error's own box, the same as reallocating the
+    // inner error directly would. Boxing this layer's ContextError instead
+    // would leave the result downcastable to nothing, because ContextError
+    // is not a public type.
+    let unerased_own = e.cast::<ErrorImpl<ContextError<C, ManuallyDrop<Error>>>>();
+    let unerased = unsafe { unerased_own.boxed() };
+    // Read the Own<ErrorImpl> from the next error.
+    let inner = unerased._object.error.inner;
+    drop(unerased);
+    let vtable = unsafe { vtable(inner.ptr) };
+    unsafe { (vtable.object_reallocate_boxed)(inner) }
 }
 
 // Safety: requires layout of *e to match ErrorImpl<ContextError<C, Error>>.

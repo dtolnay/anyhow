@@ -51,3 +51,21 @@ fn test_boxed_reallocate() {
     let error = anyhow!(error).reallocate_into_boxed_dyn_error_without_backtrace();
     assert_eq!("oh no!", error.downcast::<io::Error>().unwrap().to_string());
 }
+
+#[test]
+fn test_boxed_reallocate_with_context() {
+    let boxed =
+        Box::<dyn StdError + Send + Sync>::from(io::Error::new(io::ErrorKind::Other, "oh no!"));
+    let error = ::anyhow::Error::from_boxed(boxed).context("ctx msg");
+    let error = error.reallocate_into_boxed_dyn_error_without_backtrace();
+    // The context message is discarded, consistent with reallocating the
+    // underlying error directly; what must survive is the underlying type.
+    assert_eq!("oh no!", error.to_string());
+    assert_eq!(
+        "oh no!",
+        error
+            .downcast_ref::<io::Error>()
+            .expect("underlying error should be downcastable after context + reallocate")
+            .to_string()
+    );
+}
