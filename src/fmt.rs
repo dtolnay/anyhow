@@ -40,7 +40,10 @@ impl ErrorImpl {
             }
         }
 
-        #[cfg(feature = "std")]
+        #[cfg(all(
+            feature = "std",
+            not(all(target_arch = "wasm32", target_os = "unknown"))
+        ))]
         {
             use alloc::string::ToString;
             use std::backtrace::BacktraceStatus;
